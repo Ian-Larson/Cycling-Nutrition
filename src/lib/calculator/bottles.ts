@@ -1,5 +1,6 @@
 import type { Bottle, Product, BottleAllocation, RideCharacteristics } from '@/types';
 import { calculateHydrationNeeds } from './carbs';
+import { MAX_CARB_CONCENTRATION_G_PER_ML } from './constants';
 
 export function selectOptimalBottles(
   available: Bottle[],
@@ -61,7 +62,8 @@ function allocateMixToBottles(
 
   return bottles.map((bottle) => {
     const proportion = bottle.capacityMl / totalCapacity;
-    const carbsForBottle = carbsNeeded * proportion;
+    const maxCarbsForBottle = bottle.capacityMl * MAX_CARB_CONCENTRATION_G_PER_ML;
+    const carbsForBottle = Math.min(carbsNeeded * proportion, maxCarbsForBottle);
     const mixGrams = Math.round(carbsForBottle / carbsPerGram);
 
     return {

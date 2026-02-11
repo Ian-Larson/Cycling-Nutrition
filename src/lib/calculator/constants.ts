@@ -15,3 +15,6 @@ export const HYDRATION_MULTIPLIERS = {
 } as const;
 
 export const BASE_HYDRATION_ML_PER_HOUR = 500;
+
+// Max carbs per ml of liquid (80g per 500ml = hydrogel upper bound like Maurten)
+export const MAX_CARB_CONCENTRATION_G_PER_ML = 0.16;

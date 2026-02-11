@@ -25,6 +25,18 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
 
   return (
     <div className="space-y-4">
+      {plan.warnings && plan.warnings.length > 0 && (
+        <Card className="border-amber-300 bg-amber-50">
+          <CardContent className="py-4">
+            {plan.warnings.map((warning, i) => (
+              <p key={i} className="text-amber-800 text-sm">
+                <span className="font-semibold">Warning:</span> {warning.message}
+              </p>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <h3 className="font-semibold">Summary</h3>

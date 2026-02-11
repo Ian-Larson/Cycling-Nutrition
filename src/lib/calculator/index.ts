@@ -1,4 +1,4 @@
-import type { Bottle, Product, FuelPlan, RideCharacteristics, SolidAllocation } from '@/types';
+import type { Bottle, Product, FuelPlan, FuelPlanWarning, RideCharacteristics, SolidAllocation } from '@/types';
 import { calculateTotalCarbsNeeded, calculateHydrationNeeds } from './carbs';
 import { selectOptimalBottles } from './bottles';
 import { generateConsumptionGuide } from './timing';
@@ -47,11 +47,21 @@ export function calculateFuelPlan(
   const totalCarbsPlanned =
     bottles.reduce((sum, b) => sum + b.carbsTotal, 0) + solidCarbs;
 
+  const warnings: FuelPlanWarning[] = [];
+  if (totalCarbsPlanned < totalCarbsNeeded) {
+    const deficit = totalCarbsNeeded - totalCarbsPlanned;
+    warnings.push({
+      type: 'concentration_limit',
+      message: `Bottle concentration limits reduce planned carbs by ${deficit}g. Consider adding solid fuel (gels/chews) or using a refuel stop to make up the difference.`,
+    });
+  }
+
   return {
     rideCharacteristics: input.ride,
     bottles,
     solids: solidAllocations,
     consumptionGuide,
+    ...(warnings.length > 0 ? { warnings } : {}),
     summary: {
       totalCarbsPlanned,
       totalCarbsNeeded,

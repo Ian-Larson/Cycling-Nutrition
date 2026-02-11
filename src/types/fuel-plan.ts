@@ -1,5 +1,15 @@
 import type { RideCharacteristics } from './ride';
 
+export type FuelPlanWarningType =
+  | 'concentration_limit'
+  | 'insufficient_capacity'
+  | 'refuel_suggested';
+
+export interface FuelPlanWarning {
+  type: FuelPlanWarningType;
+  message: string;
+}
+
 export interface BottleAllocation {
   bottleId: string;
   productId: string;
@@ -28,6 +38,7 @@ export interface FuelPlan {
   bottles: BottleAllocation[];
   solids: SolidAllocation[];
   consumptionGuide: ConsumptionGuideItem[];
+  warnings?: FuelPlanWarning[];
   summary: {
     totalCarbsPlanned: number;
     totalCarbsNeeded: number;
