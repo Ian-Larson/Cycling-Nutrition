@@ -23,7 +23,7 @@ export function Toggle({ checked, onChange, label, disabled }: ToggleProps) {
     >
       <span
         className={clsx(
-          'inline-block h-4 w-4 rounded-full bg-white transition-transform',
+          'absolute h-4 w-4 rounded-full bg-white transition-transform',
           checked ? 'translate-x-6' : 'translate-x-1'
         )}
       />

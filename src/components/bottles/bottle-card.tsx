@@ -27,7 +27,7 @@ export function BottleCard({
               onChange={onToggleAvailable}
               label={bottle.isAvailable ? 'Available' : 'Unavailable'}
             />
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 w-20">
               {bottle.isAvailable ? 'Available' : 'Unavailable'}
             </span>
           </div>
