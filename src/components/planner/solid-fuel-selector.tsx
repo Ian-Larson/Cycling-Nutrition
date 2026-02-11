@@ -22,7 +22,7 @@ export function SolidFuelSelector({
     return (
       <p className="text-sm text-gray-500">
         No gels, chews, or bars added yet.{' '}
-        <Link to="/products" className="text-brand-600 underline font-medium">
+        <Link to="/inventory" className="text-brand-600 underline font-medium">
           Add products
         </Link>
       </p>

@@ -76,7 +76,7 @@ export function PlannerPage() {
               {availableBottles.length === 0 && (
                 <li>
                   • Add at least one available bottle on the{' '}
-                  <Link to="/bottles" className="underline font-medium">
+                  <Link to="/inventory" className="underline font-medium">
                     Bottles page
                   </Link>
                 </li>
@@ -84,7 +84,7 @@ export function PlannerPage() {
               {drinkMixes.length === 0 && (
                 <li>
                   • Add at least one drink mix on the{' '}
-                  <Link to="/products" className="underline font-medium">
+                  <Link to="/inventory" className="underline font-medium">
                     Products page
                   </Link>
                 </li>

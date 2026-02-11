@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Header } from '@/components/layout/header';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { PlannerPage } from '@/pages/planner';
-import { BottlesPage } from '@/pages/bottles';
-import { ProductsPage } from '@/pages/products';
+import { InventoryPage } from '@/pages/inventory';
 import { HistoryPage } from '@/pages/history';
 import { SettingsPage } from '@/pages/settings';
 import { useStore } from '@/store';
@@ -24,8 +23,9 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<PlannerPage />} />
-            <Route path="/bottles" element={<BottlesPage />} />
-            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/bottles" element={<Navigate to="/inventory" replace />} />
+            <Route path="/products" element={<Navigate to="/inventory" replace />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>

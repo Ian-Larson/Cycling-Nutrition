@@ -3,8 +3,7 @@ import { clsx } from 'clsx';
 
 const navItems = [
   { path: '/', label: 'Planner' },
-  { path: '/bottles', label: 'Bottles' },
-  { path: '/products', label: 'Products' },
+  { path: '/inventory', label: 'Inventory' },
   { path: '/history', label: 'History' },
   { path: '/settings', label: 'Settings' },
 ];
