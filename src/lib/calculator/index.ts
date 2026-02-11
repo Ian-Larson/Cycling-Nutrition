@@ -44,8 +44,9 @@ export function calculateFuelPlan(
     allProducts
   );
 
-  const totalCarbsPlanned =
-    bottles.reduce((sum, b) => sum + b.carbsTotal, 0) + solidCarbs;
+  const refuelMultiplier = (input.ride.refuelStops || 0) + 1;
+  const bottleCarbsPerFill = bottles.reduce((sum, b) => sum + b.carbsTotal, 0);
+  const totalCarbsPlanned = bottleCarbsPerFill * refuelMultiplier + solidCarbs;
 
   const warnings: FuelPlanWarning[] = [];
   if (totalCarbsPlanned < totalCarbsNeeded) {

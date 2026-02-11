@@ -23,6 +23,8 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
         )
       : 0;
 
+  const refuelStops = plan.rideCharacteristics.refuelStops || 0;
+
   return (
     <div className="space-y-4">
       {plan.warnings && plan.warnings.length > 0 && (
@@ -100,6 +102,19 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
                 </div>
               );
             })}
+          </CardContent>
+        </Card>
+      )}
+
+      {refuelStops > 0 && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="py-3">
+            <p className="text-blue-800 text-sm font-medium">
+              Prepare {refuelStops + 1} sets of mix (amounts shown are per fill)
+            </p>
+            <p className="text-blue-700 text-xs mt-1">
+              Refill your bottles {refuelStops} time{refuelStops > 1 ? 's' : ''} during the ride
+            </p>
           </CardContent>
         </Card>
       )}

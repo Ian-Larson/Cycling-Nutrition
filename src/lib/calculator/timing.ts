@@ -37,9 +37,36 @@ export function generateConsumptionGuide(
   const totalSips = Math.floor(durationMins / sipInterval);
   const sipsPerBottle = Math.ceil(totalSips / bottles.length);
 
+  // Refuel stops
+  const refuelStops = ride.refuelStops || 0;
+  const refuelTimes: number[] = [];
+  if (refuelStops > 0) {
+    const legDuration = durationMins / (refuelStops + 1);
+    for (let i = 1; i <= refuelStops; i++) {
+      refuelTimes.push(Math.round(legDuration * i));
+    }
+  }
+
   let sipCount = 0;
 
   for (let time = sipInterval; time <= durationMins; time += sipInterval) {
+    // Check for refuel stop at this time
+    const refuelIndex = refuelTimes.findIndex(
+      (rt) => time >= rt && time < rt + sipInterval
+    );
+    if (refuelIndex !== -1) {
+      guide.push({
+        timeOffsetMinutes: refuelTimes[refuelIndex],
+        action: `Refill bottles (fill ${refuelIndex + 2} of ${refuelStops + 1})`,
+        carbsConsumed: 0,
+        cumulativeCarbs,
+      });
+      // Reset bottle cycling for new fill
+      currentBottleIndex = 0;
+      sipCount = 0;
+      refuelTimes.splice(refuelIndex, 1);
+    }
+
     // Switch to next bottle after sipsPerBottle sips
     if (sipCount > 0 && sipCount % sipsPerBottle === 0 && currentBottleIndex < bottles.length - 1) {
       currentBottleIndex++;

@@ -30,6 +30,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
   const [heatFactor, setHeatFactor] =
     useState<RideCharacteristics['heatFactor']>('moderate');
   const [carbTarget, setCarbTarget] = useState(60);
+  const [refuelStops, setRefuelStops] = useState(0);
 
   const temperatureUnit = useStore((s) => s.settings.temperatureUnit);
 
@@ -114,6 +115,19 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
         />
       </div>
 
+      {durationMinutes >= 120 && (
+        <Select
+          label="Bottle Refueling"
+          value={String(refuelStops)}
+          onChange={(e) => setRefuelStops(Number(e.target.value))}
+          options={[
+            { value: '0', label: 'No refueling' },
+            { value: '1', label: '1 refill' },
+            { value: '2', label: '2 refills' },
+          ]}
+        />
+      )}
+
       <Button
         className="w-full"
         size="lg"
@@ -124,6 +138,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
             intensity,
             heatFactor,
             carbTargetGramsPerHour: carbTarget,
+            ...(refuelStops > 0 && durationMinutes >= 120 ? { refuelStops } : {}),
           })
         }
       >

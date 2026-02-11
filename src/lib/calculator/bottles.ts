@@ -8,7 +8,9 @@ export function selectOptimalBottles(
   drinkMix: Product,
   ride: RideCharacteristics
 ): BottleAllocation[] {
-  const hydrationNeeded = calculateHydrationNeeds(ride);
+  const refuelMultiplier = (ride.refuelStops || 0) + 1;
+  // Only need to carry one leg's worth of hydration when refueling
+  const hydrationNeeded = calculateHydrationNeeds(ride) / refuelMultiplier;
 
   const sortedBottles = available
     .filter((b) => b.isAvailable)
@@ -43,7 +45,9 @@ export function selectOptimalBottles(
     selected = sortedBottles.slice(0, 1);
   }
 
-  return allocateMixToBottles(selected, carbsNeeded, drinkMix);
+  // Allocate mix for one leg's worth of carbs (per fill)
+  const carbsPerFill = carbsNeeded / refuelMultiplier;
+  return allocateMixToBottles(selected, carbsPerFill, drinkMix);
 }
 
 function allocateMixToBottles(

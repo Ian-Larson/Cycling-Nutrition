@@ -6,4 +6,5 @@ export interface RideCharacteristics {
   intensity: IntensityLevel;
   heatFactor: HeatFactor;
   carbTargetGramsPerHour: number;
+  refuelStops?: number;
 }
