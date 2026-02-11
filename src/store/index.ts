@@ -3,11 +3,13 @@ import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { nanoid } from 'nanoid';
 import type { Bottle, Product, FuelPlan } from '@/types';
+import { DEFAULT_BOTTLES, DEFAULT_PRODUCTS } from '@/lib/defaults';
 
 interface AppState {
   bottles: Bottle[];
   products: Product[];
   fuelPlans: FuelPlan[];
+  _initialized: boolean;
 
   addBottle: (bottle: Omit<Bottle, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateBottle: (id: string, updates: Partial<Bottle>) => void;
@@ -19,14 +21,17 @@ interface AppState {
 
   saveFuelPlan: (plan: Omit<FuelPlan, 'id' | 'createdAt'>) => void;
   deleteFuelPlan: (id: string) => void;
+
+  initializeDefaults: () => void;
 }
 
 export const useStore = create<AppState>()(
   persist(
-    immer((set) => ({
+    immer((set, get) => ({
       bottles: [],
       products: [],
       fuelPlans: [],
+      _initialized: false,
 
       addBottle: (bottle) =>
         set((state) => {
@@ -95,6 +100,37 @@ export const useStore = create<AppState>()(
         set((state) => {
           state.fuelPlans = state.fuelPlans.filter((p) => p.id !== id);
         }),
+
+      initializeDefaults: () => {
+        const state = get();
+        if (state._initialized) return;
+
+        set((draft) => {
+          draft._initialized = true;
+
+          if (draft.bottles.length === 0) {
+            DEFAULT_BOTTLES.forEach((b) => {
+              draft.bottles.push({
+                ...b,
+                id: nanoid(),
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+              });
+            });
+          }
+
+          if (draft.products.length === 0) {
+            DEFAULT_PRODUCTS.forEach((p) => {
+              draft.products.push({
+                ...p,
+                id: nanoid(),
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+              });
+            });
+          }
+        });
+      },
     })),
     {
       name: 'cycling-nutrition-storage',

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Header } from '@/components/layout/header';
 import { MobileNav } from '@/components/layout/mobile-nav';
@@ -5,9 +6,15 @@ import { PlannerPage } from '@/pages/planner';
 import { BottlesPage } from '@/pages/bottles';
 import { ProductsPage } from '@/pages/products';
 import { HistoryPage } from '@/pages/history';
+import { useStore } from '@/store';
 
 function App() {
   const basename = import.meta.env.BASE_URL;
+  const initializeDefaults = useStore((s) => s.initializeDefaults);
+
+  useEffect(() => {
+    initializeDefaults();
+  }, [initializeDefaults]);
 
   return (
     <BrowserRouter basename={basename}>
