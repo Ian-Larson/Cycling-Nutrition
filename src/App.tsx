@@ -1,13 +1,29 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Header } from '@/components/layout/header';
+import { MobileNav } from '@/components/layout/mobile-nav';
+import { PlannerPage } from '@/pages/planner';
+import { BottlesPage } from '@/pages/bottles';
+import { ProductsPage } from '@/pages/products';
+import { HistoryPage } from '@/pages/history';
+
 function App() {
+  const basename = import.meta.env.BASE_URL;
+
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <h1 className="text-3xl font-bold text-brand-600 mb-4">
-        Cycling Nutrition Calculator
-      </h1>
-      <p className="text-gray-600 font-body">
-        Plan your ride fuel with precision.
-      </p>
-    </div>
+    <BrowserRouter basename={basename}>
+      <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+        <Header />
+        <main>
+          <Routes>
+            <Route path="/" element={<PlannerPage />} />
+            <Route path="/bottles" element={<BottlesPage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/history" element={<HistoryPage />} />
+          </Routes>
+        </main>
+        <MobileNav />
+      </div>
+    </BrowserRouter>
   );
 }
 
