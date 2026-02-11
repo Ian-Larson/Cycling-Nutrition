@@ -1,21 +1,16 @@
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui';
+import { Toggle } from '@/components/ui';
 import type { Product } from '@/types';
-
-export interface SolidSelection {
-  productId: string;
-  quantity: number;
-}
 
 interface SolidFuelSelectorProps {
   solidProducts: Product[];
-  selections: SolidSelection[];
-  onChange: (selections: SolidSelection[]) => void;
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
 }
 
 export function SolidFuelSelector({
   solidProducts,
-  selections,
+  selectedIds,
   onChange,
 }: SolidFuelSelectorProps) {
   if (solidProducts.length === 0) {
@@ -29,26 +24,21 @@ export function SolidFuelSelector({
     );
   }
 
-  const getQuantity = (productId: string) =>
-    selections.find((s) => s.productId === productId)?.quantity || 0;
-
-  const updateQuantity = (productId: string, quantity: number) => {
-    const next = selections.filter((s) => s.productId !== productId);
-    if (quantity > 0) {
-      next.push({ productId, quantity });
+  const toggleProduct = (productId: string) => {
+    if (selectedIds.includes(productId)) {
+      onChange(selectedIds.filter((id) => id !== productId));
+    } else {
+      onChange([...selectedIds, productId]);
     }
-    onChange(next);
   };
-
-  const totalSolidCarbs = selections.reduce((sum, sel) => {
-    const product = solidProducts.find((p) => p.id === sel.productId);
-    return sum + (product?.nutrition.carbsGrams || 0) * sel.quantity;
-  }, 0);
 
   return (
     <div className="space-y-3">
+      <p className="text-sm text-gray-500">
+        Toggle which solids are available. The calculator will auto-recommend the right amount.
+      </p>
       {solidProducts.map((product) => {
-        const qty = getQuantity(product.id);
+        const isSelected = selectedIds.includes(product.id);
         return (
           <div
             key={product.id}
@@ -61,31 +51,17 @@ export function SolidFuelSelector({
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => updateQuantity(product.id, Math.max(0, qty - 1))}
-                disabled={qty === 0}
-              >
-                -
-              </Button>
-              <span className="w-8 text-center font-medium text-sm">{qty}</span>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => updateQuantity(product.id, qty + 1)}
-              >
-                +
-              </Button>
+              <Toggle
+                checked={isSelected}
+                onChange={() => toggleProduct(product.id)}
+              />
+              <span className="text-sm text-gray-500 w-20">
+                {isSelected ? 'Available' : 'Unavailable'}
+              </span>
             </div>
           </div>
         );
       })}
-      {totalSolidCarbs > 0 && (
-        <p className="text-sm font-medium text-brand-600">
-          Solid fuel total: {totalSolidCarbs}g carbs
-        </p>
-      )}
     </div>
   );
 }

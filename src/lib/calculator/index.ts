@@ -1,40 +1,62 @@
 import type { Bottle, Product, FuelPlan, FuelPlanWarning, RideCharacteristics, SolidAllocation } from '@/types';
 import { calculateTotalCarbsNeeded, calculateHydrationNeeds } from './carbs';
-import { selectOptimalBottles } from './bottles';
+import { selectBottlesForHydration, calculateMaxLiquidCarbs, allocateMixToBottles } from './bottles';
+import { recommendSolids } from './solids';
 import { generateConsumptionGuide } from './timing';
 
 export interface CalculatorInput {
   ride: RideCharacteristics;
   availableBottles: Bottle[];
   drinkMix: Product;
-  solids: Array<{ product: Product; quantity: number }>;
+  availableSolids: Product[];
 }
 
 export function calculateFuelPlan(
   input: CalculatorInput
 ): Omit<FuelPlan, 'id' | 'createdAt'> {
   const totalCarbsNeeded = calculateTotalCarbsNeeded(input.ride);
-  const solidCarbs = input.solids.reduce(
-    (sum, s) => sum + s.product.nutrition.carbsGrams * s.quantity,
+  const refuelStops = input.ride.refuelStops || 0;
+  const refuelMultiplier = refuelStops + 1;
+
+  // 1. Select bottles for hydration
+  const selectedBottles = selectBottlesForHydration(input.availableBottles, input.ride);
+
+  // 2. Calculate max liquid carbs (bottle capacity x concentration limit x refuel legs)
+  const maxLiquidCarbs = calculateMaxLiquidCarbs(selectedBottles, refuelStops);
+
+  // 3. Compute carb gap
+  const carbGap = Math.max(0, totalCarbsNeeded - maxLiquidCarbs);
+
+  // 4. Recommend solids to fill the gap
+  const solidRecs = recommendSolids(
+    input.availableSolids,
+    carbGap,
+    input.ride.durationMinutes
+  );
+
+  // 5. Calculate actual solid carbs and set drink carbs
+  const actualSolidCarbs = solidRecs.reduce(
+    (sum, r) => sum + r.product.nutrition.carbsGrams * r.quantity,
     0
   );
-  const drinkCarbsNeeded = Math.max(0, totalCarbsNeeded - solidCarbs);
+  const drinkCarbsNeeded = Math.max(0, totalCarbsNeeded - actualSolidCarbs);
 
-  const bottles = selectOptimalBottles(
-    input.availableBottles,
-    drinkCarbsNeeded,
-    input.drinkMix,
-    input.ride
-  );
+  // 6. Allocate drink mix to bottles at the (potentially reduced) concentration
+  const drinkCarbsPerFill = drinkCarbsNeeded / refuelMultiplier;
+  const bottles = allocateMixToBottles(selectedBottles, drinkCarbsPerFill, input.drinkMix);
 
-  const solidAllocations: SolidAllocation[] = input.solids.map((s) => ({
-    productId: s.product.id,
-    quantity: s.quantity,
-    carbsTotal: s.product.nutrition.carbsGrams * s.quantity,
-    timingIntervalMinutes: Math.floor(input.ride.durationMinutes / (s.quantity + 1)),
+  // Build solid allocations
+  const solidAllocations: SolidAllocation[] = solidRecs.map((r) => ({
+    productId: r.product.id,
+    quantity: r.quantity,
+    carbsTotal: r.product.nutrition.carbsGrams * r.quantity,
+    timingIntervalMinutes: Math.floor(input.ride.durationMinutes / (r.quantity + 1)),
   }));
 
-  const allProducts = [input.drinkMix, ...input.solids.map((s) => s.product)];
+  const allProducts = [
+    input.drinkMix,
+    ...solidRecs.map((r) => r.product),
+  ];
 
   const consumptionGuide = generateConsumptionGuide(
     bottles,
@@ -44,17 +66,23 @@ export function calculateFuelPlan(
     allProducts
   );
 
-  const refuelMultiplier = (input.ride.refuelStops || 0) + 1;
   const bottleCarbsPerFill = bottles.reduce((sum, b) => sum + b.carbsTotal, 0);
-  const totalCarbsPlanned = bottleCarbsPerFill * refuelMultiplier + solidCarbs;
+  const totalCarbsPlanned = bottleCarbsPerFill * refuelMultiplier + actualSolidCarbs;
 
   const warnings: FuelPlanWarning[] = [];
   if (totalCarbsPlanned < totalCarbsNeeded) {
     const deficit = totalCarbsNeeded - totalCarbsPlanned;
-    warnings.push({
-      type: 'concentration_limit',
-      message: `Bottle concentration limits reduce planned carbs by ${deficit}g. Consider adding solid fuel (gels/chews) or using a refuel stop to make up the difference.`,
-    });
+    if (input.availableSolids.length === 0) {
+      warnings.push({
+        type: 'concentration_limit',
+        message: `Bottle concentration limits reduce planned carbs by ${deficit}g. Toggle some solid fuel products (gels/chews) on the Inventory page to make up the difference.`,
+      });
+    } else {
+      warnings.push({
+        type: 'concentration_limit',
+        message: `Even with solids at max rate, planned carbs are ${deficit}g short. Consider a refuel stop or higher-carb products.`,
+      });
+    }
   }
 
   return {

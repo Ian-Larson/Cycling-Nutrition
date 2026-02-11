@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, Button } from '@/components/ui';
 import { RideForm } from '@/components/planner/ride-form';
 import { FuelResult } from '@/components/planner/fuel-result';
 import { DrinkMixSelector } from '@/components/planner/drink-mix-selector';
-import { SolidFuelSelector, type SolidSelection } from '@/components/planner/solid-fuel-selector';
+import { SolidFuelSelector } from '@/components/planner/solid-fuel-selector';
 import { calculateFuelPlan } from '@/lib/calculator';
 import type { RideCharacteristics, FuelPlan } from '@/types';
 
@@ -22,7 +22,7 @@ export function PlannerPage() {
   const availableBottles = bottles.filter((b) => b.isAvailable);
 
   const [selectedDrinkMixId, setSelectedDrinkMixId] = useState<string | null>(null);
-  const [selectedSolids, setSelectedSolids] = useState<SolidSelection[]>([]);
+  const [selectedSolidIds, setSelectedSolidIds] = useState<string[]>([]);
 
   const canCalculate = availableBottles.length > 0 && drinkMixes.length > 0;
 
@@ -38,18 +38,15 @@ export function PlannerPage() {
     if (!canCalculate) return;
 
     const drinkMix = getSelectedDrinkMix();
-    const solids = selectedSolids
-      .map((sel) => {
-        const product = products.find((p) => p.id === sel.productId);
-        return product ? { product, quantity: sel.quantity } : null;
-      })
-      .filter((s): s is { product: typeof products[number]; quantity: number } => s !== null);
+    const availableSolids = solidProducts.filter((p) =>
+      selectedSolidIds.includes(p.id)
+    );
 
     const result = calculateFuelPlan({
       ride,
       availableBottles,
       drinkMix,
-      solids,
+      availableSolids,
     });
 
     setPlan(result);
@@ -77,7 +74,7 @@ export function PlannerPage() {
                 <li>
                   • Add at least one available bottle on the{' '}
                   <Link to="/inventory" className="underline font-medium">
-                    Bottles page
+                    Inventory page
                   </Link>
                 </li>
               )}
@@ -85,7 +82,7 @@ export function PlannerPage() {
                 <li>
                   • Add at least one drink mix on the{' '}
                   <Link to="/inventory" className="underline font-medium">
-                    Products page
+                    Inventory page
                   </Link>
                 </li>
               )}
@@ -127,8 +124,8 @@ export function PlannerPage() {
             <CardContent>
               <SolidFuelSelector
                 solidProducts={solidProducts}
-                selections={selectedSolids}
-                onChange={setSelectedSolids}
+                selectedIds={selectedSolidIds}
+                onChange={setSelectedSolidIds}
               />
             </CardContent>
           </Card>

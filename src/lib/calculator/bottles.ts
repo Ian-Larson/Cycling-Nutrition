@@ -2,14 +2,11 @@ import type { Bottle, Product, BottleAllocation, RideCharacteristics } from '@/t
 import { calculateHydrationNeeds } from './carbs';
 import { MAX_CARB_CONCENTRATION_G_PER_ML } from './constants';
 
-export function selectOptimalBottles(
+export function selectBottlesForHydration(
   available: Bottle[],
-  carbsNeeded: number,
-  drinkMix: Product,
   ride: RideCharacteristics
-): BottleAllocation[] {
+): Bottle[] {
   const refuelMultiplier = (ride.refuelStops || 0) + 1;
-  // Only need to carry one leg's worth of hydration when refueling
   const hydrationNeeded = calculateHydrationNeeds(ride) / refuelMultiplier;
 
   const sortedBottles = available
@@ -18,16 +15,12 @@ export function selectOptimalBottles(
 
   if (sortedBottles.length === 0) return [];
 
-  // Find smallest combo of 1-2 bottles meeting hydration needs
-  let selected: Bottle[] = [];
-
   // Try single bottle first
   const singleBottle = sortedBottles.find((b) => b.capacityMl >= hydrationNeeded);
-  if (singleBottle) {
-    selected = [singleBottle];
-  } else if (sortedBottles.length >= 2) {
-    // Need two bottles - find smallest combo that meets hydration needs
-    let bestCombo: Bottle[] = sortedBottles.slice(-2); // Start with two largest
+  if (singleBottle) return [singleBottle];
+
+  if (sortedBottles.length >= 2) {
+    let bestCombo: Bottle[] = sortedBottles.slice(-2);
     let bestCapacity = bestCombo.reduce((sum, b) => sum + b.capacityMl, 0);
 
     for (let i = 0; i < sortedBottles.length; i++) {
@@ -40,24 +33,31 @@ export function selectOptimalBottles(
         }
       }
     }
-    selected = bestCombo;
-  } else {
-    selected = sortedBottles.slice(0, 1);
+    return bestCombo;
   }
 
-  // Allocate mix for one leg's worth of carbs (per fill)
-  const carbsPerFill = carbsNeeded / refuelMultiplier;
-  return allocateMixToBottles(selected, carbsPerFill, drinkMix);
+  return sortedBottles.slice(0, 1);
 }
 
-function allocateMixToBottles(
+export function calculateMaxLiquidCarbs(
   bottles: Bottle[],
-  carbsNeeded: number,
+  refuelStops: number
+): number {
+  const refuelMultiplier = refuelStops + 1;
+  const carbsPerFill = bottles.reduce(
+    (sum, b) => sum + b.capacityMl * MAX_CARB_CONCENTRATION_G_PER_ML,
+    0
+  );
+  return Math.round(carbsPerFill * refuelMultiplier);
+}
+
+export function allocateMixToBottles(
+  bottles: Bottle[],
+  carbsPerFill: number,
   drinkMix: Product
 ): BottleAllocation[] {
   const totalCapacity = bottles.reduce((sum, b) => sum + b.capacityMl, 0);
 
-  // Calculate carbs per gram of mix
   const servingCarbs = drinkMix.nutrition.carbsGrams;
   const servingGrams = drinkMix.serving.servingSizeGrams || 40;
   const carbsPerGram = servingCarbs / servingGrams;
@@ -67,7 +67,7 @@ function allocateMixToBottles(
   return bottles.map((bottle) => {
     const proportion = bottle.capacityMl / totalCapacity;
     const maxCarbsForBottle = bottle.capacityMl * MAX_CARB_CONCENTRATION_G_PER_ML;
-    const carbsForBottle = Math.min(carbsNeeded * proportion, maxCarbsForBottle);
+    const carbsForBottle = Math.min(carbsPerFill * proportion, maxCarbsForBottle);
     const mixGrams = Math.round(carbsForBottle / carbsPerGram);
 
     return {

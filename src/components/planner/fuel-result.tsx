@@ -106,6 +106,42 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
         </Card>
       )}
 
+      {plan.solids.length > 0 && (
+        <Card>
+          <CardHeader>
+            <h3 className="font-semibold">Recommended Solids</h3>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {plan.solids.map((alloc, i) => {
+              const product = products.find((p) => p.id === alloc.productId);
+              return (
+                <div
+                  key={i}
+                  className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {product?.name || 'Solid fuel'}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Every ~{alloc.timingIntervalMinutes}min
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-brand-600">
+                      x{alloc.quantity}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {alloc.carbsTotal}g carbs
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
+
       {refuelStops > 0 && (
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="py-3">
