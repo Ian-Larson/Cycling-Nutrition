@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui';
 import { Button } from '@/components/ui';
 import type { Product } from '@/types';
@@ -17,6 +18,14 @@ const typeLabels: Record<Product['type'], string> = {
 };
 
 export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
+  const [confirming, setConfirming] = useState(false);
+
+  useEffect(() => {
+    if (!confirming) return;
+    const timer = setTimeout(() => setConfirming(false), 3000);
+    return () => clearTimeout(timer);
+  }, [confirming]);
+
   return (
     <Card>
       <CardContent className="flex items-center justify-between">
@@ -40,9 +49,15 @@ export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
           <Button variant="ghost" size="sm" onClick={onEdit}>
             Edit
           </Button>
-          <Button variant="ghost" size="sm" onClick={onDelete}>
-            Delete
-          </Button>
+          {confirming ? (
+            <Button variant="danger" size="sm" onClick={onDelete}>
+              Confirm?
+            </Button>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={() => setConfirming(true)}>
+              Delete
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

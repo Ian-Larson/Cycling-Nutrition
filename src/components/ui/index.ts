@@ -4,4 +4,5 @@ export { Input } from './input';
 export { PresetButtons } from './preset-buttons';
 export { Select } from './select';
 export { Slider } from './slider';
+export { Toast } from './toast';
 export { Toggle } from './toggle';

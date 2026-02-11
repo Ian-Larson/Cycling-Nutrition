@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '@/store';
-import { Card, CardContent, CardHeader, Button } from '@/components/ui';
+import { Card, CardContent, CardHeader, Button, Toast } from '@/components/ui';
 import { RideForm } from '@/components/planner/ride-form';
 import { FuelResult } from '@/components/planner/fuel-result';
 import { DrinkMixSelector } from '@/components/planner/drink-mix-selector';
@@ -23,6 +23,7 @@ export function PlannerPage() {
 
   const [selectedDrinkMixId, setSelectedDrinkMixId] = useState<string | null>(null);
   const [selectedSolidIds, setSelectedSolidIds] = useState<string[]>([]);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const canCalculate = availableBottles.length > 0 && drinkMixes.length > 0;
 
@@ -55,9 +56,11 @@ export function PlannerPage() {
   const handleSavePlan = () => {
     if (plan) {
       saveFuelPlan(plan);
-      alert('Plan saved to history!');
+      setToastMessage('Plan saved to history!');
     }
   };
+
+  const dismissToast = useCallback(() => setToastMessage(null), []);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
@@ -154,6 +157,10 @@ export function PlannerPage() {
           )}
         </div>
       </div>
+
+      {toastMessage && (
+        <Toast message={toastMessage} onDismiss={dismissToast} />
+      )}
     </div>
   );
 }

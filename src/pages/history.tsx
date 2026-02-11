@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useStore } from '@/store';
 import { Card, CardContent, Button } from '@/components/ui';
 
@@ -5,6 +6,14 @@ export function HistoryPage() {
   const fuelPlans = useStore((s) => s.fuelPlans);
   const deleteFuelPlan = useStore((s) => s.deleteFuelPlan);
   const bottles = useStore((s) => s.bottles);
+
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!confirmingDeleteId) return;
+    const timer = setTimeout(() => setConfirmingDeleteId(null), 3000);
+    return () => clearTimeout(timer);
+  }, [confirmingDeleteId]);
 
   const formatDuration = (mins: number) => {
     const h = Math.floor(mins / 60);
@@ -44,6 +53,8 @@ export function HistoryPage() {
               .filter(Boolean)
               .join(', ');
 
+            const isConfirming = confirmingDeleteId === plan.id;
+
             return (
               <Card key={plan.id}>
                 <CardContent className="py-4">
@@ -70,13 +81,23 @@ export function HistoryPage() {
                         </p>
                       )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteFuelPlan(plan.id)}
-                    >
-                      Delete
-                    </Button>
+                    {isConfirming ? (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => deleteFuelPlan(plan.id)}
+                      >
+                        Confirm?
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setConfirmingDeleteId(plan.id)}
+                      >
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

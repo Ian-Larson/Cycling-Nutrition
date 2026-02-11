@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent, Button, Toggle } from '@/components/ui';
 import type { Bottle } from '@/types';
 import { clsx } from 'clsx';
@@ -13,6 +14,14 @@ export function BottleCard({
   onToggleAvailable,
   onDelete,
 }: BottleCardProps) {
+  const [confirming, setConfirming] = useState(false);
+
+  useEffect(() => {
+    if (!confirming) return;
+    const timer = setTimeout(() => setConfirming(false), 3000);
+    return () => clearTimeout(timer);
+  }, [confirming]);
+
   return (
     <Card className={clsx(!bottle.isAvailable && 'opacity-60')}>
       <CardContent className="flex items-center justify-between">
@@ -31,9 +40,15 @@ export function BottleCard({
               {bottle.isAvailable ? 'Available' : 'Unavailable'}
             </span>
           </div>
-          <Button variant="ghost" size="sm" onClick={onDelete}>
-            Delete
-          </Button>
+          {confirming ? (
+            <Button variant="danger" size="sm" onClick={onDelete}>
+              Confirm?
+            </Button>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={() => setConfirming(true)}>
+              Delete
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
