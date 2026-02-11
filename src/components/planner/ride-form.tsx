@@ -47,6 +47,10 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
+        <div className="flex justify-between">
+          <span className="text-sm font-medium text-gray-700">Ride Duration</span>
+          <span className="text-sm font-semibold text-brand-600">{formatDuration(durationMinutes)}</span>
+        </div>
         <PresetButtons
           options={[
             { label: '1h', value: 60 },
@@ -59,8 +63,6 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
           onChange={setDuration}
         />
         <Slider
-          label="Ride Duration"
-          displayValue={formatDuration(durationMinutes)}
           min={30}
           max={300}
           step={15}
@@ -94,6 +96,10 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
       />
 
       <div className="space-y-2">
+        <div className="flex justify-between">
+          <span className="text-sm font-medium text-gray-700">Carb Target</span>
+          <span className="text-sm font-semibold text-brand-600">{carbTarget}g/hour</span>
+        </div>
         <PresetButtons
           options={[
             { label: 'Low 30g', value: 30 },
@@ -105,8 +111,6 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
           onChange={setCarbTarget}
         />
         <Slider
-          label="Carb Target"
-          displayValue={`${carbTarget}g/hour`}
           min={30}
           max={120}
           step={5}
