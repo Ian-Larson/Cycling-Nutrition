@@ -92,12 +92,18 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-brand-600">
-                      {alloc.mixGrams}g
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      ~{alloc.mixScoops} scoops • {alloc.carbsTotal}g carbs
-                    </p>
+                    {alloc.isWaterOnly ? (
+                      <p className="text-lg font-bold text-blue-500">Water only</p>
+                    ) : (
+                      <>
+                        <p className="text-lg font-bold text-brand-600">
+                          {alloc.mixGrams}g
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          ~{alloc.mixScoops} scoops • {alloc.carbsTotal}g carbs
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
               );

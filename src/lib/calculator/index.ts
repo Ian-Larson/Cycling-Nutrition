@@ -1,6 +1,6 @@
 import type { Bottle, Product, FuelPlan, FuelPlanWarning, RideCharacteristics, SolidAllocation } from '@/types';
 import { calculateTotalCarbsNeeded, calculateHydrationNeeds } from './carbs';
-import { selectBottlesForHydration, calculateMaxLiquidCarbs, allocateMixToBottles } from './bottles';
+import { selectBottlesForHydration, allocateMixToBottles } from './bottles';
 import { recommendSolids } from './solids';
 import { generateConsumptionGuide } from './timing';
 
@@ -21,27 +21,21 @@ export function calculateFuelPlan(
   // 1. Select bottles for hydration
   const selectedBottles = selectBottlesForHydration(input.availableBottles, input.ride);
 
-  // 2. Calculate max liquid carbs (bottle capacity x concentration limit x refuel legs)
-  const maxLiquidCarbs = calculateMaxLiquidCarbs(selectedBottles, refuelStops);
-
-  // 3. Compute carb gap
-  const carbGap = Math.max(0, totalCarbsNeeded - maxLiquidCarbs);
-
-  // 4. Recommend solids to fill the gap
+  // 2. Recommend solids first at preferred rate
   const solidRecs = recommendSolids(
     input.availableSolids,
-    carbGap,
+    totalCarbsNeeded,
     input.ride.durationMinutes
   );
 
-  // 5. Calculate actual solid carbs and set drink carbs
+  // 3. Calculate actual solid carbs and remaining drink carbs needed
   const actualSolidCarbs = solidRecs.reduce(
     (sum, r) => sum + r.product.nutrition.carbsGrams * r.quantity,
     0
   );
   const drinkCarbsNeeded = Math.max(0, totalCarbsNeeded - actualSolidCarbs);
 
-  // 6. Allocate drink mix to bottles at the (potentially reduced) concentration
+  // 4. Allocate drink mix to bottles (concentrated into fewest bottles)
   const drinkCarbsPerFill = drinkCarbsNeeded / refuelMultiplier;
   const bottles = allocateMixToBottles(selectedBottles, drinkCarbsPerFill, input.drinkMix);
 

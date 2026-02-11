@@ -56,26 +56,36 @@ export function allocateMixToBottles(
   carbsPerFill: number,
   drinkMix: Product
 ): BottleAllocation[] {
-  const totalCapacity = bottles.reduce((sum, b) => sum + b.capacityMl, 0);
-
   const servingCarbs = drinkMix.nutrition.carbsGrams;
   const servingGrams = drinkMix.serving.servingSizeGrams || 40;
   const carbsPerGram = servingCarbs / servingGrams;
 
   const scoopSize = drinkMix.serving.scoopSizeGrams || servingGrams;
 
-  return bottles.map((bottle) => {
-    const proportion = bottle.capacityMl / totalCapacity;
-    const maxCarbsForBottle = bottle.capacityMl * MAX_CARB_CONCENTRATION_G_PER_ML;
-    const carbsForBottle = Math.min(carbsPerFill * proportion, maxCarbsForBottle);
-    const mixGrams = Math.round(carbsForBottle / carbsPerGram);
+  // Sort bottles by capacity desc so we fill the largest first
+  const sorted = [...bottles].sort((a, b) => b.capacityMl - a.capacityMl);
 
-    return {
+  let remainingCarbs = carbsPerFill;
+  const allocations = new Map<string, BottleAllocation>();
+
+  for (const bottle of sorted) {
+    const maxCarbsForBottle = bottle.capacityMl * MAX_CARB_CONCENTRATION_G_PER_ML;
+    const carbsForBottle = Math.min(remainingCarbs, maxCarbsForBottle);
+    const mixGrams = Math.round(Math.max(0, carbsForBottle) / carbsPerGram);
+    const isWaterOnly = mixGrams < 3;
+
+    allocations.set(bottle.id, {
       bottleId: bottle.id,
       productId: drinkMix.id,
-      mixGrams,
-      mixScoops: Math.round((mixGrams / scoopSize) * 10) / 10,
-      carbsTotal: Math.round(mixGrams * carbsPerGram),
-    };
-  });
+      mixGrams: isWaterOnly ? 0 : mixGrams,
+      mixScoops: isWaterOnly ? 0 : Math.round((mixGrams / scoopSize) * 10) / 10,
+      carbsTotal: isWaterOnly ? 0 : Math.round(mixGrams * carbsPerGram),
+      isWaterOnly,
+    });
+
+    remainingCarbs -= carbsForBottle;
+  }
+
+  // Return in original bottle order
+  return bottles.map((b) => allocations.get(b.id)!);
 }

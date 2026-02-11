@@ -16,6 +16,7 @@ export interface BottleAllocation {
   mixGrams: number;
   mixScoops?: number;
   carbsTotal: number;
+  isWaterOnly?: boolean;
 }
 
 export interface SolidAllocation {

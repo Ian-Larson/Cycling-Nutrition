@@ -22,3 +22,4 @@ export const MAX_CARB_CONCENTRATION_G_PER_ML = 0.16;
 // Solid fuel pacing limits
 export const PREFERRED_SOLIDS_PER_HOUR = 1;
 export const MAX_SOLIDS_PER_HOUR = 2;
+export const MIN_DURATION_FOR_SOLIDS_MINUTES = 30;
