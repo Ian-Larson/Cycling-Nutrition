@@ -7,6 +7,21 @@ import type {
   Product,
 } from '@/types';
 
+export function formatTime(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${h}:${m.toString().padStart(2, '0')}`;
+}
+
+function snapToFraction(decimal: number): string {
+  if (decimal >= 0.9) return 'all';
+  if (decimal >= 0.7) return '~3/4';
+  if (decimal >= 0.58) return '~2/3';
+  if (decimal >= 0.42) return '~1/2';
+  if (decimal >= 0.29) return '~1/3';
+  return '~1/4';
+}
+
 export function generateConsumptionGuide(
   bottles: BottleAllocation[],
   solids: SolidAllocation[],
@@ -19,8 +34,8 @@ export function generateConsumptionGuide(
 
   if (bottles.length === 0) return guide;
 
-  // Sip every 15 minutes
-  const sipInterval = 15;
+  // Sip every 30 minutes
+  const sipInterval = 30;
   let cumulativeCarbs = 0;
   let currentBottleIndex = 0;
 
@@ -75,12 +90,17 @@ export function generateConsumptionGuide(
     const currentBottle = bottles[currentBottleIndex];
     if (currentBottle) {
       const bottle = bottleData.find((b) => b.id === currentBottle.bottleId);
+      const bottleName = bottle?.name || `bottle ${currentBottleIndex + 1}`;
       const carbsPerSip = Math.round(currentBottle.carbsTotal / sipsPerBottle);
       cumulativeCarbs += carbsPerSip;
 
+      const fraction = snapToFraction(1 / sipsPerBottle);
+      const waterSuffix = currentBottle.isWaterOnly ? ' (water)' : '';
+      const action = `Drink ${fraction} of ${bottle?.capacityMl || '?'}ml ${bottleName}${waterSuffix}`;
+
       guide.push({
         timeOffsetMinutes: time,
-        action: `Drink from ${bottle?.name || `bottle ${currentBottleIndex + 1}`} (~${carbsPerSip}g carbs)`,
+        action,
         carbsConsumed: carbsPerSip,
         cumulativeCarbs,
       });

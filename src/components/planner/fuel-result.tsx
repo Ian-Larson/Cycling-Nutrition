@@ -1,4 +1,5 @@
 import { Card, CardHeader, CardContent } from '@/components/ui';
+import { formatTime } from '@/lib/calculator/timing';
 import type { FuelPlan, Bottle, Product } from '@/types';
 
 interface FuelResultProps {
@@ -174,7 +175,7 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
                   className="flex items-start gap-3 text-sm py-2 border-b border-gray-100 last:border-0"
                 >
                   <span className="font-mono text-gray-500 w-14 shrink-0">
-                    {item.timeOffsetMinutes}min
+                    {formatTime(item.timeOffsetMinutes)}
                   </span>
                   <span className="flex-1">{item.action}</span>
                   <span className="text-gray-500 shrink-0">
