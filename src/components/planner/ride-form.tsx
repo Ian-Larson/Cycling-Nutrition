@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Slider, Select, Button } from '@/components/ui';
+import { Slider, Select, Button, PresetButtons } from '@/components/ui';
 import { useStore } from '@/store';
 import type { RideCharacteristics } from '@/types';
 
@@ -45,15 +45,28 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
 
   return (
     <div className="space-y-6">
-      <Slider
-        label="Ride Duration"
-        displayValue={formatDuration(durationMinutes)}
-        min={30}
-        max={300}
-        step={15}
-        value={durationMinutes}
-        onChange={(e) => setDuration(Number(e.target.value))}
-      />
+      <div className="space-y-2">
+        <PresetButtons
+          options={[
+            { label: '1h', value: 60 },
+            { label: '1.5h', value: 90 },
+            { label: '2h', value: 120 },
+            { label: '3h', value: 180 },
+            { label: '4h', value: 240 },
+          ]}
+          value={durationMinutes}
+          onChange={setDuration}
+        />
+        <Slider
+          label="Ride Duration"
+          displayValue={formatDuration(durationMinutes)}
+          min={30}
+          max={300}
+          step={15}
+          value={durationMinutes}
+          onChange={(e) => setDuration(Number(e.target.value))}
+        />
+      </div>
 
       <Select
         label="Intensity"
@@ -79,15 +92,27 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
         options={heatOptions}
       />
 
-      <Slider
-        label="Carb Target"
-        displayValue={`${carbTarget}g/hour`}
-        min={30}
-        max={120}
-        step={5}
-        value={carbTarget}
-        onChange={(e) => setCarbTarget(Number(e.target.value))}
-      />
+      <div className="space-y-2">
+        <PresetButtons
+          options={[
+            { label: 'Low 30g', value: 30 },
+            { label: 'Moderate 60g', value: 60 },
+            { label: 'High 90g', value: 90 },
+            { label: 'Max 120g', value: 120 },
+          ]}
+          value={carbTarget}
+          onChange={setCarbTarget}
+        />
+        <Slider
+          label="Carb Target"
+          displayValue={`${carbTarget}g/hour`}
+          min={30}
+          max={120}
+          step={5}
+          value={carbTarget}
+          onChange={(e) => setCarbTarget(Number(e.target.value))}
+        />
+      </div>
 
       <Button
         className="w-full"
