@@ -5,6 +5,7 @@ import type { Product, ProductType } from '@/types';
 interface ProductFormProps {
   onSubmit: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => void;
   onCancel: () => void;
+  initialData?: Product;
 }
 
 const typeOptions = [
@@ -15,13 +16,13 @@ const typeOptions = [
   { value: 'other', label: 'Other' },
 ];
 
-export function ProductForm({ onSubmit, onCancel }: ProductFormProps) {
-  const [name, setName] = useState('');
-  const [brand, setBrand] = useState('');
-  const [type, setType] = useState<ProductType>('drink_mix');
-  const [carbsGrams, setCarbsGrams] = useState('');
-  const [servingSizeGrams, setServingSizeGrams] = useState('');
-  const [scoopSizeGrams, setScoopSizeGrams] = useState('');
+export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProps) {
+  const [name, setName] = useState(initialData?.name ?? '');
+  const [brand, setBrand] = useState(initialData?.brand ?? '');
+  const [type, setType] = useState<ProductType>(initialData?.type ?? 'drink_mix');
+  const [carbsGrams, setCarbsGrams] = useState(initialData ? String(initialData.nutrition.carbsGrams) : '');
+  const [servingSizeGrams, setServingSizeGrams] = useState(initialData?.serving.servingSizeGrams ? String(initialData.serving.servingSizeGrams) : '');
+  const [scoopSizeGrams, setScoopSizeGrams] = useState(initialData?.serving.scoopSizeGrams ? String(initialData.serving.scoopSizeGrams) : '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +103,7 @@ export function ProductForm({ onSubmit, onCancel }: ProductFormProps) {
       )}
 
       <div className="flex gap-2">
-        <Button type="submit">Add Product</Button>
+        <Button type="submit">{initialData ? 'Save Changes' : 'Add Product'}</Button>
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancel
         </Button>

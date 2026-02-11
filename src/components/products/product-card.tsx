@@ -4,6 +4,7 @@ import type { Product } from '@/types';
 
 interface ProductCardProps {
   product: Product;
+  onEdit: () => void;
   onDelete: () => void;
 }
 
@@ -15,7 +16,7 @@ const typeLabels: Record<Product['type'], string> = {
   other: 'Other',
 };
 
-export function ProductCard({ product, onDelete }: ProductCardProps) {
+export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
   return (
     <Card>
       <CardContent className="flex items-center justify-between">
@@ -35,9 +36,14 @@ export function ProductCard({ product, onDelete }: ProductCardProps) {
               ` per ${product.serving.servingSizeGrams}g serving`}
           </p>
         </div>
-        <Button variant="ghost" size="sm" onClick={onDelete}>
-          Delete
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" onClick={onEdit}>
+            Edit
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onDelete}>
+            Delete
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
