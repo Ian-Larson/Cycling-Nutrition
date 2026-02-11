@@ -1,11 +1,27 @@
 import { useState } from 'react';
 import { Slider, Select, Button } from '@/components/ui';
+import { useStore } from '@/store';
 import type { RideCharacteristics } from '@/types';
 
 interface RideFormProps {
   onCalculate: (ride: RideCharacteristics) => void;
   disabled?: boolean;
 }
+
+const HEAT_LABELS = {
+  celsius: {
+    cool: 'Cool (< 15°C)',
+    moderate: 'Moderate (15–25°C)',
+    warm: 'Warm (25–32°C)',
+    hot: 'Hot (> 32°C)',
+  },
+  fahrenheit: {
+    cool: 'Cool (< 60°F)',
+    moderate: 'Moderate (60–77°F)',
+    warm: 'Warm (77–90°F)',
+    hot: 'Hot (> 90°F)',
+  },
+} as const;
 
 export function RideForm({ onCalculate, disabled }: RideFormProps) {
   const [durationMinutes, setDuration] = useState(90);
@@ -15,11 +31,17 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
     useState<RideCharacteristics['heatFactor']>('moderate');
   const [carbTarget, setCarbTarget] = useState(60);
 
+  const temperatureUnit = useStore((s) => s.settings.temperatureUnit);
+
   const formatDuration = (mins: number) => {
     const h = Math.floor(mins / 60);
     const m = mins % 60;
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   };
+
+  const heatOptions = Object.entries(HEAT_LABELS[temperatureUnit]).map(
+    ([value, label]) => ({ value, label })
+  );
 
   return (
     <div className="space-y-6">
@@ -54,12 +76,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
         onChange={(e) =>
           setHeatFactor(e.target.value as RideCharacteristics['heatFactor'])
         }
-        options={[
-          { value: 'cool', label: 'Cool (<15°C / <60°F)' },
-          { value: 'moderate', label: 'Moderate (15-25°C / 60-77°F)' },
-          { value: 'warm', label: 'Warm (25-32°C / 77-90°F)' },
-          { value: 'hot', label: 'Hot (>32°C / >90°F)' },
-        ]}
+        options={heatOptions}
       />
 
       <Slider

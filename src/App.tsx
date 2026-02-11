@@ -6,6 +6,7 @@ import { PlannerPage } from '@/pages/planner';
 import { BottlesPage } from '@/pages/bottles';
 import { ProductsPage } from '@/pages/products';
 import { HistoryPage } from '@/pages/history';
+import { SettingsPage } from '@/pages/settings';
 import { useStore } from '@/store';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route path="/bottles" element={<BottlesPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/history" element={<HistoryPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </main>
         <MobileNav />

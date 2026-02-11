@@ -6,6 +6,7 @@ const navItems = [
   { path: '/bottles', label: 'Bottles', icon: '🍶' },
   { path: '/products', label: 'Products', icon: '⚡' },
   { path: '/history', label: 'History', icon: '📜' },
+  { path: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 
 export function MobileNav() {

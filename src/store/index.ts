@@ -5,10 +5,17 @@ import { nanoid } from 'nanoid';
 import type { Bottle, Product, FuelPlan } from '@/types';
 import { DEFAULT_BOTTLES, DEFAULT_PRODUCTS } from '@/lib/defaults';
 
+export type TemperatureUnit = 'celsius' | 'fahrenheit';
+
+interface Settings {
+  temperatureUnit: TemperatureUnit;
+}
+
 interface AppState {
   bottles: Bottle[];
   products: Product[];
   fuelPlans: FuelPlan[];
+  settings: Settings;
   _initialized: boolean;
 
   addBottle: (bottle: Omit<Bottle, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -22,6 +29,8 @@ interface AppState {
   saveFuelPlan: (plan: Omit<FuelPlan, 'id' | 'createdAt'>) => void;
   deleteFuelPlan: (id: string) => void;
 
+  updateSettings: (settings: Partial<Settings>) => void;
+
   initializeDefaults: () => void;
 }
 
@@ -31,6 +40,7 @@ export const useStore = create<AppState>()(
       bottles: [],
       products: [],
       fuelPlans: [],
+      settings: { temperatureUnit: 'celsius' },
       _initialized: false,
 
       addBottle: (bottle) =>
@@ -99,6 +109,11 @@ export const useStore = create<AppState>()(
       deleteFuelPlan: (id) =>
         set((state) => {
           state.fuelPlans = state.fuelPlans.filter((p) => p.id !== id);
+        }),
+
+      updateSettings: (updates) =>
+        set((state) => {
+          Object.assign(state.settings, updates);
         }),
 
       initializeDefaults: () => {

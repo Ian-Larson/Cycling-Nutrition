@@ -6,6 +6,7 @@ const navItems = [
   { path: '/bottles', label: 'Bottles' },
   { path: '/products', label: 'Products' },
   { path: '/history', label: 'History' },
+  { path: '/settings', label: 'Settings' },
 ];
 
 export function Header() {

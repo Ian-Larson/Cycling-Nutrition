@@ -1,5 +1,4 @@
-import { Card, CardContent } from '@/components/ui';
-import { Button } from '@/components/ui';
+import { Card, CardContent, Button, Toggle } from '@/components/ui';
 import type { Bottle } from '@/types';
 import { clsx } from 'clsx';
 
@@ -21,14 +20,17 @@ export function BottleCard({
           <h3 className="font-semibold">{bottle.name}</h3>
           <p className="text-sm text-gray-500">{bottle.capacityMl}ml</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={bottle.isAvailable ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={onToggleAvailable}
-          >
-            {bottle.isAvailable ? 'Available' : 'Unavailable'}
-          </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Toggle
+              checked={bottle.isAvailable}
+              onChange={onToggleAvailable}
+              label={bottle.isAvailable ? 'Available' : 'Unavailable'}
+            />
+            <span className="text-sm text-gray-500">
+              {bottle.isAvailable ? 'Available' : 'Unavailable'}
+            </span>
+          </div>
           <Button variant="ghost" size="sm" onClick={onDelete}>
             Delete
           </Button>
