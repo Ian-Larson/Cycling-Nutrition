@@ -1,0 +1,37 @@
+import type { RideCharacteristics } from './ride';
+
+export interface BottleAllocation {
+  bottleId: string;
+  productId: string;
+  mixGrams: number;
+  mixScoops?: number;
+  carbsTotal: number;
+}
+
+export interface SolidAllocation {
+  productId: string;
+  quantity: number;
+  carbsTotal: number;
+  timingIntervalMinutes: number;
+}
+
+export interface ConsumptionGuideItem {
+  timeOffsetMinutes: number;
+  action: string;
+  carbsConsumed: number;
+  cumulativeCarbs: number;
+}
+
+export interface FuelPlan {
+  id: string;
+  rideCharacteristics: RideCharacteristics;
+  bottles: BottleAllocation[];
+  solids: SolidAllocation[];
+  consumptionGuide: ConsumptionGuideItem[];
+  summary: {
+    totalCarbsPlanned: number;
+    totalCarbsNeeded: number;
+    hydrationMl: number;
+  };
+  createdAt: number;
+}
