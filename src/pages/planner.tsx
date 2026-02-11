@@ -4,6 +4,8 @@ import { useStore } from '@/store';
 import { Card, CardContent, CardHeader, Button } from '@/components/ui';
 import { RideForm } from '@/components/planner/ride-form';
 import { FuelResult } from '@/components/planner/fuel-result';
+import { DrinkMixSelector } from '@/components/planner/drink-mix-selector';
+import { SolidFuelSelector, type SolidSelection } from '@/components/planner/solid-fuel-selector';
 import { calculateFuelPlan } from '@/lib/calculator';
 import type { RideCharacteristics, FuelPlan } from '@/types';
 
@@ -16,18 +18,38 @@ export function PlannerPage() {
   const saveFuelPlan = useStore((s) => s.saveFuelPlan);
 
   const drinkMixes = products.filter((p) => p.type === 'drink_mix');
+  const solidProducts = products.filter((p) => p.type !== 'drink_mix');
   const availableBottles = bottles.filter((b) => b.isAvailable);
 
+  const [selectedDrinkMixId, setSelectedDrinkMixId] = useState<string | null>(null);
+  const [selectedSolids, setSelectedSolids] = useState<SolidSelection[]>([]);
+
   const canCalculate = availableBottles.length > 0 && drinkMixes.length > 0;
+
+  const getSelectedDrinkMix = () => {
+    if (selectedDrinkMixId) {
+      const found = drinkMixes.find((m) => m.id === selectedDrinkMixId);
+      if (found) return found;
+    }
+    return drinkMixes[0];
+  };
 
   const handleCalculate = (ride: RideCharacteristics) => {
     if (!canCalculate) return;
 
+    const drinkMix = getSelectedDrinkMix();
+    const solids = selectedSolids
+      .map((sel) => {
+        const product = products.find((p) => p.id === sel.productId);
+        return product ? { product, quantity: sel.quantity } : null;
+      })
+      .filter((s): s is { product: typeof products[number]; quantity: number } => s !== null);
+
     const result = calculateFuelPlan({
       ride,
       availableBottles,
-      drinkMix: drinkMixes[0], // Use first available drink mix
-      solids: [], // TODO: Add solid selection
+      drinkMix,
+      solids,
     });
 
     setPlan(result);
@@ -73,7 +95,7 @@ export function PlannerPage() {
       )}
 
       <div className="grid md:grid-cols-2 gap-6">
-        <div>
+        <div className="space-y-4">
           <Card>
             <CardHeader>
               <h2 className="font-semibold">Ride Details</h2>
@@ -83,24 +105,33 @@ export function PlannerPage() {
             </CardContent>
           </Card>
 
-          {canCalculate && drinkMixes.length > 0 && (
-            <Card className="mt-4">
-              <CardContent className="py-3">
-                <p className="text-sm text-gray-500">
-                  Using drink mix:{' '}
-                  <span className="font-medium text-gray-700">
-                    {drinkMixes[0].name}
-                  </span>
-                </p>
-                <p className="text-sm text-gray-500">
-                  Available bottles:{' '}
-                  <span className="font-medium text-gray-700">
-                    {availableBottles.map((b) => b.name).join(', ')}
-                  </span>
-                </p>
+          {canCalculate && (
+            <Card>
+              <CardHeader>
+                <h2 className="font-semibold">Drink Mix</h2>
+              </CardHeader>
+              <CardContent>
+                <DrinkMixSelector
+                  drinkMixes={drinkMixes}
+                  selectedId={selectedDrinkMixId}
+                  onChange={setSelectedDrinkMixId}
+                />
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardHeader>
+              <h2 className="font-semibold">Solid Fuel</h2>
+            </CardHeader>
+            <CardContent>
+              <SolidFuelSelector
+                solidProducts={solidProducts}
+                selections={selectedSolids}
+                onChange={setSelectedSolids}
+              />
+            </CardContent>
+          </Card>
         </div>
 
         <div>
