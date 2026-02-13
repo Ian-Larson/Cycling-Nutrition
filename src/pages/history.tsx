@@ -74,6 +74,11 @@ export function HistoryPage() {
                         <span className="text-gray-500">
                           {plan.summary.hydrationMl}ml hydration
                         </span>
+                        {plan.summary.sodiumMgPerHour !== undefined && (
+                          <span className="text-gray-500">
+                            {plan.summary.sodiumMgPerHour}mg/hr sodium
+                          </span>
+                        )}
                       </div>
                       {bottleNames && (
                         <p className="text-sm text-gray-500 mt-1">

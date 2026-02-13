@@ -44,6 +44,8 @@ export interface FuelPlan {
     totalCarbsPlanned: number;
     totalCarbsNeeded: number;
     hydrationMl: number;
+    sodiumMgTotal?: number;
+    sodiumMgPerHour?: number;
   };
   createdAt: number;
 }

@@ -79,17 +79,29 @@ export function calculateFuelPlan(
     }
   }
 
+  const summary: Omit<FuelPlan, 'id' | 'createdAt'>['summary'] = {
+    totalCarbsPlanned,
+    totalCarbsNeeded,
+    hydrationMl: calculateHydrationNeeds(input.ride),
+  };
+
+  if (
+    input.ride.autoMetrics &&
+    Number.isFinite(input.ride.autoMetrics.sodiumMgPerHour)
+  ) {
+    summary.sodiumMgPerHour = input.ride.autoMetrics.sodiumMgPerHour;
+    summary.sodiumMgTotal = Math.round(
+      input.ride.autoMetrics.sodiumMgPerHour * (input.ride.durationMinutes / 60)
+    );
+  }
+
   return {
     rideCharacteristics: input.ride,
     bottles,
     solids: solidAllocations,
     consumptionGuide,
     ...(warnings.length > 0 ? { warnings } : {}),
-    summary: {
-      totalCarbsPlanned,
-      totalCarbsNeeded,
-      hydrationMl: calculateHydrationNeeds(input.ride),
-    },
+    summary,
   };
 }
 

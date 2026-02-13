@@ -33,10 +33,26 @@ function buildDebugText(
   // Ride Settings
   lines.push('--- Ride Settings ---');
   lines.push(`Duration: ${formatDuration(ride.durationMinutes)}`);
+  lines.push(`Planning Mode: ${ride.planningMode || 'manual'}`);
   lines.push(`Intensity: ${ride.intensity}`);
   lines.push(`Weather: ${ride.heatFactor}`);
   lines.push(`Carb Target: ${ride.carbTargetGramsPerHour}g/hr`);
   lines.push(`Refuel Stops: ${ride.refuelStops || 0}`);
+  if (ride.autoMetrics) {
+    lines.push(`Auto Input Pair: ${ride.autoMetrics.inputPair}`);
+    lines.push(`Derived IF: ${ride.autoMetrics.intensityFactor}`);
+    lines.push(`Derived TSS: ${ride.autoMetrics.tss}`);
+    lines.push(`NP: ${ride.autoMetrics.normalizedPowerWatts}w`);
+    lines.push(`kJ/h: ${ride.autoMetrics.kilojoulesPerHour}`);
+    lines.push(
+      `Auto Carb Recommendation: ${ride.autoMetrics.autoCarbTargetGramsPerHour}g/hr`
+    );
+    lines.push(`Auto Hydration: ${ride.autoMetrics.hydrationMlPerHour}ml/hr`);
+    lines.push(`Auto Sodium: ${ride.autoMetrics.sodiumMgPerHour}mg/hr`);
+    lines.push(
+      `Carb Override Applied: ${ride.autoMetrics.carbOverrideApplied ? 'yes' : 'no'}`
+    );
+  }
   lines.push('');
 
   // Selections
@@ -100,6 +116,12 @@ function buildDebugText(
     `Total Carbs: ${plan.summary.totalCarbsPlanned}g / ${plan.summary.totalCarbsNeeded}g needed`
   );
   lines.push(`Hydration: ${plan.summary.hydrationMl}ml`);
+  if (plan.summary.sodiumMgPerHour !== undefined) {
+    lines.push(`Sodium/Hour: ${plan.summary.sodiumMgPerHour}mg`);
+  }
+  if (plan.summary.sodiumMgTotal !== undefined) {
+    lines.push(`Total Sodium: ${plan.summary.sodiumMgTotal}mg`);
+  }
   lines.push('');
 
   // Consumption Guide

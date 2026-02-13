@@ -7,9 +7,21 @@ import { DEFAULT_BOTTLES, DEFAULT_PRODUCTS } from '@/lib/defaults';
 
 export type TemperatureUnit = 'celsius' | 'fahrenheit';
 
-interface Settings {
-  temperatureUnit: TemperatureUnit;
+export interface AthleteProfile {
+  ftpWatts?: number;
+  sweatRateLph?: number;
+  heavySweater: boolean;
+  gutTrained: boolean;
 }
+
+export interface Settings {
+  temperatureUnit: TemperatureUnit;
+  athleteProfile: AthleteProfile;
+}
+
+type SettingsUpdate = Partial<Omit<Settings, 'athleteProfile'>> & {
+  athleteProfile?: Partial<AthleteProfile>;
+};
 
 interface AppState {
   bottles: Bottle[];
@@ -29,9 +41,42 @@ interface AppState {
   saveFuelPlan: (plan: Omit<FuelPlan, 'id' | 'createdAt'>) => void;
   deleteFuelPlan: (id: string) => void;
 
-  updateSettings: (settings: Partial<Settings>) => void;
+  updateSettings: (settings: SettingsUpdate) => void;
+  updateAthleteProfile: (updates: Partial<AthleteProfile>) => void;
 
   initializeDefaults: () => void;
+}
+
+const DEFAULT_SETTINGS: Settings = {
+  temperatureUnit: 'celsius',
+  athleteProfile: {
+    heavySweater: false,
+    gutTrained: false,
+  },
+};
+
+function normalizePositiveNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? value
+    : undefined;
+}
+
+function normalizeSettings(value: unknown): Settings {
+  const incoming = value as Partial<Settings> | undefined;
+  const incomingProfile = incoming?.athleteProfile as
+    | Partial<AthleteProfile>
+    | undefined;
+
+  return {
+    temperatureUnit:
+      incoming?.temperatureUnit === 'fahrenheit' ? 'fahrenheit' : 'celsius',
+    athleteProfile: {
+      ftpWatts: normalizePositiveNumber(incomingProfile?.ftpWatts),
+      sweatRateLph: normalizePositiveNumber(incomingProfile?.sweatRateLph),
+      heavySweater: incomingProfile?.heavySweater ?? false,
+      gutTrained: incomingProfile?.gutTrained ?? false,
+    },
+  };
 }
 
 export const useStore = create<AppState>()(
@@ -40,7 +85,10 @@ export const useStore = create<AppState>()(
       bottles: [],
       products: [],
       fuelPlans: [],
-      settings: { temperatureUnit: 'celsius' },
+      settings: {
+        ...DEFAULT_SETTINGS,
+        athleteProfile: { ...DEFAULT_SETTINGS.athleteProfile },
+      },
       _initialized: false,
 
       addBottle: (bottle) =>
@@ -113,7 +161,17 @@ export const useStore = create<AppState>()(
 
       updateSettings: (updates) =>
         set((state) => {
-          Object.assign(state.settings, updates);
+          const { athleteProfile, ...rest } = updates;
+          Object.assign(state.settings, rest);
+
+          if (athleteProfile) {
+            Object.assign(state.settings.athleteProfile, athleteProfile);
+          }
+        }),
+
+      updateAthleteProfile: (updates) =>
+        set((state) => {
+          Object.assign(state.settings.athleteProfile, updates);
         }),
 
       initializeDefaults: () => {
@@ -122,6 +180,7 @@ export const useStore = create<AppState>()(
 
         set((draft) => {
           draft._initialized = true;
+          draft.settings = normalizeSettings(draft.settings);
 
           if (draft.bottles.length === 0) {
             DEFAULT_BOTTLES.forEach((b) => {
@@ -149,6 +208,15 @@ export const useStore = create<AppState>()(
     })),
     {
       name: 'cycling-nutrition-storage',
+      merge: (persistedState, currentState) => {
+        const incoming = (persistedState as Partial<AppState>) || {};
+
+        return {
+          ...currentState,
+          ...incoming,
+          settings: normalizeSettings(incoming.settings),
+        };
+      },
     }
   )
 );

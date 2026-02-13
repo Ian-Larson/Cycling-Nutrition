@@ -66,6 +66,22 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
               <dt className="text-gray-500">Carbs/Hour</dt>
               <dd className="text-lg font-bold">{carbsPerHour}g/hr</dd>
             </div>
+            {plan.summary.sodiumMgPerHour !== undefined && (
+              <div>
+                <dt className="text-gray-500">Sodium / Hour</dt>
+                <dd className="text-lg font-bold">
+                  {plan.summary.sodiumMgPerHour}mg/hr
+                </dd>
+              </div>
+            )}
+            {plan.summary.sodiumMgTotal !== undefined && (
+              <div>
+                <dt className="text-gray-500">Total Sodium</dt>
+                <dd className="text-lg font-bold">
+                  {plan.summary.sodiumMgTotal}mg
+                </dd>
+              </div>
+            )}
           </dl>
         </CardContent>
       </Card>
