@@ -1,0 +1,72 @@
+import { clsx } from 'clsx';
+import type { NeedsLevel } from '@/types';
+
+interface NeedsIntensityBarProps {
+  score: number;
+  level: NeedsLevel;
+  label?: string;
+  compact?: boolean;
+}
+
+const LEVEL_LABELS: Record<NeedsLevel, string> = {
+  low: 'Low',
+  moderate: 'Moderate',
+  high: 'High',
+  extreme: 'Extreme',
+};
+
+const LEVEL_BADGE: Record<NeedsLevel, string> = {
+  low: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  moderate: 'bg-amber-100 text-amber-800 border-amber-200',
+  high: 'bg-orange-100 text-orange-800 border-orange-200',
+  extreme: 'bg-red-100 text-red-800 border-red-200',
+};
+
+export function NeedsIntensityBar({
+  score,
+  level,
+  label = 'Needs Intensity',
+  compact = false,
+}: NeedsIntensityBarProps) {
+  const clampedScore = Math.max(0, Math.min(100, Math.round(score)));
+
+  return (
+    <div className={clsx('space-y-2', compact && 'space-y-1')}>
+      <div className="flex items-center justify-between">
+        <p className={clsx('font-medium text-gray-700', compact ? 'text-xs' : 'text-sm')}>
+          {label}
+        </p>
+        <div className="flex items-center gap-2">
+          <span className={clsx('text-gray-500', compact ? 'text-xs' : 'text-sm')}>
+            {clampedScore}/100
+          </span>
+          <span
+            className={clsx(
+              'rounded-full border px-2 py-0.5 font-medium',
+              compact ? 'text-[11px]' : 'text-xs',
+              LEVEL_BADGE[level]
+            )}
+          >
+            {LEVEL_LABELS[level]}
+          </span>
+        </div>
+      </div>
+
+      <div className={clsx('relative rounded-full overflow-hidden', compact ? 'h-2.5' : 'h-3')}>
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-amber-400 via-orange-500 to-red-500" />
+        <div
+          className="absolute top-1/2 h-4 w-4 -translate-y-1/2 -translate-x-1/2 rounded-full border-2 border-white bg-gray-900 shadow"
+          style={{ left: `${clampedScore}%` }}
+          aria-hidden
+        />
+      </div>
+
+      <div className={clsx('grid grid-cols-4 text-gray-500', compact ? 'text-[11px]' : 'text-xs')}>
+        <span>Low</span>
+        <span className="text-center">Moderate</span>
+        <span className="text-center">High</span>
+        <span className="text-right">Extreme</span>
+      </div>
+    </div>
+  );
+}

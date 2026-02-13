@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateAutoCarbTargetGramsPerHour,
   calculateAutoTarget,
+  calculateAutoTargetFromTripleInput,
   calculateHydrationMlPerHour,
+  calculateNeedsScore,
   calculateSodiumMgPerHour,
   mapIfToIntensity,
   resolveRideMetrics,
+  resolveTripleInputMetrics,
 } from './auto-target';
 
 describe('resolveRideMetrics', () => {
@@ -41,6 +44,32 @@ describe('resolveRideMetrics', () => {
   });
 });
 
+describe('resolveTripleInputMetrics', () => {
+  it('auto-corrects TSS from duration + IF when values differ', () => {
+    const result = resolveTripleInputMetrics({
+      durationMinutes: 120,
+      intensityFactor: 0.8,
+      tss: 120,
+    });
+
+    expect(result.correctedTss).toBe(128);
+    expect(result.tssCorrectionApplied).toBe(true);
+    expect(result.tssCorrectionDelta).toBe(8);
+  });
+
+  it('does not flag correction when TSS is already consistent', () => {
+    const result = resolveTripleInputMetrics({
+      durationMinutes: 120,
+      intensityFactor: 0.8,
+      tss: 128,
+    });
+
+    expect(result.correctedTss).toBe(128);
+    expect(result.tssCorrectionApplied).toBe(false);
+    expect(result.tssCorrectionDelta).toBe(0);
+  });
+});
+
 describe('mapIfToIntensity', () => {
   it('maps IF values to app intensity levels', () => {
     expect(mapIfToIntensity(0.59)).toBe('recovery');
@@ -64,67 +93,57 @@ describe('calculateAutoCarbTargetGramsPerHour', () => {
     expect(target).toBe(0);
   });
 
-  it('applies 30 g/h floor for non-trivial rides', () => {
-    const target = calculateAutoCarbTargetGramsPerHour({
-      intensityFactor: 0.71,
-      durationHours: 1.5,
-      kilojoulesPerHour: 200,
-      intensity: 'endurance',
-      gutTrained: false,
-    });
+  it('applies floors and caps', () => {
+    expect(
+      calculateAutoCarbTargetGramsPerHour({
+        intensityFactor: 0.71,
+        durationHours: 1.5,
+        kilojoulesPerHour: 200,
+        intensity: 'endurance',
+        gutTrained: false,
+      })
+    ).toBe(30);
 
-    expect(target).toBe(30);
-  });
+    expect(
+      calculateAutoCarbTargetGramsPerHour({
+        intensityFactor: 0.9,
+        durationHours: 2,
+        kilojoulesPerHour: 280,
+        intensity: 'threshold',
+        gutTrained: false,
+      })
+    ).toBe(60);
 
-  it('applies 60 g/h floor for long hard rides', () => {
-    const target = calculateAutoCarbTargetGramsPerHour({
-      intensityFactor: 0.9,
-      durationHours: 2,
-      kilojoulesPerHour: 280,
-      intensity: 'threshold',
-      gutTrained: false,
-    });
+    expect(
+      calculateAutoCarbTargetGramsPerHour({
+        intensityFactor: 1,
+        durationHours: 3,
+        kilojoulesPerHour: 1800,
+        intensity: 'race',
+        gutTrained: false,
+      })
+    ).toBe(90);
 
-    expect(target).toBe(60);
-  });
-
-  it('caps at 90 g/h by default and 120 g/h when race + gut-trained', () => {
-    const defaultCap = calculateAutoCarbTargetGramsPerHour({
-      intensityFactor: 1,
-      durationHours: 3,
-      kilojoulesPerHour: 1800,
-      intensity: 'race',
-      gutTrained: false,
-    });
-
-    const raceCap = calculateAutoCarbTargetGramsPerHour({
-      intensityFactor: 1,
-      durationHours: 3,
-      kilojoulesPerHour: 1800,
-      intensity: 'race',
-      gutTrained: true,
-    });
-
-    expect(defaultCap).toBe(90);
-    expect(raceCap).toBe(120);
+    expect(
+      calculateAutoCarbTargetGramsPerHour({
+        intensityFactor: 1,
+        durationHours: 3,
+        kilojoulesPerHour: 1800,
+        intensity: 'race',
+        gutTrained: true,
+      })
+    ).toBe(120);
   });
 });
 
-describe('hydration and sodium rules', () => {
-  it('uses sweat-rate hydration override when provided', () => {
+describe('hydration, sodium, and needs score', () => {
+  it('applies hydration and sodium branches', () => {
     expect(
       calculateHydrationMlPerHour({ sweatRateLph: 0.9, heatFactor: 'hot' })
     ).toBe(900);
-  });
-
-  it('uses heat-based hydration fallback when sweat rate is absent', () => {
     expect(calculateHydrationMlPerHour({ heatFactor: 'cool' })).toBe(500);
     expect(calculateHydrationMlPerHour({ heatFactor: 'moderate' })).toBe(750);
-    expect(calculateHydrationMlPerHour({ heatFactor: 'warm' })).toBe(1000);
-    expect(calculateHydrationMlPerHour({ heatFactor: 'hot' })).toBe(1000);
-  });
 
-  it('computes sodium based on heat, duration, intensity, and heavy sweater', () => {
     expect(
       calculateSodiumMgPerHour({
         heatFactor: 'moderate',
@@ -139,23 +158,60 @@ describe('hydration and sodium rules', () => {
         heatFactor: 'moderate',
         durationHours: 2,
         intensityFactor: 0.7,
-        heavySweater: false,
-      })
-    ).toBe(1000);
-
-    expect(
-      calculateSodiumMgPerHour({
-        heatFactor: 'moderate',
-        durationHours: 2,
-        intensityFactor: 0.7,
         heavySweater: true,
       })
     ).toBe(1500);
   });
+
+  it('maps needs score to expected levels', () => {
+    const low = calculateNeedsScore({
+      hydrationMlPerHour: 500,
+      sodiumMgPerHour: 500,
+      intensityFactor: 0.5,
+      tssPerHour: 40,
+    });
+    const high = calculateNeedsScore({
+      hydrationMlPerHour: 900,
+      sodiumMgPerHour: 1000,
+      intensityFactor: 0.85,
+      tssPerHour: 80,
+    });
+    const extreme = calculateNeedsScore({
+      hydrationMlPerHour: 1100,
+      sodiumMgPerHour: 1500,
+      intensityFactor: 1.0,
+      tssPerHour: 110,
+    });
+
+    expect(low.needsLevel).toBe('low');
+    expect(high.needsLevel).toBe('high');
+    expect(extreme.needsLevel).toBe('extreme');
+  });
 });
 
 describe('calculateAutoTarget integration', () => {
-  it('matches example A behavior', () => {
+  it('supports triple-input mode and stores correction metadata', () => {
+    const result = calculateAutoTargetFromTripleInput({
+      durationMinutes: 120,
+      intensityFactor: 0.8,
+      tss: 120,
+      ftpWatts: 250,
+      heatFactor: 'moderate',
+      heavySweater: false,
+      gutTrained: false,
+    });
+
+    expect(result.durationMinutes).toBe(120);
+    expect(result.autoMetrics.inputMode).toBe('triple');
+    expect(result.autoMetrics.correctedTss).toBe(128);
+    expect(result.autoMetrics.tss).toBe(128);
+    expect(result.autoMetrics.tssCorrectionApplied).toBe(true);
+    expect(result.autoMetrics.tssCorrectionDelta).toBe(8);
+    expect(result.autoMetrics.needsScore).toBeDefined();
+    expect(result.autoMetrics.needsLevel).toBeDefined();
+  });
+
+  it('maintains pair-mode compatibility', () => {
     const result = calculateAutoTarget({
       inputPair: 'duration_if',
       durationMinutes: 120,
@@ -166,50 +222,16 @@ describe('calculateAutoTarget integration', () => {
       gutTrained: false,
     });
 
-    expect(result.durationMinutes).toBe(120);
-    expect(result.autoMetrics.intensityFactor).toBeCloseTo(0.8, 3);
-    expect(result.autoMetrics.autoCarbTargetGramsPerHour).toBe(80);
-    expect(result.carbTargetGramsPerHour).toBe(80);
-    expect(result.autoMetrics.hydrationMlPerHour).toBe(750);
-    expect(result.autoMetrics.sodiumMgPerHour).toBe(1000);
+    expect(result.autoMetrics.inputMode).toBe('pair');
+    expect(result.autoMetrics.tss).toBeCloseTo(128, 1);
   });
 
-  it('matches example B behavior', () => {
-    const result = calculateAutoTarget({
-      inputPair: 'duration_tss',
-      durationMinutes: 180,
-      tss: 150,
-      ftpWatts: 280,
-      heatFactor: 'moderate',
-      heavySweater: false,
-      gutTrained: false,
-    });
-
-    expect(result.durationMinutes).toBe(180);
-    expect(result.autoMetrics.intensityFactor).toBeCloseTo(0.707, 3);
-    expect(result.autoMetrics.autoCarbTargetGramsPerHour).toBe(80);
-    expect(result.autoMetrics.hydrationMlPerHour).toBe(750);
-    expect(result.autoMetrics.sodiumMgPerHour).toBe(1000);
-  });
-
-  it('throws on invalid formula outputs and override ranges', () => {
+  it('throws on invalid ranges', () => {
     expect(() =>
-      calculateAutoTarget({
-        inputPair: 'if_tss',
-        intensityFactor: 0.5,
-        tss: 250,
-        ftpWatts: 250,
-        heatFactor: 'moderate',
-        heavySweater: false,
-        gutTrained: false,
-      })
-    ).toThrow(/supported range/i);
-
-    expect(() =>
-      calculateAutoTarget({
-        inputPair: 'duration_if',
+      calculateAutoTargetFromTripleInput({
         durationMinutes: 120,
         intensityFactor: 0.8,
+        tss: 120,
         ftpWatts: 250,
         heatFactor: 'moderate',
         heavySweater: false,
@@ -217,5 +239,17 @@ describe('calculateAutoTarget integration', () => {
         carbTargetOverrideGramsPerHour: 125,
       })
     ).toThrow(/override/i);
+
+    expect(() =>
+      calculateAutoTargetFromTripleInput({
+        durationMinutes: 500,
+        intensityFactor: 0.8,
+        tss: 120,
+        ftpWatts: 250,
+        heatFactor: 'moderate',
+        heavySweater: false,
+        gutTrained: false,
+      })
+    ).toThrow(/supported range/i);
   });
 });

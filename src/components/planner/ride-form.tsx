@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Slider, Select, Button, PresetButtons, Input } from '@/components/ui';
 import { useStore } from '@/store';
-import { calculateAutoTarget } from '@/lib/calculator/auto-target';
-import type { AutoInputPair, RideCharacteristics } from '@/types';
+import { calculateAutoTargetFromTripleInput } from '@/lib/calculator/auto-target';
+import { NeedsIntensityBar } from './needs-intensity-bar';
+import type { RideCharacteristics } from '@/types';
 
 interface RideFormProps {
   onCalculate: (ride: RideCharacteristics) => void;
@@ -49,9 +50,8 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
 
   const [planningMode, setPlanningMode] =
     useState<RideCharacteristics['planningMode']>('manual');
-  const [autoInputPair, setAutoInputPair] = useState<AutoInputPair>('duration_if');
   const [autoDurationInput, setAutoDurationInput] = useState('120');
-  const [autoIfInput, setAutoIfInput] = useState('0.8');
+  const [autoIfInput, setAutoIfInput] = useState('0.80');
   const [autoTssInput, setAutoTssInput] = useState('120');
   const [autoCarbOverrideInput, setAutoCarbOverrideInput] = useState('');
 
@@ -74,8 +74,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
 
     try {
       return {
-        result: calculateAutoTarget({
-          inputPair: autoInputPair,
+        result: calculateAutoTargetFromTripleInput({
           durationMinutes: parseOptionalNumber(autoDurationInput),
           intensityFactor: parseOptionalNumber(autoIfInput),
           tss: parseOptionalNumber(autoTssInput),
@@ -95,7 +94,6 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
       };
     }
   }, [
-    autoInputPair,
     autoDurationInput,
     autoIfInput,
     autoTssInput,
@@ -107,13 +105,6 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
     hasFtp,
     heatFactor,
   ]);
-
-  const isInputActive = {
-    duration: autoInputPair === 'duration_if' || autoInputPair === 'duration_tss',
-    intensityFactor:
-      autoInputPair === 'duration_if' || autoInputPair === 'if_tss',
-    tss: autoInputPair === 'duration_tss' || autoInputPair === 'if_tss',
-  };
 
   const effectiveDurationMinutes =
     planningMode === 'manual'
@@ -149,6 +140,12 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
         : {}),
     });
   };
+
+  const previewAutoMetrics = autoPreview.result?.autoMetrics;
+  const tssPerHour =
+    previewAutoMetrics && autoPreview.result
+      ? Math.round(previewAutoMetrics.tss / (autoPreview.result.durationMinutes / 60))
+      : undefined;
 
   return (
     <div className="space-y-6">
@@ -251,7 +248,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
           </div>
         </>
       ) : (
-        <div className="space-y-4 rounded-lg border border-gray-200 p-4">
+        <div className="space-y-4 rounded-xl border border-brand-100 bg-gradient-to-b from-white to-brand-50/40 p-4">
           {!hasFtp && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
               Auto mode requires FTP in your athlete profile. Set it in{' '}
@@ -262,17 +259,6 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
             </div>
           )}
 
-          <Select
-            label="Known Inputs"
-            value={autoInputPair}
-            onChange={(e) => setAutoInputPair(e.target.value as AutoInputPair)}
-            options={[
-              { value: 'duration_if', label: 'Duration + IF' },
-              { value: 'duration_tss', label: 'Duration + TSS' },
-              { value: 'if_tss', label: 'IF + TSS' },
-            ]}
-          />
-
           <div className="grid sm:grid-cols-2 gap-3">
             <Input
               id="auto-duration"
@@ -282,7 +268,6 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
               step={1}
               label="Duration (minutes)"
               value={autoDurationInput}
-              disabled={!isInputActive.duration}
               onChange={(e) => setAutoDurationInput(e.target.value)}
             />
             <Input
@@ -293,7 +278,6 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
               step={0.01}
               label="Intensity Factor (IF)"
               value={autoIfInput}
-              disabled={!isInputActive.intensityFactor}
               onChange={(e) => setAutoIfInput(e.target.value)}
             />
             <Input
@@ -303,7 +287,6 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
               step={1}
               label="TSS"
               value={autoTssInput}
-              disabled={!isInputActive.tss}
               onChange={(e) => setAutoTssInput(e.target.value)}
             />
             <Input
@@ -323,27 +306,50 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
             />
           </div>
 
-          {autoPreview.result && (
-            <div className="rounded-lg bg-brand-50 p-3 text-sm">
-              <p className="font-semibold text-brand-800 mb-2">
-                Auto Recommendation
-              </p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-brand-900">
-                <span>Duration:</span>
-                <span>{formatDuration(autoPreview.result.durationMinutes)}</span>
-                <span>IF:</span>
-                <span>{autoPreview.result.autoMetrics.intensityFactor}</span>
-                <span>TSS:</span>
-                <span>{autoPreview.result.autoMetrics.tss}</span>
-                <span>Intensity:</span>
-                <span className="capitalize">{autoPreview.result.intensity}</span>
-                <span>Carbs:</span>
-                <span>{autoPreview.result.carbTargetGramsPerHour}g/h</span>
-                <span>Hydration:</span>
-                <span>{autoPreview.result.autoMetrics.hydrationMlPerHour}ml/h</span>
-                <span>Sodium:</span>
-                <span>{autoPreview.result.autoMetrics.sodiumMgPerHour}mg/h</span>
+          {autoPreview.result && previewAutoMetrics && (
+            <div className="rounded-lg border border-brand-100 bg-white p-3 text-sm space-y-3">
+              <div>
+                <p className="font-semibold text-brand-800 mb-2">
+                  Auto Recommendation
+                </p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-brand-900">
+                  <span>Duration:</span>
+                  <span>{formatDuration(autoPreview.result.durationMinutes)}</span>
+                  <span>IF:</span>
+                  <span>{previewAutoMetrics.intensityFactor}</span>
+                  <span>TSS Entered:</span>
+                  <span>{previewAutoMetrics.userProvidedTss ?? previewAutoMetrics.tss}</span>
+                  <span>TSS Corrected:</span>
+                  <span>{previewAutoMetrics.correctedTss ?? previewAutoMetrics.tss}</span>
+                  <span>Intensity:</span>
+                  <span className="capitalize">{autoPreview.result.intensity}</span>
+                  <span>Carbs:</span>
+                  <span>{autoPreview.result.carbTargetGramsPerHour}g/h</span>
+                  <span>Hydration:</span>
+                  <span>{previewAutoMetrics.hydrationMlPerHour}ml/h</span>
+                  <span>Sodium:</span>
+                  <span>{previewAutoMetrics.sodiumMgPerHour}mg/h</span>
+                </div>
               </div>
+
+              {previewAutoMetrics.tssCorrectionApplied && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  TSS auto-corrected by {previewAutoMetrics.tssCorrectionDelta} to keep Duration, IF, and TSS mathematically consistent.
+                </div>
+              )}
+
+              {previewAutoMetrics.needsScore !== undefined &&
+                previewAutoMetrics.needsLevel && (
+                  <NeedsIntensityBar
+                    score={previewAutoMetrics.needsScore}
+                    level={previewAutoMetrics.needsLevel}
+                  />
+                )}
+
+              <p className="text-xs text-gray-600">
+                Stress drivers: IF {previewAutoMetrics.intensityFactor}, TSS/h {tssPerHour ?? '-'}.
+                Higher stress pushes the needs level toward high or extreme.
+              </p>
             </div>
           )}
 

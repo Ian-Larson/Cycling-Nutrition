@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardContent } from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
+import { NeedsIntensityBar } from './needs-intensity-bar';
 import type { FuelPlan, Bottle, Product } from '@/types';
 
 interface FuelResultProps {
@@ -25,6 +26,21 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
       : 0;
 
   const refuelStops = plan.rideCharacteristics.refuelStops || 0;
+  const autoMetrics = plan.rideCharacteristics.autoMetrics;
+
+  const nonWaterConcentrations = plan.bottles
+    .filter((alloc) => !alloc.isWaterOnly)
+    .map((alloc) => {
+      const bottle = bottles.find((b) => b.id === alloc.bottleId);
+      if (!bottle || bottle.capacityMl <= 0) return 0;
+      return alloc.carbsTotal / bottle.capacityMl;
+    });
+  const concentrationVariance =
+    nonWaterConcentrations.length > 1
+      ? Math.max(...nonWaterConcentrations) - Math.min(...nonWaterConcentrations)
+      : 0;
+  const hasBalancedConcentrations =
+    nonWaterConcentrations.length >= 2 && concentrationVariance <= 0.01;
 
   return (
     <div className="space-y-4">
@@ -83,18 +99,37 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
               </div>
             )}
           </dl>
+          {autoMetrics?.needsScore !== undefined && autoMetrics?.needsLevel && (
+            <div className="mt-4 border-t border-gray-100 pt-4">
+              <NeedsIntensityBar
+                score={autoMetrics.needsScore}
+                level={autoMetrics.needsLevel}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {plan.bottles.length > 0 && (
         <Card>
           <CardHeader>
-            <h3 className="font-semibold">Bottles</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold">Bottles</h3>
+              {hasBalancedConcentrations && (
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                  Balanced concentration
+                </span>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {plan.bottles.map((alloc, i) => {
               const bottle = bottles.find((b) => b.id === alloc.bottleId);
               const product = products.find((p) => p.id === alloc.productId);
+              const concentration =
+                bottle && bottle.capacityMl > 0
+                  ? alloc.carbsTotal / bottle.capacityMl
+                  : 0;
               return (
                 <div
                   key={i}
@@ -117,7 +152,8 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
                           {alloc.mixGrams}g
                         </p>
                         <p className="text-sm text-gray-500">
-                          ~{alloc.mixScoops} scoops • {alloc.carbsTotal}g carbs
+                          ~{alloc.mixScoops} scoops • {alloc.carbsTotal}g carbs •{' '}
+                          {concentration.toFixed(3)} g/ml
                         </p>
                       </>
                     )}

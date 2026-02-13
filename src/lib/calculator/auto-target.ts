@@ -3,6 +3,7 @@ import type {
   AutoMetrics,
   HeatFactor,
   IntensityLevel,
+  NeedsLevel,
 } from '@/types';
 
 const MIN_DURATION_MINUTES = 30;
@@ -20,7 +21,7 @@ const HYDRATION_FALLBACK_ML_PER_HOUR: Record<HeatFactor, number> = {
 };
 
 export interface AutoTargetInput {
-  inputPair: AutoInputPair;
+  inputPair?: AutoInputPair;
   durationMinutes?: number;
   intensityFactor?: number;
   tss?: number;
@@ -39,10 +40,25 @@ export interface ResolvedRideMetrics {
   tss: number;
 }
 
+export interface TripleInputResolution {
+  durationMinutes: number;
+  durationHours: number;
+  intensityFactor: number;
+  enteredTss: number;
+  correctedTss: number;
+  tssCorrectionApplied: boolean;
+  tssCorrectionDelta: number;
+}
+
 export interface PowerMetrics {
   normalizedPowerWatts: number;
   kilojoulesPerHour: number;
   kilojoulesTotal: number;
+}
+
+export interface NeedsScoreResult {
+  needsScore: number;
+  needsLevel: NeedsLevel;
 }
 
 export interface AutoTargetResult {
@@ -148,6 +164,37 @@ export function resolveRideMetrics(input: {
   };
 }
 
+export function resolveTripleInputMetrics(input: {
+  durationMinutes?: number;
+  intensityFactor?: number;
+  tss?: number;
+}): TripleInputResolution {
+  const durationMinutes = ensureSupportedDuration(
+    ensureFinitePositive(input.durationMinutes, 'Duration')
+  );
+  const intensityFactor = ensureSupportedIntensityFactor(
+    ensureFinitePositive(input.intensityFactor, 'Intensity Factor')
+  );
+  const enteredTss = ensureSupportedTss(ensureFinitePositive(input.tss, 'TSS'));
+
+  const durationHours = durationMinutes / 60;
+  const correctedTss = roundTo(
+    100 * intensityFactor * intensityFactor * durationHours,
+    1
+  );
+  const tssCorrectionDelta = roundTo(correctedTss - enteredTss, 1);
+
+  return {
+    durationMinutes: roundTo(durationMinutes, 1),
+    durationHours,
+    intensityFactor: roundTo(intensityFactor, 3),
+    enteredTss: roundTo(enteredTss, 1),
+    correctedTss,
+    tssCorrectionApplied: Math.abs(tssCorrectionDelta) >= 0.5,
+    tssCorrectionDelta,
+  };
+}
+
 export function mapIfToIntensity(intensityFactor: number): IntensityLevel {
   if (intensityFactor < 0.6) return 'recovery';
   if (intensityFactor < 0.75) return 'endurance';
@@ -239,6 +286,59 @@ export function calculateSodiumMgPerHour(input: {
   return sodiumMgPerHour;
 }
 
+function scoreHydration(hydrationMlPerHour: number): number {
+  if (hydrationMlPerHour < 600) return 20;
+  if (hydrationMlPerHour < 850) return 45;
+  if (hydrationMlPerHour < 1050) return 70;
+  return 90;
+}
+
+function scoreSodium(sodiumMgPerHour: number): number {
+  if (sodiumMgPerHour <= 500) return 20;
+  if (sodiumMgPerHour < 1000) return 45;
+  if (sodiumMgPerHour < 1500) return 75;
+  return 95;
+}
+
+function scoreIntensityFactor(intensityFactor: number): number {
+  return Math.round(clamp(((intensityFactor - 0.4) / 0.7) * 100, 0, 100));
+}
+
+function scoreTssPerHour(tssPerHour: number): number {
+  return Math.round(clamp(((tssPerHour - 30) / 70) * 100, 0, 100));
+}
+
+function mapNeedsLevel(score: number): NeedsLevel {
+  if (score >= 75) return 'extreme';
+  if (score >= 50) return 'high';
+  if (score >= 25) return 'moderate';
+  return 'low';
+}
+
+export function calculateNeedsScore(input: {
+  hydrationMlPerHour: number;
+  sodiumMgPerHour: number;
+  intensityFactor: number;
+  tssPerHour: number;
+}): NeedsScoreResult {
+  const hydrationScore = scoreHydration(input.hydrationMlPerHour);
+  const sodiumScore = scoreSodium(input.sodiumMgPerHour);
+  const intensityScore = scoreIntensityFactor(input.intensityFactor);
+  const tssPerHourScore = scoreTssPerHour(input.tssPerHour);
+
+  const needsScore = Math.round(
+    hydrationScore * 0.4 +
+      sodiumScore * 0.25 +
+      intensityScore * 0.2 +
+      tssPerHourScore * 0.15
+  );
+
+  return {
+    needsScore,
+    needsLevel: mapNeedsLevel(needsScore),
+  };
+}
+
 function resolveCarbOverride(
   carbTargetOverrideGramsPerHour: number | undefined
 ): number | undefined {
@@ -253,13 +353,47 @@ function resolveCarbOverride(
   return Math.round(carbTargetOverrideGramsPerHour);
 }
 
+export function calculateAutoTargetFromTripleInput(
+  input: Omit<AutoTargetInput, 'inputPair'>
+): AutoTargetResult {
+  return calculateAutoTarget(input);
+}
+
 export function calculateAutoTarget(input: AutoTargetInput): AutoTargetResult {
-  const resolved = resolveRideMetrics({
-    inputPair: input.inputPair,
-    durationMinutes: input.durationMinutes,
-    intensityFactor: input.intensityFactor,
-    tss: input.tss,
-  });
+  const hasTripleInputs =
+    input.durationMinutes !== undefined &&
+    input.intensityFactor !== undefined &&
+    input.tss !== undefined;
+
+  const tripleMetrics = hasTripleInputs
+    ? resolveTripleInputMetrics({
+        durationMinutes: input.durationMinutes,
+        intensityFactor: input.intensityFactor,
+        tss: input.tss,
+      })
+    : undefined;
+
+  const resolved = tripleMetrics
+    ? {
+        durationMinutes: tripleMetrics.durationMinutes,
+        durationHours: tripleMetrics.durationHours,
+        intensityFactor: tripleMetrics.intensityFactor,
+        tss: tripleMetrics.correctedTss,
+      }
+    : input.inputPair
+      ? resolveRideMetrics({
+          inputPair: input.inputPair,
+          durationMinutes: input.durationMinutes,
+          intensityFactor: input.intensityFactor,
+          tss: input.tss,
+        })
+      : null;
+
+  if (!resolved) {
+    throw new Error(
+      'Provide either all three values (Duration, IF, TSS) or an input pair for auto calculations.'
+    );
+  }
 
   const intensity = mapIfToIntensity(resolved.intensityFactor);
   const powerMetrics = calculatePowerMetrics(
@@ -287,6 +421,14 @@ export function calculateAutoTarget(input: AutoTargetInput): AutoTargetResult {
     heavySweater: input.heavySweater,
   });
 
+  const tssPerHour = resolved.tss / resolved.durationHours;
+  const needs = calculateNeedsScore({
+    hydrationMlPerHour,
+    sodiumMgPerHour,
+    intensityFactor: resolved.intensityFactor,
+    tssPerHour,
+  });
+
   const carbTargetOverride = resolveCarbOverride(
     input.carbTargetOverrideGramsPerHour
   );
@@ -299,6 +441,7 @@ export function calculateAutoTarget(input: AutoTargetInput): AutoTargetResult {
     carbTargetGramsPerHour,
     autoMetrics: {
       inputPair: input.inputPair,
+      inputMode: tripleMetrics ? 'triple' : 'pair',
       intensityFactor: resolved.intensityFactor,
       tss: resolved.tss,
       normalizedPowerWatts: powerMetrics.normalizedPowerWatts,
@@ -309,6 +452,14 @@ export function calculateAutoTarget(input: AutoTargetInput): AutoTargetResult {
       carbOverrideApplied:
         carbTargetOverride !== undefined &&
         carbTargetOverride !== autoCarbTargetGramsPerHour,
+      userProvidedDurationMinutes: tripleMetrics?.durationMinutes,
+      userProvidedIntensityFactor: tripleMetrics?.intensityFactor,
+      userProvidedTss: tripleMetrics?.enteredTss,
+      correctedTss: tripleMetrics?.correctedTss,
+      tssCorrectionApplied: tripleMetrics?.tssCorrectionApplied,
+      tssCorrectionDelta: tripleMetrics?.tssCorrectionDelta,
+      needsLevel: needs.needsLevel,
+      needsScore: needs.needsScore,
     },
   };
 }

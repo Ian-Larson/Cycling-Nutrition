@@ -39,7 +39,30 @@ function buildDebugText(
   lines.push(`Carb Target: ${ride.carbTargetGramsPerHour}g/hr`);
   lines.push(`Refuel Stops: ${ride.refuelStops || 0}`);
   if (ride.autoMetrics) {
-    lines.push(`Auto Input Pair: ${ride.autoMetrics.inputPair}`);
+    lines.push(`Auto Input Mode: ${ride.autoMetrics.inputMode || 'pair'}`);
+    if (ride.autoMetrics.inputPair) {
+      lines.push(`Auto Input Pair: ${ride.autoMetrics.inputPair}`);
+    }
+    if (ride.autoMetrics.userProvidedDurationMinutes !== undefined) {
+      lines.push(`User Duration: ${ride.autoMetrics.userProvidedDurationMinutes} min`);
+    }
+    if (ride.autoMetrics.userProvidedIntensityFactor !== undefined) {
+      lines.push(`User IF: ${ride.autoMetrics.userProvidedIntensityFactor}`);
+    }
+    if (ride.autoMetrics.userProvidedTss !== undefined) {
+      lines.push(`User TSS: ${ride.autoMetrics.userProvidedTss}`);
+    }
+    if (ride.autoMetrics.correctedTss !== undefined) {
+      lines.push(`Corrected TSS: ${ride.autoMetrics.correctedTss}`);
+    }
+    if (ride.autoMetrics.tssCorrectionApplied !== undefined) {
+      lines.push(
+        `TSS Correction Applied: ${ride.autoMetrics.tssCorrectionApplied ? 'yes' : 'no'}`
+      );
+    }
+    if (ride.autoMetrics.tssCorrectionDelta !== undefined) {
+      lines.push(`TSS Correction Delta: ${ride.autoMetrics.tssCorrectionDelta}`);
+    }
     lines.push(`Derived IF: ${ride.autoMetrics.intensityFactor}`);
     lines.push(`Derived TSS: ${ride.autoMetrics.tss}`);
     lines.push(`NP: ${ride.autoMetrics.normalizedPowerWatts}w`);
@@ -49,6 +72,12 @@ function buildDebugText(
     );
     lines.push(`Auto Hydration: ${ride.autoMetrics.hydrationMlPerHour}ml/hr`);
     lines.push(`Auto Sodium: ${ride.autoMetrics.sodiumMgPerHour}mg/hr`);
+    if (ride.autoMetrics.needsScore !== undefined) {
+      lines.push(`Needs Score: ${ride.autoMetrics.needsScore}/100`);
+    }
+    if (ride.autoMetrics.needsLevel) {
+      lines.push(`Needs Level: ${ride.autoMetrics.needsLevel}`);
+    }
     lines.push(
       `Carb Override Applied: ${ride.autoMetrics.carbOverrideApplied ? 'yes' : 'no'}`
     );
@@ -90,8 +119,12 @@ function buildDebugText(
       if (alloc.isWaterOnly) {
         lines.push(`  ${bottle?.name || 'Bottle'}: water only`);
       } else {
+        const concentration =
+          bottle && bottle.capacityMl > 0
+            ? alloc.carbsTotal / bottle.capacityMl
+            : 0;
         lines.push(
-          `  ${bottle?.name || 'Bottle'}: ${alloc.mixGrams}g ${product?.name || '?'} (~${alloc.mixScoops} scoops, ${alloc.carbsTotal}g carbs)`
+          `  ${bottle?.name || 'Bottle'}: ${alloc.mixGrams}g ${product?.name || '?'} (~${alloc.mixScoops} scoops, ${alloc.carbsTotal}g carbs, ${concentration.toFixed(3)} g/ml)`
         );
       }
     }
