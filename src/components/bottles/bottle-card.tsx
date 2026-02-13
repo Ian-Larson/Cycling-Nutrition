@@ -34,10 +34,10 @@ export function BottleCard({
             <Toggle
               checked={bottle.isAvailable}
               onChange={onToggleAvailable}
-              label={bottle.isAvailable ? 'Available' : 'Unavailable'}
+              label={bottle.isAvailable ? 'On' : 'Off'}
             />
-            <span className="text-sm text-gray-500 w-20">
-              {bottle.isAvailable ? 'Available' : 'Unavailable'}
+            <span className="text-sm text-gray-500 w-10">
+              {bottle.isAvailable ? 'On' : 'Off'}
             </span>
           </div>
           {confirming ? (

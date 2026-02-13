@@ -55,8 +55,8 @@ export function SolidFuelSelector({
                 checked={isSelected}
                 onChange={() => toggleProduct(product.id)}
               />
-              <span className="text-sm text-gray-500 w-20">
-                {isSelected ? 'Available' : 'Unavailable'}
+              <span className="text-sm text-gray-500 w-10">
+                {isSelected ? 'On' : 'Off'}
               </span>
             </div>
           </div>

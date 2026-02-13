@@ -4,7 +4,7 @@ import type { Product } from '@/types';
 interface DrinkMixSelectorProps {
   drinkMixes: Product[];
   selectedId: string | null;
-  onChange: (id: string) => void;
+  onChange: (id: string | null) => void;
 }
 
 export function DrinkMixSelector({
@@ -14,12 +14,10 @@ export function DrinkMixSelector({
 }: DrinkMixSelectorProps) {
   if (drinkMixes.length === 0) return null;
 
-  const activeId = selectedId || drinkMixes[0].id;
-
   return (
     <div className="space-y-3">
       {drinkMixes.map((mix) => {
-        const isSelected = mix.id === activeId;
+        const isSelected = mix.id === selectedId;
         return (
           <div
             key={mix.id}
@@ -34,12 +32,10 @@ export function DrinkMixSelector({
             <div className="flex items-center gap-2">
               <Toggle
                 checked={isSelected}
-                onChange={() => {
-                  if (!isSelected) onChange(mix.id);
-                }}
+                onChange={() => onChange(isSelected ? null : mix.id)}
               />
-              <span className="text-sm text-gray-500 w-16">
-                {isSelected ? 'Active' : 'Off'}
+              <span className="text-sm text-gray-500 w-10">
+                {isSelected ? 'On' : 'Off'}
               </span>
             </div>
           </div>
