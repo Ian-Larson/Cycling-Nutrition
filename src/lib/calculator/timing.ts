@@ -6,6 +6,7 @@ import type {
   Bottle,
   Product,
 } from '@/types';
+import { PREFERRED_SOLIDS_PER_HOUR, MAX_SOLIDS_PER_HOUR } from './constants';
 
 export function formatTime(minutes: number): string {
   const h = Math.floor(minutes / 60);
@@ -22,6 +23,11 @@ function snapToFraction(decimal: number): string {
   return '~1/4';
 }
 
+interface SolidUnit {
+  allocation: SolidAllocation;
+  product: Product | undefined;
+}
+
 export function generateConsumptionGuide(
   bottles: BottleAllocation[],
   solids: SolidAllocation[],
@@ -34,25 +40,60 @@ export function generateConsumptionGuide(
 
   if (bottles.length === 0) return guide;
 
-  // Sip every 30 minutes
-  const sipInterval = 30;
-  let cumulativeCarbs = 0;
-  let currentBottleIndex = 0;
+  // --- Build flat list of solid units ---
+  const solidUnits: SolidUnit[] = [];
+  for (const alloc of solids) {
+    const product = productData.find((p) => p.id === alloc.productId);
+    for (let i = 0; i < alloc.quantity; i++) {
+      solidUnits.push({ allocation: alloc, product });
+    }
+  }
 
-  // Calculate total solids and interval
-  const totalSolids = solids.reduce((sum, s) => sum + s.quantity, 0);
-  const solidInterval =
-    totalSolids > 0 ? Math.floor(durationMins / (totalSolids + 1)) : durationMins;
-  let nextSolidTime = solidInterval;
-  let solidsConsumed = 0;
-  let solidProductIndex = 0;
-  let solidUnitIndex = 0;
+  // --- Compute hour buckets ---
+  const numHours = Math.ceil(durationMins / 60);
+  const hourBuckets: { start: number; end: number; sips: number; solids: SolidUnit[] }[] = [];
+  for (let h = 0; h < numHours; h++) {
+    const start = h * 60;
+    const end = Math.min((h + 1) * 60, durationMins);
+    hourBuckets.push({ start, end, sips: 0, solids: [] });
+  }
 
-  // Calculate sips per bottle
-  const totalSips = Math.floor(durationMins / sipInterval);
-  const sipsPerBottle = Math.ceil(totalSips / bottles.length);
+  // --- Distribute solids round-robin across hours ---
+  // First pass: up to PREFERRED_SOLIDS_PER_HOUR per hour
+  let solidIndex = 0;
+  for (let pass = 0; pass < MAX_SOLIDS_PER_HOUR && solidIndex < solidUnits.length; pass++) {
+    const limit = pass < PREFERRED_SOLIDS_PER_HOUR ? PREFERRED_SOLIDS_PER_HOUR : MAX_SOLIDS_PER_HOUR;
+    for (let h = 0; h < numHours && solidIndex < solidUnits.length; h++) {
+      if (hourBuckets[h].solids.length < limit) {
+        hourBuckets[h].solids.push(solidUnits[solidIndex]);
+        solidIndex++;
+      }
+    }
+  }
 
-  // Refuel stops
+  // --- Distribute sips across hours ---
+  // Target ~2 sips per full hour (every 30 min), proportional for partial hours
+  const totalSips = Math.max(1, Math.floor(durationMins / 30));
+  const sipsPerBottle = Math.max(1, Math.ceil(totalSips / bottles.length));
+
+  // Distribute sips proportionally to hour length
+  let sipsRemaining = totalSips;
+  for (let h = 0; h < numHours; h++) {
+    const hourLen = hourBuckets[h].end - hourBuckets[h].start;
+    const hourSips = Math.min(
+      sipsRemaining,
+      Math.max(1, Math.round(totalSips * (hourLen / durationMins)))
+    );
+    hourBuckets[h].sips = hourSips;
+    sipsRemaining -= hourSips;
+  }
+  // Distribute any remaining sips
+  for (let h = 0; sipsRemaining > 0 && h < numHours; h++) {
+    hourBuckets[h].sips++;
+    sipsRemaining--;
+  }
+
+  // --- Refuel stops ---
   const refuelStops = ride.refuelStops || 0;
   const refuelTimes: number[] = [];
   if (refuelStops > 0) {
@@ -62,81 +103,108 @@ export function generateConsumptionGuide(
     }
   }
 
-  let sipCount = 0;
+  // --- Generate events per hour bucket ---
+  let cumulativeCarbs = 0;
+  let globalSipCount = 0;
+  let currentBottleIndex = 0;
 
-  for (let time = sipInterval; time <= durationMins; time += sipInterval) {
-    // Check for refuel stop at this time
-    const refuelIndex = refuelTimes.findIndex(
-      (rt) => time >= rt && time < rt + sipInterval
-    );
-    if (refuelIndex !== -1) {
-      guide.push({
-        timeOffsetMinutes: refuelTimes[refuelIndex],
-        action: `Refill bottles (fill ${refuelIndex + 2} of ${refuelStops + 1})`,
-        carbsConsumed: 0,
-        cumulativeCarbs,
-      });
-      // Reset bottle cycling for new fill
-      currentBottleIndex = 0;
-      sipCount = 0;
-      refuelTimes.splice(refuelIndex, 1);
-    }
+  for (let h = 0; h < numHours; h++) {
+    const bucket = hourBuckets[h];
+    const numSips = bucket.sips;
+    const numSolids = bucket.solids.length;
+    const totalEvents = numSips + numSolids;
 
-    // Switch to next bottle after sipsPerBottle sips
-    if (sipCount > 0 && sipCount % sipsPerBottle === 0 && currentBottleIndex < bottles.length - 1) {
-      currentBottleIndex++;
-    }
+    if (totalEvents === 0) continue;
 
-    const currentBottle = bottles[currentBottleIndex];
-    if (currentBottle) {
-      const bottle = bottleData.find((b) => b.id === currentBottle.bottleId);
-      const bottleName = bottle?.name || `bottle ${currentBottleIndex + 1}`;
-      const carbsPerSip = Math.round(currentBottle.carbsTotal / sipsPerBottle);
-      cumulativeCarbs += carbsPerSip;
+    const hourLen = bucket.end - bucket.start;
 
-      const fraction = snapToFraction(1 / sipsPerBottle);
-      const waterSuffix = currentBottle.isWaterOnly ? ' (water)' : '';
-      const action = `Drink ${fraction} of ${bottle?.capacityMl || '?'}ml ${bottleName}${waterSuffix}`;
+    // Space events evenly within the hour
+    const eventSpacing = hourLen / (totalEvents + 1);
 
-      guide.push({
-        timeOffsetMinutes: time,
-        action,
-        carbsConsumed: carbsPerSip,
-        cumulativeCarbs,
-      });
+    // Interleave: alternate sip, solid, sip, solid...
+    let sipsDone = 0;
+    let solidsDone = 0;
 
-      sipCount++;
-    }
+    for (let e = 0; e < totalEvents; e++) {
+      const eventTime = Math.round(bucket.start + eventSpacing * (e + 1));
 
-    // Check if it's time for a solid
-    if (time >= nextSolidTime && solidsConsumed < totalSolids && solids.length > 0) {
-      // Find which solid to consume
-      while (
-        solidProductIndex < solids.length &&
-        solidUnitIndex >= solids[solidProductIndex].quantity
-      ) {
-        solidProductIndex++;
-        solidUnitIndex = 0;
+      // Check for refuel stop before this event
+      const refuelIdx = refuelTimes.findIndex(
+        (rt) => rt <= eventTime && rt > (e === 0 ? bucket.start : bucket.start + eventSpacing * e)
+      );
+      if (refuelIdx !== -1) {
+        const refuelFillNumber = refuelStops - refuelTimes.length + refuelIdx + 2;
+        guide.push({
+          timeOffsetMinutes: refuelTimes[refuelIdx],
+          action: `Refill bottles (fill ${refuelFillNumber} of ${refuelStops + 1})`,
+          carbsConsumed: 0,
+          cumulativeCarbs,
+        });
+        refuelTimes.splice(refuelIdx, 1);
+        // Reset bottle cycling after refuel
+        currentBottleIndex = 0;
+        globalSipCount = 0;
       }
 
-      if (solidProductIndex < solids.length) {
-        const solid = solids[solidProductIndex];
-        const product = productData.find((p) => p.id === solid.productId);
-        const carbsFromSolid = product?.nutrition.carbsGrams || 0;
+      // Decide: sip or solid? Alternate, starting with sip
+      const remainingSips = numSips - sipsDone;
+      const remainingSolids = numSolids - solidsDone;
+      const doSip =
+        remainingSips > 0 &&
+        (remainingSolids === 0 || sipsDone / Math.max(1, numSips) <= solidsDone / Math.max(1, numSolids));
+
+      if (doSip) {
+        // Advance bottle if needed
+        if (globalSipCount > 0 && globalSipCount % sipsPerBottle === 0 && currentBottleIndex < bottles.length - 1) {
+          currentBottleIndex++;
+        }
+
+        const currentBottle = bottles[currentBottleIndex];
+        if (currentBottle) {
+          const bottle = bottleData.find((b) => b.id === currentBottle.bottleId);
+          const bottleName = bottle?.name || `bottle ${currentBottleIndex + 1}`;
+          const carbsPerSip = Math.round(currentBottle.carbsTotal / sipsPerBottle);
+          cumulativeCarbs += carbsPerSip;
+
+          const fraction = snapToFraction(1 / sipsPerBottle);
+          const waterSuffix = currentBottle.isWaterOnly ? ' (water)' : '';
+          const action = `Drink ${fraction} of ${bottle?.capacityMl || '?'}ml ${bottleName}${waterSuffix}`;
+
+          guide.push({
+            timeOffsetMinutes: eventTime,
+            action,
+            carbsConsumed: carbsPerSip,
+            cumulativeCarbs,
+          });
+
+          globalSipCount++;
+        }
+        sipsDone++;
+      } else if (remainingSolids > 0) {
+        const solidUnit = bucket.solids[solidsDone];
+        const carbsFromSolid = solidUnit.product?.nutrition.carbsGrams || 0;
         cumulativeCarbs += carbsFromSolid;
 
         guide.push({
-          timeOffsetMinutes: time,
-          action: `Eat ${product?.name || 'solid'} (${carbsFromSolid}g carbs)`,
+          timeOffsetMinutes: eventTime,
+          action: `Eat ${solidUnit.product?.name || 'solid'} (${carbsFromSolid}g carbs)`,
           carbsConsumed: carbsFromSolid,
           cumulativeCarbs,
         });
-
-        solidUnitIndex++;
-        solidsConsumed++;
-        nextSolidTime = time + solidInterval;
+        solidsDone++;
       }
     }
+  }
+
+  // Handle any remaining refuel stops not yet emitted
+  for (const rt of refuelTimes) {
+    const refuelFillNumber = refuelStops - refuelTimes.indexOf(rt);
+    guide.push({
+      timeOffsetMinutes: rt,
+      action: `Refill bottles (fill ${refuelFillNumber + 1} of ${refuelStops + 1})`,
+      carbsConsumed: 0,
+      cumulativeCarbs,
+    });
   }
 
   return guide.sort((a, b) => a.timeOffsetMinutes - b.timeOffsetMinutes);
