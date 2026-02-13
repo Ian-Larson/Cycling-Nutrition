@@ -4,8 +4,7 @@ import { useStore } from '@/store';
 import { Card, CardContent, CardHeader, Button, Toast } from '@/components/ui';
 import { RideForm } from '@/components/planner/ride-form';
 import { FuelResult } from '@/components/planner/fuel-result';
-import { DrinkMixSelector } from '@/components/planner/drink-mix-selector';
-import { SolidFuelSelector } from '@/components/planner/solid-fuel-selector';
+import { FuelOptionsCard } from '@/components/planner/fuel-options-card';
 import { calculateFuelPlan } from '@/lib/calculator';
 import type { RideCharacteristics, FuelPlan } from '@/types';
 
@@ -105,33 +104,14 @@ export function PlannerPage() {
             </CardContent>
           </Card>
 
-          {canCalculate && (
-            <Card>
-              <CardHeader>
-                <h2 className="font-semibold">Drink Mix</h2>
-              </CardHeader>
-              <CardContent>
-                <DrinkMixSelector
-                  drinkMixes={drinkMixes}
-                  selectedId={selectedDrinkMixId}
-                  onChange={setSelectedDrinkMixId}
-                />
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
-            <CardHeader>
-              <h2 className="font-semibold">Solid Fuel</h2>
-            </CardHeader>
-            <CardContent>
-              <SolidFuelSelector
-                solidProducts={solidProducts}
-                selectedIds={selectedSolidIds}
-                onChange={setSelectedSolidIds}
-              />
-            </CardContent>
-          </Card>
+          <FuelOptionsCard
+            drinkMixes={drinkMixes}
+            solidProducts={solidProducts}
+            selectedDrinkMixId={selectedDrinkMixId}
+            selectedSolidIds={selectedSolidIds}
+            onDrinkMixChange={setSelectedDrinkMixId}
+            onSolidChange={setSelectedSolidIds}
+          />
         </div>
 
         <div>
