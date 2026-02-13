@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, Button, Toast } from '@/components/ui';
 import { RideForm } from '@/components/planner/ride-form';
 import { FuelResult } from '@/components/planner/fuel-result';
 import { FuelOptionsCard } from '@/components/planner/fuel-options-card';
+import { DebugCopyButton } from '@/components/planner/debug-copy-button';
 import { calculateFuelPlan } from '@/lib/calculator';
 import type { RideCharacteristics, FuelPlan } from '@/types';
 
@@ -125,6 +126,13 @@ export function PlannerPage() {
               >
                 Save to History
               </Button>
+              <DebugCopyButton
+                plan={plan}
+                bottles={bottles}
+                products={products}
+                selectedDrinkMixId={selectedDrinkMixId}
+                selectedSolidIds={selectedSolidIds}
+              />
             </>
           ) : (
             <Card className="flex items-center justify-center h-full min-h-[300px]">

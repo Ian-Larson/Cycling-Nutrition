@@ -1,0 +1,145 @@
+import { useState } from 'react';
+import { Button } from '@/components/ui';
+import { formatTime } from '@/lib/calculator/timing';
+import type { FuelPlan, Bottle, Product } from '@/types';
+
+interface DebugCopyButtonProps {
+  plan: Omit<FuelPlan, 'id' | 'createdAt'>;
+  bottles: Bottle[];
+  products: Product[];
+  selectedDrinkMixId: string | null;
+  selectedSolidIds: string[];
+}
+
+function formatDuration(mins: number): string {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${h}h ${m}m (${mins} min)`;
+}
+
+function buildDebugText(
+  plan: Omit<FuelPlan, 'id' | 'createdAt'>,
+  bottles: Bottle[],
+  products: Product[],
+  selectedDrinkMixId: string | null,
+  selectedSolidIds: string[]
+): string {
+  const ride = plan.rideCharacteristics;
+  const lines: string[] = [];
+
+  lines.push('=== Cycling Nutrition Debug ===');
+  lines.push('');
+
+  // Ride Settings
+  lines.push('--- Ride Settings ---');
+  lines.push(`Duration: ${formatDuration(ride.durationMinutes)}`);
+  lines.push(`Intensity: ${ride.intensity}`);
+  lines.push(`Weather: ${ride.heatFactor}`);
+  lines.push(`Carb Target: ${ride.carbTargetGramsPerHour}g/hr`);
+  lines.push(`Refuel Stops: ${ride.refuelStops || 0}`);
+  lines.push('');
+
+  // Selections
+  lines.push('--- Selections ---');
+  const drinkMix = selectedDrinkMixId
+    ? products.find((p) => p.id === selectedDrinkMixId)
+    : null;
+  lines.push(`Selected Drink Mix: ${drinkMix?.name || '(default/none)'}`);
+  const selectedSolids = products.filter((p) => selectedSolidIds.includes(p.id));
+  lines.push(
+    `Selected Solids: ${selectedSolids.length > 0 ? selectedSolids.map((s) => s.name).join(', ') : '(none)'}`
+  );
+  lines.push('');
+
+  // Available Bottles
+  lines.push('--- Available Bottles ---');
+  const availableBottles = bottles.filter((b) => b.isAvailable);
+  if (availableBottles.length === 0) {
+    lines.push('  (none)');
+  } else {
+    for (const b of availableBottles) {
+      lines.push(`  ${b.name}: ${b.capacityMl}ml`);
+    }
+  }
+  lines.push('');
+
+  // Recommended Bottles
+  lines.push('--- Recommended Bottles ---');
+  if (plan.bottles.length === 0) {
+    lines.push('  (none)');
+  } else {
+    for (const alloc of plan.bottles) {
+      const bottle = bottles.find((b) => b.id === alloc.bottleId);
+      const product = products.find((p) => p.id === alloc.productId);
+      if (alloc.isWaterOnly) {
+        lines.push(`  ${bottle?.name || 'Bottle'}: water only`);
+      } else {
+        lines.push(
+          `  ${bottle?.name || 'Bottle'}: ${alloc.mixGrams}g ${product?.name || '?'} (~${alloc.mixScoops} scoops, ${alloc.carbsTotal}g carbs)`
+        );
+      }
+    }
+  }
+  lines.push('');
+
+  // Recommended Solids
+  if (plan.solids.length > 0) {
+    lines.push('--- Recommended Solids ---');
+    for (const alloc of plan.solids) {
+      const product = products.find((p) => p.id === alloc.productId);
+      lines.push(
+        `  ${product?.name || 'Solid'}: x${alloc.quantity} (${alloc.carbsTotal}g carbs, every ~${alloc.timingIntervalMinutes}min)`
+      );
+    }
+    lines.push('');
+  }
+
+  // Summary
+  lines.push('--- Summary ---');
+  lines.push(
+    `Total Carbs: ${plan.summary.totalCarbsPlanned}g / ${plan.summary.totalCarbsNeeded}g needed`
+  );
+  lines.push(`Hydration: ${plan.summary.hydrationMl}ml`);
+  lines.push('');
+
+  // Consumption Guide
+  if (plan.consumptionGuide.length > 0) {
+    lines.push('--- Consumption Guide ---');
+    for (const item of plan.consumptionGuide) {
+      lines.push(
+        `  ${formatTime(item.timeOffsetMinutes)} | ${item.action} | ${item.carbsConsumed}g | cumulative: ${item.cumulativeCarbs}g`
+      );
+    }
+  }
+
+  return lines.join('\n');
+}
+
+export function DebugCopyButton({
+  plan,
+  bottles,
+  products,
+  selectedDrinkMixId,
+  selectedSolidIds,
+}: DebugCopyButtonProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    const text = buildDebugText(plan, bottles, products, selectedDrinkMixId, selectedSolidIds);
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Button
+      className="w-full mt-2"
+      variant="ghost"
+      onClick={handleCopy}
+    >
+      <span className="text-gray-400 text-sm">
+        {copied ? 'Copied!' : 'Copy Debug Info'}
+      </span>
+    </Button>
+  );
+}
