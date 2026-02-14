@@ -29,7 +29,7 @@ export interface AutoTargetInput {
   heatFactor: HeatFactor;
   sweatRateLph?: number;
   heavySweater: boolean;
-  gutTrained: boolean;
+  gutTrainingTargetGph?: number;
   carbTargetOverrideGramsPerHour?: number;
 }
 
@@ -66,6 +66,11 @@ export interface AutoTargetResult {
   intensity: IntensityLevel;
   carbTargetGramsPerHour: number;
   autoMetrics: AutoMetrics;
+}
+
+interface CarbBounds {
+  min: number;
+  max: number;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -224,30 +229,62 @@ export function calculateAutoCarbTargetGramsPerHour(input: {
   durationHours: number;
   kilojoulesPerHour: number;
   intensity: IntensityLevel;
-  gutTrained: boolean;
 }): number {
-  const {
-    intensityFactor,
-    durationHours,
-    kilojoulesPerHour,
-    intensity,
-    gutTrained,
-  } = input;
+  const { intensityFactor, durationHours, kilojoulesPerHour, intensity } = input;
 
   if (durationHours < 1 && intensityFactor < 0.7) {
     return 0;
   }
 
+  const bounds = getCarbBounds({ intensityFactor, durationHours, intensity });
+
   const oxidationShare = clamp(0.45 + 0.1 * (intensityFactor - 0.75), 0.4, 0.5);
   const rawTarget = (oxidationShare * kilojoulesPerHour) / 4;
 
-  let flooredTarget = Math.max(rawTarget, 30);
-  if (intensityFactor >= 0.85 && durationHours >= 2) {
-    flooredTarget = Math.max(flooredTarget, 60);
+  return Math.round(clamp(rawTarget, bounds.min, bounds.max) / 5) * 5;
+}
+
+export function getCarbBounds(input: {
+  intensityFactor: number;
+  durationHours: number;
+  intensity: IntensityLevel;
+}): CarbBounds {
+  const { intensityFactor, durationHours, intensity } = input;
+
+  let min = 30;
+  if (durationHours < 1 && intensityFactor < 0.7) {
+    min = 0;
+  } else if (intensityFactor >= 0.85 && durationHours >= 2) {
+    min = 60;
   }
 
-  const cap = intensity === 'race' && gutTrained ? 120 : 90;
-  return Math.round(clamp(flooredTarget, 0, cap) / 5) * 5;
+  const max = intensity === 'race' ? 120 : 90;
+  return { min, max };
+}
+
+export function applyGutTrainingBias(input: {
+  baselineTargetGph: number;
+  gutTrainingTargetGph?: number;
+  carbBounds: CarbBounds;
+}): number {
+  const { baselineTargetGph, gutTrainingTargetGph, carbBounds } = input;
+
+  if (baselineTargetGph === 0) {
+    return 0;
+  }
+
+  if (
+    gutTrainingTargetGph === undefined ||
+    !Number.isFinite(gutTrainingTargetGph)
+  ) {
+    return baselineTargetGph;
+  }
+
+  const alpha = 0.35;
+  const weightedTarget =
+    baselineTargetGph + alpha * (gutTrainingTargetGph - baselineTargetGph);
+
+  return Math.round(clamp(weightedTarget, carbBounds.min, carbBounds.max) / 5) * 5;
 }
 
 export function calculateHydrationMlPerHour(input: {
@@ -402,12 +439,21 @@ export function calculateAutoTarget(input: AutoTargetInput): AutoTargetResult {
     resolved.durationHours
   );
 
-  const autoCarbTargetGramsPerHour = calculateAutoCarbTargetGramsPerHour({
+  const carbBounds = getCarbBounds({
+    intensityFactor: resolved.intensityFactor,
+    durationHours: resolved.durationHours,
+    intensity,
+  });
+  const baselineAutoCarbTargetGph = calculateAutoCarbTargetGramsPerHour({
     intensityFactor: resolved.intensityFactor,
     durationHours: resolved.durationHours,
     kilojoulesPerHour: powerMetrics.kilojoulesPerHour,
     intensity,
-    gutTrained: input.gutTrained,
+  });
+  const biasedAutoCarbTargetGph = applyGutTrainingBias({
+    baselineTargetGph: baselineAutoCarbTargetGph,
+    gutTrainingTargetGph: input.gutTrainingTargetGph,
+    carbBounds,
   });
 
   const hydrationMlPerHour = calculateHydrationMlPerHour({
@@ -433,7 +479,7 @@ export function calculateAutoTarget(input: AutoTargetInput): AutoTargetResult {
     input.carbTargetOverrideGramsPerHour
   );
   const carbTargetGramsPerHour =
-    carbTargetOverride ?? autoCarbTargetGramsPerHour;
+    carbTargetOverride ?? biasedAutoCarbTargetGph;
 
   return {
     durationMinutes: Math.round(resolved.durationMinutes),
@@ -446,12 +492,15 @@ export function calculateAutoTarget(input: AutoTargetInput): AutoTargetResult {
       tss: resolved.tss,
       normalizedPowerWatts: powerMetrics.normalizedPowerWatts,
       kilojoulesPerHour: powerMetrics.kilojoulesPerHour,
-      autoCarbTargetGramsPerHour,
+      autoCarbTargetGramsPerHour: biasedAutoCarbTargetGph,
+      baselineAutoCarbTargetGph,
+      biasedAutoCarbTargetGph,
+      gutTrainingTargetGph: input.gutTrainingTargetGph,
       hydrationMlPerHour,
       sodiumMgPerHour,
       carbOverrideApplied:
         carbTargetOverride !== undefined &&
-        carbTargetOverride !== autoCarbTargetGramsPerHour,
+        carbTargetOverride !== biasedAutoCarbTargetGph,
       userProvidedDurationMinutes: tripleMetrics?.durationMinutes,
       userProvidedIntensityFactor: tripleMetrics?.intensityFactor,
       userProvidedTss: tripleMetrics?.enteredTss,

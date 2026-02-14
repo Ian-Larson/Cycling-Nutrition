@@ -3,6 +3,7 @@ import { clsx } from 'clsx';
 
 const navItems = [
   { path: '/', label: 'Plan', icon: '📋' },
+  { path: '/athlete', label: 'Athlete', icon: '🧍' },
   { path: '/inventory', label: 'Inventory', icon: '🎒' },
   { path: '/history', label: 'History', icon: '📜' },
   { path: '/settings', label: 'Settings', icon: '⚙️' },

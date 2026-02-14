@@ -8,10 +8,14 @@ import { DEFAULT_BOTTLES, DEFAULT_PRODUCTS } from '@/lib/defaults';
 export type TemperatureUnit = 'celsius' | 'fahrenheit';
 
 export interface AthleteProfile {
+  name?: string;
   ftpWatts?: number;
+  heightCm?: number;
+  weightKg?: number;
+  age?: number;
   sweatRateLph?: number;
   heavySweater: boolean;
-  gutTrained: boolean;
+  gutTrainingTargetGph: number;
 }
 
 export interface Settings {
@@ -51,7 +55,7 @@ const DEFAULT_SETTINGS: Settings = {
   temperatureUnit: 'celsius',
   athleteProfile: {
     heavySweater: false,
-    gutTrained: false,
+    gutTrainingTargetGph: 65,
   },
 };
 
@@ -61,20 +65,60 @@ function normalizePositiveNumber(value: unknown): number | undefined {
     : undefined;
 }
 
+function normalizeOptionalText(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function normalizeAge(value: unknown): number | undefined {
+  const parsed = normalizePositiveNumber(value);
+  if (parsed === undefined) return undefined;
+  const rounded = Math.round(parsed);
+  return rounded >= 10 && rounded <= 120 ? rounded : undefined;
+}
+
+function normalizeGutTrainingTarget(
+  targetValue: unknown,
+  legacyGutTrainedValue: unknown
+): number {
+  const parsedTarget =
+    typeof targetValue === 'number' && Number.isFinite(targetValue)
+      ? targetValue
+      : undefined;
+
+  if (parsedTarget !== undefined) {
+    return Math.round(Math.min(Math.max(parsedTarget, 50), 110));
+  }
+
+  if (legacyGutTrainedValue === true) {
+    return 90;
+  }
+
+  return 65;
+}
+
 function normalizeSettings(value: unknown): Settings {
   const incoming = value as Partial<Settings> | undefined;
   const incomingProfile = incoming?.athleteProfile as
-    | Partial<AthleteProfile>
+    | (Partial<AthleteProfile> & { gutTrained?: boolean })
     | undefined;
 
   return {
     temperatureUnit:
       incoming?.temperatureUnit === 'fahrenheit' ? 'fahrenheit' : 'celsius',
     athleteProfile: {
+      name: normalizeOptionalText(incomingProfile?.name),
       ftpWatts: normalizePositiveNumber(incomingProfile?.ftpWatts),
+      heightCm: normalizePositiveNumber(incomingProfile?.heightCm),
+      weightKg: normalizePositiveNumber(incomingProfile?.weightKg),
+      age: normalizeAge(incomingProfile?.age),
       sweatRateLph: normalizePositiveNumber(incomingProfile?.sweatRateLph),
       heavySweater: incomingProfile?.heavySweater ?? false,
-      gutTrained: incomingProfile?.gutTrained ?? false,
+      gutTrainingTargetGph: normalizeGutTrainingTarget(
+        incomingProfile?.gutTrainingTargetGph,
+        incomingProfile?.gutTrained
+      ),
     },
   };
 }

@@ -77,7 +77,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
   const autoPreview = useMemo(() => {
     if (!hasFtp) {
       return {
-        error: 'Set your FTP in Settings to enable auto mode.',
+        error: 'Set your FTP in Athlete Profile to enable auto mode.',
       };
     }
 
@@ -91,7 +91,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
           heatFactor,
           sweatRateLph: athleteProfile.sweatRateLph,
           heavySweater: athleteProfile.heavySweater,
-          gutTrained: athleteProfile.gutTrained,
+          gutTrainingTargetGph: athleteProfile.gutTrainingTargetGph,
           carbTargetOverrideGramsPerHour: parseOptionalNumber(
             autoCarbOverrideInput
           ),
@@ -110,7 +110,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
     athleteProfile.ftpWatts,
     athleteProfile.sweatRateLph,
     athleteProfile.heavySweater,
-    athleteProfile.gutTrained,
+    athleteProfile.gutTrainingTargetGph,
     hasFtp,
     heatFactor,
   ]);
@@ -261,8 +261,8 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
           {!hasFtp && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
               Auto mode requires FTP in your athlete profile. Set it in{' '}
-              <Link className="underline font-medium" to="/settings">
-                Settings
+              <Link className="underline font-medium" to="/athlete">
+                Athlete
               </Link>
               .
             </div>
@@ -346,6 +346,18 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
                   <span className="capitalize">{autoPreview.result.intensity}</span>
                   <span>Carbs:</span>
                   <span>{autoPreview.result.carbTargetGramsPerHour}g/h</span>
+                  <span>Carb Baseline:</span>
+                  <span>
+                    {previewAutoMetrics.baselineAutoCarbTargetGph ??
+                      autoPreview.result.carbTargetGramsPerHour}
+                    g/h
+                  </span>
+                  <span>Gut Target:</span>
+                  <span>
+                    {previewAutoMetrics.gutTrainingTargetGph ??
+                      athleteProfile.gutTrainingTargetGph}
+                    g/h
+                  </span>
                   <span>Hydration:</span>
                   <span>{previewAutoMetrics.hydrationMlPerHour}ml/h</span>
                   <span>Sodium:</span>

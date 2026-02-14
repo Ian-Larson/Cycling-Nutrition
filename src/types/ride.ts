@@ -13,6 +13,9 @@ export interface AutoMetrics {
   normalizedPowerWatts: number;
   kilojoulesPerHour: number;
   autoCarbTargetGramsPerHour: number;
+  baselineAutoCarbTargetGph?: number;
+  biasedAutoCarbTargetGph?: number;
+  gutTrainingTargetGph?: number;
   hydrationMlPerHour: number;
   sodiumMgPerHour: number;
   carbOverrideApplied: boolean;

@@ -70,6 +70,19 @@ function buildDebugText(
     lines.push(
       `Auto Carb Recommendation: ${ride.autoMetrics.autoCarbTargetGramsPerHour}g/hr`
     );
+    if (ride.autoMetrics.baselineAutoCarbTargetGph !== undefined) {
+      lines.push(
+        `Baseline Carb Recommendation: ${ride.autoMetrics.baselineAutoCarbTargetGph}g/hr`
+      );
+    }
+    if (ride.autoMetrics.biasedAutoCarbTargetGph !== undefined) {
+      lines.push(
+        `Biased Carb Recommendation: ${ride.autoMetrics.biasedAutoCarbTargetGph}g/hr`
+      );
+    }
+    if (ride.autoMetrics.gutTrainingTargetGph !== undefined) {
+      lines.push(`Gut Training Target: ${ride.autoMetrics.gutTrainingTargetGph}g/hr`);
+    }
     lines.push(`Auto Hydration: ${ride.autoMetrics.hydrationMlPerHour}ml/hr`);
     lines.push(`Auto Sodium: ${ride.autoMetrics.sodiumMgPerHour}mg/hr`);
     if (ride.autoMetrics.needsScore !== undefined) {

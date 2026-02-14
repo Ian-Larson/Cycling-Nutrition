@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyGutTrainingBias,
   calculateAutoCarbTargetGramsPerHour,
   calculateAutoTarget,
   calculateAutoTargetFromTripleInput,
   calculateHydrationMlPerHour,
   calculateNeedsScore,
   calculateSodiumMgPerHour,
+  getCarbBounds,
   mapIfToIntensity,
   resolveRideMetrics,
   resolveTripleInputMetrics,
@@ -80,14 +82,13 @@ describe('mapIfToIntensity', () => {
   });
 });
 
-describe('calculateAutoCarbTargetGramsPerHour', () => {
+describe('carb targeting', () => {
   it('returns 0 g/h for short low-intensity rides', () => {
     const target = calculateAutoCarbTargetGramsPerHour({
       intensityFactor: 0.65,
       durationHours: 0.75,
       kilojoulesPerHour: 500,
       intensity: 'endurance',
-      gutTrained: false,
     });
 
     expect(target).toBe(0);
@@ -100,7 +101,6 @@ describe('calculateAutoCarbTargetGramsPerHour', () => {
         durationHours: 1.5,
         kilojoulesPerHour: 200,
         intensity: 'endurance',
-        gutTrained: false,
       })
     ).toBe(30);
 
@@ -110,7 +110,6 @@ describe('calculateAutoCarbTargetGramsPerHour', () => {
         durationHours: 2,
         kilojoulesPerHour: 280,
         intensity: 'threshold',
-        gutTrained: false,
       })
     ).toBe(60);
 
@@ -120,19 +119,40 @@ describe('calculateAutoCarbTargetGramsPerHour', () => {
         durationHours: 3,
         kilojoulesPerHour: 1800,
         intensity: 'race',
-        gutTrained: false,
+      })
+    ).toBe(120);
+  });
+
+  it('applies soft gut-target bias within carb bounds', () => {
+    const bounds = getCarbBounds({
+      intensityFactor: 0.8,
+      durationHours: 2,
+      intensity: 'tempo',
+    });
+
+    expect(
+      applyGutTrainingBias({
+        baselineTargetGph: 65,
+        gutTrainingTargetGph: 80,
+        carbBounds: bounds,
+      })
+    ).toBe(70);
+
+    expect(
+      applyGutTrainingBias({
+        baselineTargetGph: 90,
+        gutTrainingTargetGph: 110,
+        carbBounds: bounds,
       })
     ).toBe(90);
 
     expect(
-      calculateAutoCarbTargetGramsPerHour({
-        intensityFactor: 1,
-        durationHours: 3,
-        kilojoulesPerHour: 1800,
-        intensity: 'race',
-        gutTrained: true,
+      applyGutTrainingBias({
+        baselineTargetGph: 0,
+        gutTrainingTargetGph: 80,
+        carbBounds: { min: 0, max: 90 },
       })
-    ).toBe(120);
+    ).toBe(0);
   });
 });
 
@@ -198,7 +218,7 @@ describe('calculateAutoTarget integration', () => {
       ftpWatts: 250,
       heatFactor: 'moderate',
       heavySweater: false,
-      gutTrained: false,
+      gutTrainingTargetGph: 80,
     });
 
     expect(result.durationMinutes).toBe(120);
@@ -209,6 +229,9 @@ describe('calculateAutoTarget integration', () => {
     expect(result.autoMetrics.tssCorrectionDelta).toBe(8);
     expect(result.autoMetrics.needsScore).toBeDefined();
     expect(result.autoMetrics.needsLevel).toBeDefined();
+    expect(result.autoMetrics.gutTrainingTargetGph).toBe(80);
+    expect(result.autoMetrics.baselineAutoCarbTargetGph).toBeDefined();
+    expect(result.autoMetrics.biasedAutoCarbTargetGph).toBeDefined();
   });
 
   it('maintains pair-mode compatibility', () => {
@@ -219,7 +242,7 @@ describe('calculateAutoTarget integration', () => {
       ftpWatts: 250,
       heatFactor: 'moderate',
       heavySweater: false,
-      gutTrained: false,
+      gutTrainingTargetGph: 65,
     });
 
     expect(result.autoMetrics.inputMode).toBe('pair');
@@ -235,7 +258,7 @@ describe('calculateAutoTarget integration', () => {
         ftpWatts: 250,
         heatFactor: 'moderate',
         heavySweater: false,
-        gutTrained: false,
+        gutTrainingTargetGph: 80,
         carbTargetOverrideGramsPerHour: 125,
       })
     ).toThrow(/override/i);
@@ -248,7 +271,7 @@ describe('calculateAutoTarget integration', () => {
         ftpWatts: 250,
         heatFactor: 'moderate',
         heavySweater: false,
-        gutTrained: false,
+        gutTrainingTargetGph: 80,
       })
     ).toThrow(/supported range/i);
   });

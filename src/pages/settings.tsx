@@ -1,5 +1,6 @@
+import { Link } from 'react-router-dom';
 import { useStore, type TemperatureUnit } from '@/store';
-import { Card, CardHeader, CardContent, Input, Toggle } from '@/components/ui';
+import { Card, CardHeader, CardContent } from '@/components/ui';
 import { clsx } from 'clsx';
 
 const tempOptions: { value: TemperatureUnit; label: string }[] = [
@@ -10,25 +11,6 @@ const tempOptions: { value: TemperatureUnit; label: string }[] = [
 export function SettingsPage() {
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
-  const updateAthleteProfile = useStore((s) => s.updateAthleteProfile);
-
-  const ftpWatts = settings.athleteProfile.ftpWatts ?? '';
-  const sweatRateLph = settings.athleteProfile.sweatRateLph ?? '';
-
-  const updatePositiveNumber = (
-    key: 'ftpWatts' | 'sweatRateLph',
-    value: string
-  ) => {
-    if (value.trim() === '') {
-      updateAthleteProfile({ [key]: undefined });
-      return;
-    }
-
-    const parsedValue = Number(value);
-    if (Number.isFinite(parsedValue) && parsedValue > 0) {
-      updateAthleteProfile({ [key]: parsedValue });
-    }
-  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
@@ -63,67 +45,16 @@ export function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <h2 className="font-semibold">Athlete Profile</h2>
+          <h2 className="font-semibold">Athlete Data</h2>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Input
-            id="ftp-watts"
-            label="FTP (watts)"
-            type="number"
-            min={1}
-            step={1}
-            value={ftpWatts}
-            onChange={(e) => updatePositiveNumber('ftpWatts', e.target.value)}
-            placeholder="e.g., 250"
-          />
-          <p className="text-sm text-gray-500 -mt-2">
-            Required for auto mode on the Planner page.
+        <CardContent>
+          <p className="text-sm text-gray-600">
+            Athlete metrics and fueling tolerance settings are now managed on the{' '}
+            <Link to="/athlete" className="text-brand-700 underline font-medium">
+              Athlete tab
+            </Link>
+            .
           </p>
-
-          <Input
-            id="sweat-rate"
-            label="Sweat Rate (L/hour)"
-            type="number"
-            min={0.1}
-            step={0.1}
-            value={sweatRateLph}
-            onChange={(e) =>
-              updatePositiveNumber('sweatRateLph', e.target.value)
-            }
-            placeholder="Optional, e.g., 0.9"
-          />
-
-          <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-            <div>
-              <p className="font-medium text-sm">Heavy sweater</p>
-              <p className="text-xs text-gray-500">
-                Adds an additional sodium buffer in auto mode.
-              </p>
-            </div>
-            <Toggle
-              checked={settings.athleteProfile.heavySweater}
-              onChange={(checked) =>
-                updateAthleteProfile({ heavySweater: checked })
-              }
-              label="Heavy sweater"
-            />
-          </div>
-
-          <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-            <div>
-              <p className="font-medium text-sm">Gut-trained for high carbs</p>
-              <p className="text-xs text-gray-500">
-                Allows up to 120 g/h cap for race-level intensity.
-              </p>
-            </div>
-            <Toggle
-              checked={settings.athleteProfile.gutTrained}
-              onChange={(checked) =>
-                updateAthleteProfile({ gutTrained: checked })
-              }
-              label="Gut-trained"
-            />
-          </div>
         </CardContent>
       </Card>
     </div>
