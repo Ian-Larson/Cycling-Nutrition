@@ -1,6 +1,15 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Slider, Select, Button, PresetButtons, Input } from '@/components/ui';
+import {
+  Slider,
+  Select,
+  Button,
+  PresetButtons,
+  Input,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui';
 import { useStore } from '@/store';
 import { calculateAutoTargetFromTripleInput } from '@/lib/calculator/auto-target';
 import { NeedsIntensityBar } from './needs-intensity-bar';
@@ -307,11 +316,23 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
           </div>
 
           {autoPreview.result && previewAutoMetrics && (
-            <div className="rounded-lg border border-brand-100 bg-white p-3 text-sm space-y-3">
-              <div>
-                <p className="font-semibold text-brand-800 mb-2">
-                  Auto Recommendation
-                </p>
+            <Collapsible
+              defaultOpen={false}
+              className="rounded-lg border border-brand-100 bg-white"
+            >
+              <CollapsibleTrigger className="px-3 py-2">
+                <div>
+                  <p className="font-semibold text-brand-800">
+                    Auto Recommendation
+                  </p>
+                  <p className="mt-1 text-xs text-gray-600">
+                    {autoPreview.result.carbTargetGramsPerHour}g/h carbs •{' '}
+                    {previewAutoMetrics.hydrationMlPerHour}ml/h hydration •{' '}
+                    {previewAutoMetrics.sodiumMgPerHour}mg/h sodium
+                  </p>
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="border-t border-brand-100 p-3 text-sm space-y-3">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-brand-900">
                   <span>Duration:</span>
                   <span>{formatDuration(autoPreview.result.durationMinutes)}</span>
@@ -330,27 +351,29 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
                   <span>Sodium:</span>
                   <span>{previewAutoMetrics.sodiumMgPerHour}mg/h</span>
                 </div>
-              </div>
 
-              {previewAutoMetrics.tssCorrectionApplied && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                  TSS auto-corrected by {previewAutoMetrics.tssCorrectionDelta} to keep Duration, IF, and TSS mathematically consistent.
-                </div>
-              )}
-
-              {previewAutoMetrics.needsScore !== undefined &&
-                previewAutoMetrics.needsLevel && (
-                  <NeedsIntensityBar
-                    score={previewAutoMetrics.needsScore}
-                    level={previewAutoMetrics.needsLevel}
-                  />
+                {previewAutoMetrics.tssCorrectionApplied && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    TSS auto-corrected by {previewAutoMetrics.tssCorrectionDelta}{' '}
+                    to keep Duration, IF, and TSS mathematically consistent.
+                  </div>
                 )}
 
-              <p className="text-xs text-gray-600">
-                Stress drivers: IF {previewAutoMetrics.intensityFactor}, TSS/h {tssPerHour ?? '-'}.
-                Higher stress pushes the needs level toward high or extreme.
-              </p>
-            </div>
+                {previewAutoMetrics.needsScore !== undefined &&
+                  previewAutoMetrics.needsLevel && (
+                    <NeedsIntensityBar
+                      score={previewAutoMetrics.needsScore}
+                      level={previewAutoMetrics.needsLevel}
+                    />
+                  )}
+
+                <p className="text-xs text-gray-600">
+                  Stress drivers: IF {previewAutoMetrics.intensityFactor}, TSS/h{' '}
+                  {tssPerHour ?? '-'}.
+                  {' '}Higher stress pushes the needs level toward high or extreme.
+                </p>
+              </CollapsibleContent>
+            </Collapsible>
           )}
 
           {autoPreview.error && hasFtp && (

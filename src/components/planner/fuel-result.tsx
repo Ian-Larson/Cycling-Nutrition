@@ -1,4 +1,11 @@
-import { Card, CardHeader, CardContent } from '@/components/ui';
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
 import { NeedsIntensityBar } from './needs-intensity-bar';
 import type { FuelPlan, Bottle, Product } from '@/types';
@@ -111,94 +118,106 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
       </Card>
 
       {plan.bottles.length > 0 && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Bottles</h3>
-              {hasBalancedConcentrations && (
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
-                  Balanced concentration
-                </span>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {plan.bottles.map((alloc, i) => {
-              const bottle = bottles.find((b) => b.id === alloc.bottleId);
-              const product = products.find((p) => p.id === alloc.productId);
-              const concentration =
-                bottle && bottle.capacityMl > 0
-                  ? alloc.carbsTotal / bottle.capacityMl
-                  : 0;
-              return (
-                <div
-                  key={i}
-                  className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {bottle?.name || `Bottle ${i + 1}`}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {bottle?.capacityMl}ml • {product?.name}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    {alloc.isWaterOnly ? (
-                      <p className="text-lg font-bold text-blue-500">Water only</p>
-                    ) : (
-                      <>
-                        <p className="text-lg font-bold text-brand-600">
-                          {alloc.mixGrams}g
+        <Collapsible defaultOpen>
+          <Card>
+            <CardHeader>
+              <CollapsibleTrigger className="px-0 py-0 rounded-none focus:ring-0">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">Bottles</h3>
+                  {hasBalancedConcentrations && (
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                      Balanced concentration
+                    </span>
+                  )}
+                </div>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent className="space-y-4">
+                {plan.bottles.map((alloc, i) => {
+                  const bottle = bottles.find((b) => b.id === alloc.bottleId);
+                  const product = products.find((p) => p.id === alloc.productId);
+                  const concentration =
+                    bottle && bottle.capacityMl > 0
+                      ? alloc.carbsTotal / bottle.capacityMl
+                      : 0;
+                  return (
+                    <div
+                      key={i}
+                      className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div>
+                        <p className="font-medium">
+                          {bottle?.name || `Bottle ${i + 1}`}
                         </p>
                         <p className="text-sm text-gray-500">
-                          ~{alloc.mixScoops} scoops • {alloc.carbsTotal}g carbs •{' '}
-                          {concentration.toFixed(3)} g/ml
+                          {bottle?.capacityMl}ml • {product?.name}
                         </p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
+                      </div>
+                      <div className="text-right">
+                        {alloc.isWaterOnly ? (
+                          <p className="text-lg font-bold text-blue-500">Water only</p>
+                        ) : (
+                          <>
+                            <p className="text-lg font-bold text-brand-600">
+                              {alloc.mixGrams}g
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              ~{alloc.mixScoops} scoops • {alloc.carbsTotal}g carbs •{' '}
+                              {concentration.toFixed(3)} g/ml
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
 
       {plan.solids.length > 0 && (
-        <Card>
-          <CardHeader>
-            <h3 className="font-semibold">Recommended Solids</h3>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {plan.solids.map((alloc, i) => {
-              const product = products.find((p) => p.id === alloc.productId);
-              return (
-                <div
-                  key={i}
-                  className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {product?.name || 'Solid fuel'}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Every ~{alloc.timingIntervalMinutes}min
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-brand-600">
-                      x{alloc.quantity}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {alloc.carbsTotal}g carbs
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
+        <Collapsible defaultOpen>
+          <Card>
+            <CardHeader>
+              <CollapsibleTrigger className="px-0 py-0 rounded-none focus:ring-0">
+                <h3 className="font-semibold">Recommended Solids</h3>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent className="space-y-4">
+                {plan.solids.map((alloc, i) => {
+                  const product = products.find((p) => p.id === alloc.productId);
+                  return (
+                    <div
+                      key={i}
+                      className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div>
+                        <p className="font-medium">
+                          {product?.name || 'Solid fuel'}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Every ~{alloc.timingIntervalMinutes}min
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-brand-600">
+                          x{alloc.quantity}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {alloc.carbsTotal}g carbs
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
 
       {refuelStops > 0 && (
@@ -215,29 +234,40 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
       )}
 
       {plan.consumptionGuide.length > 0 && (
-        <Card>
-          <CardHeader>
-            <h3 className="font-semibold">Consumption Guide</h3>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {plan.consumptionGuide.map((item, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 text-sm py-2 border-b border-gray-100 last:border-0"
-                >
-                  <span className="font-mono text-gray-500 w-14 shrink-0">
-                    {formatTime(item.timeOffsetMinutes)}
-                  </span>
-                  <span className="flex-1">{item.action}</span>
-                  <span className="text-gray-500 shrink-0">
-                    {item.cumulativeCarbs}g total
-                  </span>
+        <Collapsible defaultOpen={false}>
+          <Card>
+            <CardHeader>
+              <CollapsibleTrigger className="px-0 py-0 rounded-none focus:ring-0">
+                <div>
+                  <h3 className="font-semibold">Consumption Guide</h3>
+                  <p className="text-xs text-gray-500">
+                    {plan.consumptionGuide.length} fueling events
+                  </p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                <div className="space-y-2">
+                  {plan.consumptionGuide.map((item, i) => (
+                    <div
+                      key={i}
+                      className="flex items-start gap-3 text-sm py-2 border-b border-gray-100 last:border-0"
+                    >
+                      <span className="font-mono text-gray-500 w-14 shrink-0">
+                        {formatTime(item.timeOffsetMinutes)}
+                      </span>
+                      <span className="flex-1">{item.action}</span>
+                      <span className="text-gray-500 shrink-0">
+                        {item.cumulativeCarbs}g total
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
     </div>
   );
