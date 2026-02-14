@@ -61,13 +61,6 @@ export function PlannerPage() {
   };
 
   const dismissToast = useCallback(() => setToastMessage(null), []);
-  const planCarbsPerHour =
-    plan && plan.rideCharacteristics.durationMinutes > 0
-      ? Math.round(
-          (plan.summary.totalCarbsPlanned / plan.rideCharacteristics.durationMinutes) *
-            60
-        )
-      : 0;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
@@ -125,33 +118,6 @@ export function PlannerPage() {
         <div>
           {plan ? (
             <>
-              <Card className="mb-4 border-brand-100 bg-brand-50/70 md:sticky md:top-20 md:z-10">
-                <CardContent className="py-3">
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-xs text-gray-500">Carbs / Hour</p>
-                      <p className="font-semibold text-brand-700">{planCarbsPerHour}g/h</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Hydration</p>
-                      <p className="font-semibold">{plan.summary.hydrationMl}ml</p>
-                    </div>
-                    {plan.summary.sodiumMgPerHour !== undefined && (
-                      <div>
-                        <p className="text-xs text-gray-500">Sodium / Hour</p>
-                        <p className="font-semibold">{plan.summary.sodiumMgPerHour}mg</p>
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-xs text-gray-500">Refuels</p>
-                      <p className="font-semibold">
-                        {plan.rideCharacteristics.refuelStops || 0}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               <FuelResult plan={plan} bottles={bottles} products={products} />
               <Button
                 className="w-full mt-4"

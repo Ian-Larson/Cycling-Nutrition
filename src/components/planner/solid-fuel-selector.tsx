@@ -35,9 +35,6 @@ export function SolidFuelSelector({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-gray-500">
-        Select which solids are available. The calculator will auto-recommend the right amount.
-      </p>
       {solidProducts.map((product) => {
         const isSelected = selectedIds.includes(product.id);
         return (

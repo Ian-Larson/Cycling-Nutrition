@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { Radio } from '@/components/ui';
+import { Checkbox } from '@/components/ui';
 import type { Product } from '@/types';
 
 interface DrinkMixSelectorProps {
@@ -18,7 +18,7 @@ export function DrinkMixSelector({
   const effectiveSelectedId = selectedId ?? drinkMixes[0].id;
 
   return (
-    <div className="space-y-3" role="radiogroup" aria-label="Drink mix">
+    <div className="space-y-3">
       {drinkMixes.map((mix) => {
         const isSelected = mix.id === effectiveSelectedId;
         return (
@@ -33,24 +33,25 @@ export function DrinkMixSelector({
             )}
           >
             <div className="flex items-center gap-3">
-              <Radio
+              <Checkbox
                 id={`drink-mix-${mix.id}`}
-                name="drink-mix"
                 checked={isSelected}
-                onChange={() => onChange(mix.id)}
+                onChange={(checked) => {
+                  if (checked) {
+                    onChange(mix.id);
+                  }
+                }}
                 aria-label={`Select ${mix.name}`}
               />
-              <p className="font-medium text-sm">{mix.name}</p>
+              <div>
+                <p className="font-medium text-sm">{mix.name}</p>
+                <p className="text-xs text-gray-500">
+                  {mix.nutrition.carbsGrams}g carbs/serving
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-500">
-                {mix.nutrition.carbsGrams}g carbs/serving
-              </p>
-              {isSelected && (
-                <span className="mt-1 inline-block rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-medium text-brand-800">
-                  Selected
-                </span>
-              )}
+            <div className="text-xs font-medium text-gray-500">
+              {isSelected ? 'Included' : 'Not included'}
             </div>
           </label>
         );
