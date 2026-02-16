@@ -4,6 +4,10 @@ import { immer } from 'zustand/middleware/immer';
 import { nanoid } from 'nanoid';
 import type { Bottle, Product, FuelPlan } from '@/types';
 import { DEFAULT_BOTTLES, DEFAULT_PRODUCTS } from '@/lib/defaults';
+import {
+  normalizeAnthropometricsUnit,
+  type AnthropometricsUnit,
+} from '@/lib/athlete/anthropometrics';
 
 export type TemperatureUnit = 'celsius' | 'fahrenheit';
 
@@ -12,6 +16,7 @@ export interface AthleteProfile {
   ftpWatts?: number;
   heightCm?: number;
   weightKg?: number;
+  anthropometricsUnit: AnthropometricsUnit;
   age?: number;
   sweatRateLph?: number;
   heavySweater: boolean;
@@ -54,6 +59,7 @@ interface AppState {
 const DEFAULT_SETTINGS: Settings = {
   temperatureUnit: 'celsius',
   athleteProfile: {
+    anthropometricsUnit: 'metric',
     heavySweater: false,
     gutTrainingTargetGph: 65,
   },
@@ -112,6 +118,9 @@ function normalizeSettings(value: unknown): Settings {
       ftpWatts: normalizePositiveNumber(incomingProfile?.ftpWatts),
       heightCm: normalizePositiveNumber(incomingProfile?.heightCm),
       weightKg: normalizePositiveNumber(incomingProfile?.weightKg),
+      anthropometricsUnit: normalizeAnthropometricsUnit(
+        incomingProfile?.anthropometricsUnit
+      ),
       age: normalizeAge(incomingProfile?.age),
       sweatRateLph: normalizePositiveNumber(incomingProfile?.sweatRateLph),
       heavySweater: incomingProfile?.heavySweater ?? false,

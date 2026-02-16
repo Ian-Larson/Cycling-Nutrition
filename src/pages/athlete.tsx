@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { clsx } from 'clsx';
+import { useMemo, useState, type KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Button,
@@ -10,11 +11,26 @@ import {
   Toggle,
 } from '@/components/ui';
 import {
+  centimetersToFeetInches,
+  feetInchesToCentimeters,
+  formatNumberInputValue,
+  kilogramsToPounds,
+  poundsToKilograms,
+  type AnthropometricsUnit,
+} from '@/lib/athlete/anthropometrics';
+import {
   createStravaAuthState,
   createStravaProvider,
 } from '@/lib/auth/strava-provider';
 import type { AuthStatus } from '@/lib/auth/types';
 import { useStore, type AthleteProfile } from '@/store';
+
+type OptionalNumericAthleteField =
+  | 'ftpWatts'
+  | 'heightCm'
+  | 'weightKg'
+  | 'age'
+  | 'sweatRateLph';
 
 function roundTo(value: number, decimals: number): number {
   const multiplier = 10 ** decimals;
@@ -27,6 +43,44 @@ function getGutTargetLabel(value: number): string {
   return 'Aggressive tolerance';
 }
 
+function parseDraftNumber(value: string): number | undefined | null {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getWeightDraftFromProfile(
+  weightKg: number | undefined,
+  unit: AnthropometricsUnit
+): string {
+  if (typeof weightKg !== 'number' || !Number.isFinite(weightKg)) {
+    return '';
+  }
+
+  return unit === 'imperial'
+    ? formatNumberInputValue(kilogramsToPounds(weightKg), 1)
+    : formatNumberInputValue(weightKg, 1);
+}
+
+function getImperialHeightDrafts(heightCm: number | undefined): {
+  feet: string;
+  inches: string;
+} {
+  if (typeof heightCm !== 'number' || !Number.isFinite(heightCm)) {
+    return { feet: '', inches: '' };
+  }
+
+  const converted = centimetersToFeetInches(heightCm);
+  return {
+    feet: formatNumberInputValue(converted.feet, 0),
+    inches: formatNumberInputValue(converted.inches, 1),
+  };
+}
+
 export function AthletePage() {
   const athleteProfile = useStore((s) => s.settings.athleteProfile);
   const updateAthleteProfile = useStore((s) => s.updateAthleteProfile);
@@ -37,50 +91,216 @@ export function AthletePage() {
   );
   const [authMessage, setAuthMessage] = useState<string | null>(null);
 
+  const anthropometricsUnit = athleteProfile.anthropometricsUnit ?? 'metric';
   const ftp = athleteProfile.ftpWatts;
-  const weight = athleteProfile.weightKg;
+  const weightKg = athleteProfile.weightKg;
   const wKg =
-    typeof ftp === 'number' && typeof weight === 'number' && weight > 0
-      ? roundTo(ftp / weight, 2)
+    typeof ftp === 'number' && typeof weightKg === 'number' && weightKg > 0
+      ? roundTo(ftp / weightKg, 2)
       : undefined;
-
   const gutTrainingTargetGph = athleteProfile.gutTrainingTargetGph ?? 65;
 
-  const updateOptionalNumber = (
-    key:
-      | 'ftpWatts'
-      | 'heightCm'
-      | 'weightKg'
-      | 'age'
-      | 'sweatRateLph',
-    value: string,
-    options?: {
+  const [ageDraft, setAgeDraft] = useState(() =>
+    formatNumberInputValue(athleteProfile.age, 0)
+  );
+  const [ftpDraft, setFtpDraft] = useState(() =>
+    formatNumberInputValue(athleteProfile.ftpWatts, 0)
+  );
+  const [weightDraft, setWeightDraft] = useState(() =>
+    getWeightDraftFromProfile(athleteProfile.weightKg, anthropometricsUnit)
+  );
+  const [heightCmDraft, setHeightCmDraft] = useState(() =>
+    formatNumberInputValue(athleteProfile.heightCm, 0)
+  );
+  const initialImperialHeightDrafts = getImperialHeightDrafts(
+    athleteProfile.heightCm
+  );
+  const [heightFeetDraft, setHeightFeetDraft] = useState(
+    initialImperialHeightDrafts.feet
+  );
+  const [heightInchesDraft, setHeightInchesDraft] = useState(
+    initialImperialHeightDrafts.inches
+  );
+  const [sweatRateDraft, setSweatRateDraft] = useState(() =>
+    formatNumberInputValue(athleteProfile.sweatRateLph, 1)
+  );
+
+  const blurOnEnter = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+    }
+  };
+
+  const commitOptionalNumberDraft = (
+    key: OptionalNumericAthleteField,
+    draftValue: string,
+    setDraft: (value: string) => void,
+    options: {
       min?: number;
       max?: number;
       integer?: boolean;
+      decimals?: number;
+      fallbackValue?: number;
     }
   ) => {
-    if (value.trim() === '') {
+    const parsed = parseDraftNumber(draftValue);
+    const decimals = options.integer ? 0 : (options.decimals ?? 1);
+    const fallback = formatNumberInputValue(options.fallbackValue, decimals);
+
+    if (parsed === null) {
+      setDraft(fallback);
+      return;
+    }
+
+    if (parsed === undefined) {
       updateAthleteProfile({ [key]: undefined } as Partial<AthleteProfile>);
+      setDraft('');
       return;
     }
 
-    const parsedRaw = Number(value);
-    if (!Number.isFinite(parsedRaw)) {
+    const nextValue = options.integer ? Math.round(parsed) : parsed;
+    const outOfRange =
+      (options.min !== undefined && nextValue < options.min) ||
+      (options.max !== undefined && nextValue > options.max);
+
+    if (outOfRange) {
+      setDraft(fallback);
       return;
     }
 
-    const parsed = options?.integer ? Math.round(parsedRaw) : parsedRaw;
+    updateAthleteProfile({ [key]: nextValue } as Partial<AthleteProfile>);
+    setDraft(formatNumberInputValue(nextValue, decimals));
+  };
 
-    if (options?.min !== undefined && parsed < options.min) {
+  const commitAgeDraft = () =>
+    commitOptionalNumberDraft('age', ageDraft, setAgeDraft, {
+      min: 10,
+      max: 120,
+      integer: true,
+      fallbackValue: athleteProfile.age,
+    });
+
+  const commitFtpDraft = () =>
+    commitOptionalNumberDraft('ftpWatts', ftpDraft, setFtpDraft, {
+      min: 1,
+      integer: true,
+      fallbackValue: athleteProfile.ftpWatts,
+    });
+
+  const commitWeightDraft = () => {
+    if (anthropometricsUnit === 'metric') {
+      commitOptionalNumberDraft('weightKg', weightDraft, setWeightDraft, {
+        min: 1,
+        decimals: 1,
+        fallbackValue: athleteProfile.weightKg,
+      });
       return;
     }
 
-    if (options?.max !== undefined && parsed > options.max) {
+    const parsed = parseDraftNumber(weightDraft);
+    const fallback = getWeightDraftFromProfile(athleteProfile.weightKg, 'imperial');
+
+    if (parsed === null) {
+      setWeightDraft(fallback);
       return;
     }
 
-    updateAthleteProfile({ [key]: parsed } as Partial<AthleteProfile>);
+    if (parsed === undefined) {
+      updateAthleteProfile({ weightKg: undefined });
+      setWeightDraft('');
+      return;
+    }
+
+    if (parsed < 1) {
+      setWeightDraft(fallback);
+      return;
+    }
+
+    updateAthleteProfile({ weightKg: poundsToKilograms(parsed) });
+    setWeightDraft(formatNumberInputValue(parsed, 1));
+  };
+
+  const commitMetricHeightDraft = () =>
+    commitOptionalNumberDraft('heightCm', heightCmDraft, setHeightCmDraft, {
+      min: 50,
+      integer: true,
+      fallbackValue: athleteProfile.heightCm,
+    });
+
+  const commitImperialHeightDraft = () => {
+    const parsedFeet = parseDraftNumber(heightFeetDraft);
+    const parsedInches = parseDraftNumber(heightInchesDraft);
+    const fallbackDrafts = getImperialHeightDrafts(athleteProfile.heightCm);
+
+    if (parsedFeet === null || parsedInches === null) {
+      setHeightFeetDraft(fallbackDrafts.feet);
+      setHeightInchesDraft(fallbackDrafts.inches);
+      return;
+    }
+
+    if (parsedFeet === undefined && parsedInches === undefined) {
+      updateAthleteProfile({ heightCm: undefined });
+      setHeightFeetDraft('');
+      setHeightInchesDraft('');
+      return;
+    }
+
+    const feet = parsedFeet ?? 0;
+    const inches = parsedInches ?? 0;
+
+    if (!Number.isInteger(feet) || feet < 0 || inches < 0 || inches >= 12) {
+      setHeightFeetDraft(fallbackDrafts.feet);
+      setHeightInchesDraft(fallbackDrafts.inches);
+      return;
+    }
+
+    const nextHeightCm = feetInchesToCentimeters(feet, inches);
+    if (nextHeightCm < 50) {
+      setHeightFeetDraft(fallbackDrafts.feet);
+      setHeightInchesDraft(fallbackDrafts.inches);
+      return;
+    }
+
+    updateAthleteProfile({ heightCm: nextHeightCm });
+    const normalizedDrafts = getImperialHeightDrafts(nextHeightCm);
+    setHeightFeetDraft(normalizedDrafts.feet);
+    setHeightInchesDraft(normalizedDrafts.inches);
+  };
+
+  const commitSweatRateDraft = () =>
+    commitOptionalNumberDraft(
+      'sweatRateLph',
+      sweatRateDraft,
+      setSweatRateDraft,
+      {
+        min: 0.1,
+        decimals: 1,
+        fallbackValue: athleteProfile.sweatRateLph,
+      }
+    );
+
+  const metricStorageDetails = [
+    typeof athleteProfile.weightKg === 'number'
+      ? `${formatNumberInputValue(athleteProfile.weightKg, 1)} kg`
+      : null,
+    typeof athleteProfile.heightCm === 'number'
+      ? `${formatNumberInputValue(athleteProfile.heightCm, 0)} cm`
+      : null,
+  ]
+    .filter((value): value is string => value !== null)
+    .join(' • ');
+
+  const handleAnthropometricsUnitChange = (nextUnit: AnthropometricsUnit) => {
+    if (nextUnit === anthropometricsUnit) {
+      return;
+    }
+
+    updateAthleteProfile({ anthropometricsUnit: nextUnit });
+    setWeightDraft(getWeightDraftFromProfile(athleteProfile.weightKg, nextUnit));
+    setHeightCmDraft(formatNumberInputValue(athleteProfile.heightCm, 0));
+    const imperialDrafts = getImperialHeightDrafts(athleteProfile.heightCm);
+    setHeightFeetDraft(imperialDrafts.feet);
+    setHeightInchesDraft(imperialDrafts.inches);
   };
 
   const handleConnectStrava = () => {
@@ -138,18 +358,12 @@ export function AthletePage() {
           <Input
             id="athlete-age"
             label="Age"
-            type="number"
-            min={10}
-            max={120}
-            step={1}
-            value={athleteProfile.age ?? ''}
-            onChange={(event) =>
-              updateOptionalNumber('age', event.target.value, {
-                integer: true,
-                min: 10,
-                max: 120,
-              })
-            }
+            type="text"
+            inputMode="numeric"
+            value={ageDraft}
+            onChange={(event) => setAgeDraft(event.target.value)}
+            onBlur={commitAgeDraft}
+            onKeyDown={blurOnEnter}
             placeholder="e.g., 34"
           />
         </CardContent>
@@ -160,42 +374,99 @@ export function AthletePage() {
           <h2 className="font-semibold">Performance Metrics</h2>
         </CardHeader>
         <CardContent className="grid sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2 space-y-2">
+            <p className="text-sm font-medium text-gray-700">Body Units</p>
+            <div className="inline-flex rounded-lg border border-gray-200 p-1">
+              <button
+                type="button"
+                onClick={() => handleAnthropometricsUnitChange('metric')}
+                className={clsx(
+                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                  anthropometricsUnit === 'metric'
+                    ? 'bg-brand-600 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                )}
+              >
+                Metric
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAnthropometricsUnitChange('imperial')}
+                className={clsx(
+                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                  anthropometricsUnit === 'imperial'
+                    ? 'bg-brand-600 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                )}
+              >
+                Imperial
+              </button>
+            </div>
+          </div>
+
           <Input
             id="athlete-ftp"
             label="FTP (watts)"
-            type="number"
-            min={1}
-            step={1}
-            value={athleteProfile.ftpWatts ?? ''}
-            onChange={(event) =>
-              updateOptionalNumber('ftpWatts', event.target.value, { min: 1 })
-            }
+            type="text"
+            inputMode="numeric"
+            value={ftpDraft}
+            onChange={(event) => setFtpDraft(event.target.value)}
+            onBlur={commitFtpDraft}
+            onKeyDown={blurOnEnter}
             placeholder="e.g., 280"
           />
+
           <Input
             id="athlete-weight"
-            label="Weight (kg)"
-            type="number"
-            min={1}
-            step={0.1}
-            value={athleteProfile.weightKg ?? ''}
-            onChange={(event) =>
-              updateOptionalNumber('weightKg', event.target.value, { min: 1 })
-            }
-            placeholder="e.g., 72"
+            label={anthropometricsUnit === 'imperial' ? 'Weight (lb)' : 'Weight (kg)'}
+            type="text"
+            inputMode="decimal"
+            value={weightDraft}
+            onChange={(event) => setWeightDraft(event.target.value)}
+            onBlur={commitWeightDraft}
+            onKeyDown={blurOnEnter}
+            placeholder={anthropometricsUnit === 'imperial' ? 'e.g., 160' : 'e.g., 72'}
           />
-          <Input
-            id="athlete-height"
-            label="Height (cm)"
-            type="number"
-            min={50}
-            step={1}
-            value={athleteProfile.heightCm ?? ''}
-            onChange={(event) =>
-              updateOptionalNumber('heightCm', event.target.value, { min: 50 })
-            }
-            placeholder="e.g., 178"
-          />
+
+          {anthropometricsUnit === 'imperial' ? (
+            <>
+              <Input
+                id="athlete-height-feet"
+                label="Height (ft)"
+                type="text"
+                inputMode="numeric"
+                value={heightFeetDraft}
+                onChange={(event) => setHeightFeetDraft(event.target.value)}
+                onBlur={commitImperialHeightDraft}
+                onKeyDown={blurOnEnter}
+                placeholder="e.g., 5"
+              />
+              <Input
+                id="athlete-height-inches"
+                label="Height (in)"
+                type="text"
+                inputMode="decimal"
+                value={heightInchesDraft}
+                onChange={(event) => setHeightInchesDraft(event.target.value)}
+                onBlur={commitImperialHeightDraft}
+                onKeyDown={blurOnEnter}
+                placeholder="e.g., 11"
+              />
+            </>
+          ) : (
+            <Input
+              id="athlete-height"
+              label="Height (cm)"
+              type="text"
+              inputMode="numeric"
+              value={heightCmDraft}
+              onChange={(event) => setHeightCmDraft(event.target.value)}
+              onBlur={commitMetricHeightDraft}
+              onKeyDown={blurOnEnter}
+              placeholder="e.g., 178"
+            />
+          )}
+
           <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
             <p className="text-sm font-medium text-gray-700">W/kg</p>
             <p className="text-xl font-bold text-brand-700 mt-1">
@@ -204,6 +475,11 @@ export function AthletePage() {
             <p className="text-xs text-gray-500 mt-1">
               Calculated from FTP and weight.
             </p>
+            {anthropometricsUnit === 'imperial' && metricStorageDetails && (
+              <p className="text-xs text-gray-500 mt-1">
+                Stored internally as {metricStorageDetails}.
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -257,15 +533,12 @@ export function AthletePage() {
           <Input
             id="athlete-sweat-rate"
             label="Sweat Rate (L/hour)"
-            type="number"
-            min={0.1}
-            step={0.1}
-            value={athleteProfile.sweatRateLph ?? ''}
-            onChange={(event) =>
-              updateOptionalNumber('sweatRateLph', event.target.value, {
-                min: 0.1,
-              })
-            }
+            type="text"
+            inputMode="decimal"
+            value={sweatRateDraft}
+            onChange={(event) => setSweatRateDraft(event.target.value)}
+            onBlur={commitSweatRateDraft}
+            onKeyDown={blurOnEnter}
             placeholder="Optional, e.g., 0.9"
           />
         </CardContent>
