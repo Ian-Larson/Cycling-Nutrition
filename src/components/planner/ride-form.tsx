@@ -1,7 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Slider,
   Select,
   Button,
   PresetButtons,
@@ -50,11 +49,13 @@ function parseOptionalNumber(value: string): number | undefined {
 
 export function RideForm({ onCalculate, disabled }: RideFormProps) {
   const [durationMinutes, setDuration] = useState(90);
+  const [durationInput, setDurationInput] = useState('90');
   const [intensity, setIntensity] =
     useState<RideCharacteristics['intensity']>('endurance');
   const [heatFactor, setHeatFactor] =
     useState<RideCharacteristics['heatFactor']>('moderate');
   const [carbTarget, setCarbTarget] = useState(60);
+  const [carbTargetInput, setCarbTargetInput] = useState('60');
   const [refuelStops, setRefuelStops] = useState(0);
 
   const [planningMode, setPlanningMode] =
@@ -121,6 +122,54 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
       : autoPreview.result?.durationMinutes || 0;
 
   const isAutoCalculateDisabled = !autoPreview.result || !hasFtp;
+
+  const blurOnEnter = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+    }
+  };
+
+  const setManualDuration = (nextMinutes: number) => {
+    setDuration(nextMinutes);
+    setDurationInput(String(nextMinutes));
+  };
+
+  const setManualCarbTarget = (nextCarbTarget: number) => {
+    setCarbTarget(nextCarbTarget);
+    setCarbTargetInput(String(nextCarbTarget));
+  };
+
+  const commitDurationInput = () => {
+    const parsed = parseOptionalNumber(durationInput);
+    if (parsed === undefined) {
+      setDurationInput(String(durationMinutes));
+      return;
+    }
+
+    const normalized = Math.round(parsed);
+    if (normalized < 30 || normalized > 300) {
+      setDurationInput(String(durationMinutes));
+      return;
+    }
+
+    setManualDuration(normalized);
+  };
+
+  const commitCarbTargetInput = () => {
+    const parsed = parseOptionalNumber(carbTargetInput);
+    if (parsed === undefined) {
+      setCarbTargetInput(String(carbTarget));
+      return;
+    }
+
+    const normalized = Math.round(parsed);
+    if (normalized < 30 || normalized > 120) {
+      setCarbTargetInput(String(carbTarget));
+      return;
+    }
+
+    setManualCarbTarget(normalized);
+  };
 
   const handleCalculateClick = () => {
     if (planningMode === 'manual') {
@@ -204,14 +253,18 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
                 { label: '4h', value: 240 },
               ]}
               value={durationMinutes}
-              onChange={setDuration}
+              onChange={setManualDuration}
             />
-            <Slider
-              min={30}
-              max={300}
-              step={15}
-              value={durationMinutes}
-              onChange={(e) => setDuration(Number(e.target.value))}
+            <Input
+              id="manual-duration"
+              label="Duration (minutes)"
+              type="text"
+              inputMode="numeric"
+              value={durationInput}
+              onChange={(event) => setDurationInput(event.target.value)}
+              onBlur={commitDurationInput}
+              onKeyDown={blurOnEnter}
+              placeholder="30-300"
             />
           </div>
 
@@ -245,14 +298,18 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
                 { label: 'Max 120g', value: 120 },
               ]}
               value={carbTarget}
-              onChange={setCarbTarget}
+              onChange={setManualCarbTarget}
             />
-            <Slider
-              min={30}
-              max={120}
-              step={5}
-              value={carbTarget}
-              onChange={(e) => setCarbTarget(Number(e.target.value))}
+            <Input
+              id="manual-carb-target"
+              label="Carbs (g/hour)"
+              type="text"
+              inputMode="numeric"
+              value={carbTargetInput}
+              onChange={(event) => setCarbTargetInput(event.target.value)}
+              onBlur={commitCarbTargetInput}
+              onKeyDown={blurOnEnter}
+              placeholder="30-120"
             />
           </div>
         </>

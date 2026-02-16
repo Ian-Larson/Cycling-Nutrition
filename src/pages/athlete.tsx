@@ -7,7 +7,7 @@ import {
   CardContent,
   CardHeader,
   Input,
-  Slider,
+  PresetButtons,
   Toggle,
 } from '@/components/ui';
 import {
@@ -31,6 +31,8 @@ type OptionalNumericAthleteField =
   | 'weightKg'
   | 'age'
   | 'sweatRateLph';
+
+const GUT_TARGET_PRESETS = [60, 65, 75, 85, 95] as const;
 
 function roundTo(value: number, decimals: number): number {
   const multiplier = 10 ** decimals;
@@ -94,11 +96,11 @@ export function AthletePage() {
   const anthropometricsUnit = athleteProfile.anthropometricsUnit ?? 'metric';
   const ftp = athleteProfile.ftpWatts;
   const weightKg = athleteProfile.weightKg;
+  const gutTrainingTargetGph = athleteProfile.gutTrainingTargetGph ?? 65;
   const wKg =
     typeof ftp === 'number' && typeof weightKg === 'number' && weightKg > 0
       ? roundTo(ftp / weightKg, 2)
       : undefined;
-  const gutTrainingTargetGph = athleteProfile.gutTrainingTargetGph ?? 65;
 
   const [ageDraft, setAgeDraft] = useState(() =>
     formatNumberInputValue(athleteProfile.age, 0)
@@ -120,6 +122,9 @@ export function AthletePage() {
   );
   const [heightInchesDraft, setHeightInchesDraft] = useState(
     initialImperialHeightDrafts.inches
+  );
+  const [gutTargetDraft, setGutTargetDraft] = useState(() =>
+    formatNumberInputValue(gutTrainingTargetGph, 0)
   );
   const [sweatRateDraft, setSweatRateDraft] = useState(() =>
     formatNumberInputValue(athleteProfile.sweatRateLph, 1)
@@ -247,7 +252,6 @@ export function AthletePage() {
 
     const feet = parsedFeet ?? 0;
     const inches = parsedInches ?? 0;
-
     if (!Number.isInteger(feet) || feet < 0 || inches < 0 || inches >= 12) {
       setHeightFeetDraft(fallbackDrafts.feet);
       setHeightInchesDraft(fallbackDrafts.inches);
@@ -265,6 +269,30 @@ export function AthletePage() {
     const normalizedDrafts = getImperialHeightDrafts(nextHeightCm);
     setHeightFeetDraft(normalizedDrafts.feet);
     setHeightInchesDraft(normalizedDrafts.inches);
+  };
+
+  const commitGutTargetDraft = () => {
+    const parsed = parseDraftNumber(gutTargetDraft);
+    const fallback = formatNumberInputValue(gutTrainingTargetGph, 0);
+
+    if (parsed === null || parsed === undefined) {
+      setGutTargetDraft(fallback);
+      return;
+    }
+
+    const nextTarget = Math.round(parsed);
+    if (nextTarget < 50 || nextTarget > 110) {
+      setGutTargetDraft(fallback);
+      return;
+    }
+
+    updateAthleteProfile({ gutTrainingTargetGph: nextTarget });
+    setGutTargetDraft(formatNumberInputValue(nextTarget, 0));
+  };
+
+  const applyGutTargetPreset = (targetGph: number) => {
+    updateAthleteProfile({ gutTrainingTargetGph: targetGph });
+    setGutTargetDraft(formatNumberInputValue(targetGph, 0));
   };
 
   const commitSweatRateDraft = () =>
@@ -326,11 +354,11 @@ export function AthletePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
       <div>
         <h1 className="text-2xl font-bold">Athlete Profile</h1>
         <p className="text-sm text-gray-600 mt-1">
-          This profile powers auto nutrition planning. Use the{' '}
+          These settings power auto nutrition planning. Use the{' '}
           <Link to="/" className="underline font-medium text-brand-700">
             Planner
           </Link>{' '}
@@ -339,43 +367,9 @@ export function AthletePage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <h2 className="font-semibold">Identity</h2>
-        </CardHeader>
-        <CardContent className="grid sm:grid-cols-2 gap-4">
-          <Input
-            id="athlete-name"
-            label="Name"
-            value={athleteProfile.name ?? ''}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-              updateAthleteProfile({
-                name: nextValue.trim().length > 0 ? nextValue : undefined,
-              });
-            }}
-            placeholder="e.g., Ian"
-          />
-          <Input
-            id="athlete-age"
-            label="Age"
-            type="text"
-            inputMode="numeric"
-            value={ageDraft}
-            onChange={(event) => setAgeDraft(event.target.value)}
-            onBlur={commitAgeDraft}
-            onKeyDown={blurOnEnter}
-            placeholder="e.g., 34"
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <h2 className="font-semibold">Performance Metrics</h2>
-        </CardHeader>
-        <CardContent className="grid sm:grid-cols-2 gap-4">
-          <div className="sm:col-span-2 space-y-2">
-            <p className="text-sm font-medium text-gray-700">Body Units</p>
+        <CardHeader className="px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-semibold">Profile</h2>
             <div className="inline-flex rounded-lg border border-gray-200 p-1">
               <button
                 type="button"
@@ -403,110 +397,149 @@ export function AthletePage() {
               </button>
             </div>
           </div>
-
-          <Input
-            id="athlete-ftp"
-            label="FTP (watts)"
-            type="text"
-            inputMode="numeric"
-            value={ftpDraft}
-            onChange={(event) => setFtpDraft(event.target.value)}
-            onBlur={commitFtpDraft}
-            onKeyDown={blurOnEnter}
-            placeholder="e.g., 280"
-          />
-
-          <Input
-            id="athlete-weight"
-            label={anthropometricsUnit === 'imperial' ? 'Weight (lb)' : 'Weight (kg)'}
-            type="text"
-            inputMode="decimal"
-            value={weightDraft}
-            onChange={(event) => setWeightDraft(event.target.value)}
-            onBlur={commitWeightDraft}
-            onKeyDown={blurOnEnter}
-            placeholder={anthropometricsUnit === 'imperial' ? 'e.g., 160' : 'e.g., 72'}
-          />
-
-          {anthropometricsUnit === 'imperial' ? (
-            <>
-              <Input
-                id="athlete-height-feet"
-                label="Height (ft)"
-                type="text"
-                inputMode="numeric"
-                value={heightFeetDraft}
-                onChange={(event) => setHeightFeetDraft(event.target.value)}
-                onBlur={commitImperialHeightDraft}
-                onKeyDown={blurOnEnter}
-                placeholder="e.g., 5"
-              />
-              <Input
-                id="athlete-height-inches"
-                label="Height (in)"
-                type="text"
-                inputMode="decimal"
-                value={heightInchesDraft}
-                onChange={(event) => setHeightInchesDraft(event.target.value)}
-                onBlur={commitImperialHeightDraft}
-                onKeyDown={blurOnEnter}
-                placeholder="e.g., 11"
-              />
-            </>
-          ) : (
+        </CardHeader>
+        <CardContent className="px-4 py-3 space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <Input
-              id="athlete-height"
-              label="Height (cm)"
+              id="athlete-name"
+              label="Name"
+              value={athleteProfile.name ?? ''}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                updateAthleteProfile({
+                  name: nextValue.trim().length > 0 ? nextValue : undefined,
+                });
+              }}
+              placeholder="e.g., Ian"
+            />
+            <Input
+              id="athlete-age"
+              label="Age"
               type="text"
               inputMode="numeric"
-              value={heightCmDraft}
-              onChange={(event) => setHeightCmDraft(event.target.value)}
-              onBlur={commitMetricHeightDraft}
+              value={ageDraft}
+              onChange={(event) => setAgeDraft(event.target.value)}
+              onBlur={commitAgeDraft}
               onKeyDown={blurOnEnter}
-              placeholder="e.g., 178"
+              placeholder="e.g., 34"
             />
-          )}
-
-          <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-            <p className="text-sm font-medium text-gray-700">W/kg</p>
-            <p className="text-xl font-bold text-brand-700 mt-1">
-              {wKg !== undefined ? wKg : '--'}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              Calculated from FTP and weight.
-            </p>
-            {anthropometricsUnit === 'imperial' && metricStorageDetails && (
-              <p className="text-xs text-gray-500 mt-1">
-                Stored internally as {metricStorageDetails}.
-              </p>
+            <Input
+              id="athlete-ftp"
+              label="FTP (watts)"
+              type="text"
+              inputMode="numeric"
+              value={ftpDraft}
+              onChange={(event) => setFtpDraft(event.target.value)}
+              onBlur={commitFtpDraft}
+              onKeyDown={blurOnEnter}
+              placeholder="e.g., 280"
+            />
+            <Input
+              id="athlete-weight"
+              label={anthropometricsUnit === 'imperial' ? 'Weight (lb)' : 'Weight (kg)'}
+              type="text"
+              inputMode="decimal"
+              value={weightDraft}
+              onChange={(event) => setWeightDraft(event.target.value)}
+              onBlur={commitWeightDraft}
+              onKeyDown={blurOnEnter}
+              placeholder={anthropometricsUnit === 'imperial' ? 'e.g., 160' : 'e.g., 72'}
+            />
+            {anthropometricsUnit === 'imperial' ? (
+              <>
+                <Input
+                  id="athlete-height-feet"
+                  label="Height (ft)"
+                  type="text"
+                  inputMode="numeric"
+                  value={heightFeetDraft}
+                  onChange={(event) => setHeightFeetDraft(event.target.value)}
+                  onBlur={commitImperialHeightDraft}
+                  onKeyDown={blurOnEnter}
+                  placeholder="e.g., 5"
+                />
+                <Input
+                  id="athlete-height-inches"
+                  label="Height (in)"
+                  type="text"
+                  inputMode="decimal"
+                  value={heightInchesDraft}
+                  onChange={(event) => setHeightInchesDraft(event.target.value)}
+                  onBlur={commitImperialHeightDraft}
+                  onKeyDown={blurOnEnter}
+                  placeholder="e.g., 11"
+                />
+              </>
+            ) : (
+              <Input
+                id="athlete-height"
+                label="Height (cm)"
+                type="text"
+                inputMode="numeric"
+                value={heightCmDraft}
+                onChange={(event) => setHeightCmDraft(event.target.value)}
+                onBlur={commitMetricHeightDraft}
+                onKeyDown={blurOnEnter}
+                placeholder="e.g., 178"
+              />
             )}
           </div>
+          <p className="text-xs text-gray-500">
+            W/kg: <span className="font-medium text-gray-700">{wKg ?? '--'}</span>
+            {anthropometricsUnit === 'imperial' && metricStorageDetails
+              ? ` • Stored as ${metricStorageDetails}`
+              : ''}
+          </p>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
-          <h2 className="font-semibold">Fuel Tolerance</h2>
+        <CardHeader className="px-4 py-3">
+          <h2 className="font-semibold">Fuel & Hydration</h2>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Slider
-            id="gut-training-target"
-            min={50}
-            max={110}
-            step={5}
-            value={gutTrainingTargetGph}
-            label="Gut Training Target"
-            displayValue={`${gutTrainingTargetGph} g/h`}
-            onChange={(event) =>
-              updateAthleteProfile({
-                gutTrainingTargetGph: Number(event.target.value),
-              })
-            }
-          />
-          <p className="text-sm text-gray-600">
-            {getGutTargetLabel(gutTrainingTargetGph)}. The recommendation engine
-            will bias toward this target while staying within intensity and safety limits.
+        <CardContent className="px-4 py-3 space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input
+              id="athlete-gut-target"
+              label="Gut Training Target (g/h)"
+              type="text"
+              inputMode="numeric"
+              value={gutTargetDraft}
+              onChange={(event) => setGutTargetDraft(event.target.value)}
+              onBlur={commitGutTargetDraft}
+              onKeyDown={blurOnEnter}
+              placeholder="e.g., 75"
+            />
+            <Input
+              id="athlete-sweat-rate"
+              label="Sweat Rate (L/hour)"
+              type="text"
+              inputMode="decimal"
+              value={sweatRateDraft}
+              onChange={(event) => setSweatRateDraft(event.target.value)}
+              onBlur={commitSweatRateDraft}
+              onKeyDown={blurOnEnter}
+              placeholder="Optional, e.g., 0.9"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-600">Common targets</p>
+            <PresetButtons
+              options={GUT_TARGET_PRESETS.map((target) => ({
+                label: `${target} g/h`,
+                value: target,
+              }))}
+              value={gutTrainingTargetGph}
+              onChange={applyGutTargetPreset}
+            />
+          </div>
+
+          <p className="text-xs text-gray-600">
+            {getGutTargetLabel(gutTrainingTargetGph)}. Auto recommendations bias
+            toward this value while staying within effort-based bounds.
           </p>
+
           <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
             <div>
               <p className="font-medium text-sm">Heavy sweater</p>
@@ -526,30 +559,11 @@ export function AthletePage() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <h2 className="font-semibold">Sweat Profile</h2>
-        </CardHeader>
-        <CardContent>
-          <Input
-            id="athlete-sweat-rate"
-            label="Sweat Rate (L/hour)"
-            type="text"
-            inputMode="decimal"
-            value={sweatRateDraft}
-            onChange={(event) => setSweatRateDraft(event.target.value)}
-            onBlur={commitSweatRateDraft}
-            onKeyDown={blurOnEnter}
-            placeholder="Optional, e.g., 0.9"
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
+        <CardHeader className="px-4 py-3">
           <h2 className="font-semibold">Connections</h2>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center gap-2">
+        <CardContent className="px-4 py-3 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-medium">Strava</span>
             <span
               className={`rounded-full px-2 py-0.5 text-xs font-medium ${
