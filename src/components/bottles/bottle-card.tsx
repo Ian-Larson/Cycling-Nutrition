@@ -6,12 +6,14 @@ import { clsx } from 'clsx';
 interface BottleCardProps {
   bottle: Bottle;
   onToggleAvailable: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }
 
 export function BottleCard({
   bottle,
   onToggleAvailable,
+  onEdit,
   onDelete,
 }: BottleCardProps) {
   const [confirming, setConfirming] = useState(false);
@@ -24,7 +26,7 @@ export function BottleCard({
 
   return (
     <Card className={clsx(!bottle.isAvailable && 'opacity-60')}>
-      <CardContent className="flex items-center justify-between">
+      <CardContent className="px-4 py-3 flex items-center justify-between">
         <div>
           <h3 className="font-semibold">{bottle.name}</h3>
           <p className="text-sm text-gray-500">{bottle.capacityMl}ml</p>
@@ -40,6 +42,9 @@ export function BottleCard({
               {bottle.isAvailable ? 'On' : 'Off'}
             </span>
           </div>
+          <Button variant="ghost" size="sm" onClick={onEdit}>
+            Edit
+          </Button>
           {confirming ? (
             <Button variant="danger" size="sm" onClick={onDelete}>
               Confirm?

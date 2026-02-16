@@ -28,7 +28,7 @@ export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
 
   return (
     <Card>
-      <CardContent className="flex items-center justify-between">
+      <CardContent className="px-4 py-3 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
             <h3 className="font-semibold">{product.name}</h3>

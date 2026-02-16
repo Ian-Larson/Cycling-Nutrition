@@ -237,35 +237,67 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
 
       {planningMode === 'manual' ? (
         <>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-700">Ride Duration</span>
-              <span className="text-sm font-semibold text-brand-600">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 min-w-20">
+                Duration
+              </span>
+              <input
+                id="manual-duration"
+                type="text"
+                inputMode="numeric"
+                value={durationInput}
+                onChange={(event) => setDurationInput(event.target.value)}
+                onBlur={commitDurationInput}
+                onKeyDown={blurOnEnter}
+                aria-label="Duration (minutes)"
+                className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-center focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none"
+              />
+              <span className="text-xs text-gray-500">min</span>
+              <PresetButtons
+                options={[
+                  { label: '1h', value: 60 },
+                  { label: '1.5h', value: 90 },
+                  { label: '2h', value: 120 },
+                  { label: '3h', value: 180 },
+                  { label: '4h', value: 240 },
+                ]}
+                value={durationMinutes}
+                onChange={setManualDuration}
+              />
+              <span className="ml-auto text-sm font-semibold text-brand-600">
                 {formatDuration(durationMinutes)}
               </span>
             </div>
-            <PresetButtons
-              options={[
-                { label: '1h', value: 60 },
-                { label: '1.5h', value: 90 },
-                { label: '2h', value: 120 },
-                { label: '3h', value: 180 },
-                { label: '4h', value: 240 },
-              ]}
-              value={durationMinutes}
-              onChange={setManualDuration}
-            />
-            <Input
-              id="manual-duration"
-              label="Duration (minutes)"
-              type="text"
-              inputMode="numeric"
-              value={durationInput}
-              onChange={(event) => setDurationInput(event.target.value)}
-              onBlur={commitDurationInput}
-              onKeyDown={blurOnEnter}
-              placeholder="30-300"
-            />
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 min-w-20">Carbs</span>
+              <input
+                id="manual-carb-target"
+                type="text"
+                inputMode="numeric"
+                value={carbTargetInput}
+                onChange={(event) => setCarbTargetInput(event.target.value)}
+                onBlur={commitCarbTargetInput}
+                onKeyDown={blurOnEnter}
+                aria-label="Carbs (grams per hour)"
+                className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-center focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none"
+              />
+              <span className="text-xs text-gray-500">g/h</span>
+              <PresetButtons
+                options={[
+                  { label: 'Low 30g', value: 30 },
+                  { label: 'Moderate 60g', value: 60 },
+                  { label: 'High 90g', value: 90 },
+                  { label: 'Max 120g', value: 120 },
+                ]}
+                value={carbTarget}
+                onChange={setManualCarbTarget}
+              />
+              <span className="ml-auto text-sm font-semibold text-brand-600">
+                {carbTarget}g/hour
+              </span>
+            </div>
           </div>
 
           <Select
@@ -282,36 +314,6 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
               { value: 'race', label: 'Race - All out' },
             ]}
           />
-
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-700">Carb Target</span>
-              <span className="text-sm font-semibold text-brand-600">
-                {carbTarget}g/hour
-              </span>
-            </div>
-            <PresetButtons
-              options={[
-                { label: 'Low 30g', value: 30 },
-                { label: 'Moderate 60g', value: 60 },
-                { label: 'High 90g', value: 90 },
-                { label: 'Max 120g', value: 120 },
-              ]}
-              value={carbTarget}
-              onChange={setManualCarbTarget}
-            />
-            <Input
-              id="manual-carb-target"
-              label="Carbs (g/hour)"
-              type="text"
-              inputMode="numeric"
-              value={carbTargetInput}
-              onChange={(event) => setCarbTargetInput(event.target.value)}
-              onBlur={commitCarbTargetInput}
-              onKeyDown={blurOnEnter}
-              placeholder="30-120"
-            />
-          </div>
         </>
       ) : (
         <div className="space-y-4 rounded-xl border border-brand-100 bg-gradient-to-b from-white to-brand-50/40 p-4">

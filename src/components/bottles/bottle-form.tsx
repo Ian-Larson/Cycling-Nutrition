@@ -4,6 +4,8 @@ import { Button, Input, Select } from '@/components/ui';
 interface BottleFormProps {
   onSubmit: (data: { name: string; capacityMl: number }) => void;
   onCancel: () => void;
+  initialData?: { name: string; capacityMl: number };
+  submitLabel?: string;
 }
 
 const capacityOptions = [
@@ -12,9 +14,16 @@ const capacityOptions = [
   { value: '950', label: '950ml (Large)' },
 ];
 
-export function BottleForm({ onSubmit, onCancel }: BottleFormProps) {
-  const [name, setName] = useState('');
-  const [capacityMl, setCapacityMl] = useState('750');
+export function BottleForm({
+  onSubmit,
+  onCancel,
+  initialData,
+  submitLabel,
+}: BottleFormProps) {
+  const [name, setName] = useState(initialData?.name ?? '');
+  const [capacityMl, setCapacityMl] = useState(
+    String(initialData?.capacityMl ?? 750)
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +32,7 @@ export function BottleForm({ onSubmit, onCancel }: BottleFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3">
       <Input
         label="Bottle Name"
         placeholder="e.g., Blue Specialized 26oz"
@@ -38,7 +47,7 @@ export function BottleForm({ onSubmit, onCancel }: BottleFormProps) {
         onChange={(e) => setCapacityMl(e.target.value)}
       />
       <div className="flex gap-2">
-        <Button type="submit">Add Bottle</Button>
+        <Button type="submit">{submitLabel ?? 'Add Bottle'}</Button>
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
