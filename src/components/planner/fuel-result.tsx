@@ -121,7 +121,7 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
         <Collapsible defaultOpen>
           <Card>
             <CardHeader>
-              <CollapsibleTrigger className="px-0 py-0 rounded-none focus:ring-0">
+              <CollapsibleTrigger className="px-0 py-0 rounded-none focus-visible:ring-2 focus-visible:ring-brand-500">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold">Bottles</h3>
                   {hasBalancedConcentrations && (
@@ -164,7 +164,7 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
                             </p>
                             <p className="text-sm text-gray-500">
                               ~{alloc.mixScoops} scoops • {alloc.carbsTotal}g carbs •{' '}
-                              {concentration.toFixed(3)} g/ml
+                              {(concentration * 100).toFixed(1)}%
                             </p>
                           </>
                         )}
@@ -182,7 +182,7 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
         <Collapsible defaultOpen>
           <Card>
             <CardHeader>
-              <CollapsibleTrigger className="px-0 py-0 rounded-none focus:ring-0">
+              <CollapsibleTrigger className="px-0 py-0 rounded-none focus-visible:ring-2 focus-visible:ring-brand-500">
                 <h3 className="font-semibold">Recommended Solids</h3>
               </CollapsibleTrigger>
             </CardHeader>
@@ -237,7 +237,7 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
         <Collapsible defaultOpen={false}>
           <Card>
             <CardHeader>
-              <CollapsibleTrigger className="px-0 py-0 rounded-none focus:ring-0">
+              <CollapsibleTrigger className="px-0 py-0 rounded-none focus-visible:ring-2 focus-visible:ring-brand-500">
                 <div>
                   <h3 className="font-semibold">Consumption Guide</h3>
                   <p className="text-xs text-gray-500">

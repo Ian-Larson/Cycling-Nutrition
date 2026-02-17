@@ -4,8 +4,6 @@ export { Checkbox } from './checkbox';
 export { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsible';
 export { Input } from './input';
 export { PresetButtons } from './preset-buttons';
-export { Radio } from './radio';
 export { Select } from './select';
-export { Slider } from './slider';
 export { Toast } from './toast';
 export { Toggle } from './toggle';

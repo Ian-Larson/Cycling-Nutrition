@@ -22,7 +22,7 @@ export function HistoryPage() {
 
   useEffect(() => {
     if (!confirmingDeleteId) return;
-    const timer = setTimeout(() => setConfirmingDeleteId(null), 3000);
+    const timer = setTimeout(() => setConfirmingDeleteId(null), 4000);
     return () => clearTimeout(timer);
   }, [confirmingDeleteId]);
 
@@ -137,8 +137,10 @@ export function HistoryPage() {
                           variant="danger"
                           size="sm"
                           onClick={() => handleDeletePlan(plan.id)}
+                          className="relative overflow-hidden"
                         >
                           Confirm?
+                          <span className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards]" />
                         </Button>
                       ) : (
                         <Button

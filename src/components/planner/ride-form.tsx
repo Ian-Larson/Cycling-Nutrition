@@ -251,7 +251,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
                 onBlur={commitDurationInput}
                 onKeyDown={blurOnEnter}
                 aria-label="Duration (minutes)"
-                className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-center focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none"
+                className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-center focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none"
               />
               <span className="text-xs text-gray-500">min</span>
               <PresetButtons
@@ -269,6 +269,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
                 {formatDuration(durationMinutes)}
               </span>
             </div>
+            <p className="text-xs text-gray-400 ml-22">30–300 min</p>
 
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-gray-700 min-w-20">Carbs</span>
@@ -281,7 +282,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
                 onBlur={commitCarbTargetInput}
                 onKeyDown={blurOnEnter}
                 aria-label="Carbs (grams per hour)"
-                className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-center focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none"
+                className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-center focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none"
               />
               <span className="text-xs text-gray-500">g/h</span>
               <PresetButtons
@@ -298,6 +299,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
                 {carbTarget}g/hour
               </span>
             </div>
+            <p className="text-xs text-gray-400 ml-22">30–120 g/h</p>
           </div>
 
           <Select

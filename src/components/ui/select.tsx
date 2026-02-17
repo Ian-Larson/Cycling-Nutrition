@@ -24,7 +24,7 @@ export function Select({
         id={id}
         className={clsx(
           'block w-full rounded-lg border border-gray-300 px-3 py-2',
-          'focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none',
+          'focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none',
           'bg-white',
           className
         )}

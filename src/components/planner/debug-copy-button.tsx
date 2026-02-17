@@ -192,11 +192,18 @@ export function DebugCopyButton({
 }: DebugCopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
+  const [copyFailed, setCopyFailed] = useState(false);
+
   const handleCopy = async () => {
     const text = buildDebugText(plan, bottles, products, selectedDrinkMixId, selectedSolidIds);
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopyFailed(true);
+      setTimeout(() => setCopyFailed(false), 2000);
+    }
   };
 
   return (
@@ -206,7 +213,7 @@ export function DebugCopyButton({
       onClick={handleCopy}
     >
       <span className="text-gray-400 text-sm">
-        {copied ? 'Copied!' : 'Copy Debug Info'}
+        {copied ? 'Copied!' : copyFailed ? 'Copy failed' : 'Copy Debug Info'}
       </span>
     </Button>
   );

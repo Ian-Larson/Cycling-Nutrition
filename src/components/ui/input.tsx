@@ -18,14 +18,15 @@ export function Input({ label, error, className, id, ...props }: InputProps) {
         id={id}
         className={clsx(
           'block w-full rounded-lg border border-gray-300 px-3 py-2',
-          'focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none',
+          'focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none',
           'placeholder:text-gray-400',
           error && 'border-red-500',
           className
         )}
+        {...(error ? { 'aria-invalid': true, 'aria-describedby': `${id}-error` } : {})}
         {...props}
       />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p id={`${id}-error`} className="text-sm text-red-600">{error}</p>}
     </div>
   );
 }

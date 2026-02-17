@@ -60,11 +60,10 @@ export function allocateMixToBottles(
 
   const servingCarbs = drinkMix.nutrition.carbsGrams;
   const servingGrams = drinkMix.serving.servingSizeGrams || 40;
-  const carbsPerGram = servingCarbs / servingGrams;
   const scoopSize = drinkMix.serving.scoopSizeGrams || servingGrams;
 
   const totalCapacityMl = bottles.reduce((sum, b) => sum + b.capacityMl, 0);
-  if (totalCapacityMl <= 0 || carbsPerFill <= 0) {
+  if (totalCapacityMl <= 0 || carbsPerFill <= 0 || servingGrams <= 0 || servingCarbs <= 0) {
     return bottles.map((b) => ({
       bottleId: b.id,
       productId: drinkMix.id,
@@ -75,6 +74,7 @@ export function allocateMixToBottles(
     }));
   }
 
+  const carbsPerGram = servingCarbs / servingGrams;
   const maxCarbsByConcentration =
     totalCapacityMl * MAX_CARB_CONCENTRATION_G_PER_ML;
   const targetCarbs = Math.max(0, Math.min(carbsPerFill, maxCarbsByConcentration));

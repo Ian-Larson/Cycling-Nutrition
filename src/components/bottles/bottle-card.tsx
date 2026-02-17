@@ -20,7 +20,7 @@ export function BottleCard({
 
   useEffect(() => {
     if (!confirming) return;
-    const timer = setTimeout(() => setConfirming(false), 3000);
+    const timer = setTimeout(() => setConfirming(false), 4000);
     return () => clearTimeout(timer);
   }, [confirming]);
 
@@ -46,8 +46,9 @@ export function BottleCard({
             Edit
           </Button>
           {confirming ? (
-            <Button variant="danger" size="sm" onClick={onDelete}>
+            <Button variant="danger" size="sm" onClick={onDelete} className="relative overflow-hidden">
               Confirm?
+              <span className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards]" />
             </Button>
           ) : (
             <Button variant="ghost" size="sm" onClick={() => setConfirming(true)}>

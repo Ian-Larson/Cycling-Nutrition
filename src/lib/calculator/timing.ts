@@ -40,10 +40,11 @@ export function generateConsumptionGuide(
 
   if (bottles.length === 0) return guide;
 
-  // --- Build flat list of solid units ---
+  // --- Build flat list of solid units (skip allocations with missing products) ---
   const solidUnits: SolidUnit[] = [];
   for (const alloc of solids) {
     const product = productData.find((p) => p.id === alloc.productId);
+    if (!product) continue;
     for (let i = 0; i < alloc.quantity; i++) {
       solidUnits.push({ allocation: alloc, product });
     }
@@ -107,6 +108,7 @@ export function generateConsumptionGuide(
   let cumulativeCarbs = 0;
   let globalSipCount = 0;
   let currentBottleIndex = 0;
+  let refuelsEmitted = 0;
 
   for (let h = 0; h < numHours; h++) {
     const bucket = hourBuckets[h];
@@ -133,10 +135,10 @@ export function generateConsumptionGuide(
         (rt) => rt <= eventTime && rt > (e === 0 ? bucket.start : bucket.start + eventSpacing * e)
       );
       if (refuelIdx !== -1) {
-        const refuelFillNumber = refuelStops - refuelTimes.length + refuelIdx + 2;
+        refuelsEmitted++;
         guide.push({
           timeOffsetMinutes: refuelTimes[refuelIdx],
-          action: `Refill bottles (fill ${refuelFillNumber} of ${refuelStops + 1})`,
+          action: `Refill bottles (fill ${refuelsEmitted + 1} of ${refuelStops + 1})`,
           carbsConsumed: 0,
           cumulativeCarbs,
         });
@@ -198,10 +200,10 @@ export function generateConsumptionGuide(
 
   // Handle any remaining refuel stops not yet emitted
   for (const rt of refuelTimes) {
-    const refuelFillNumber = refuelStops - refuelTimes.indexOf(rt);
+    refuelsEmitted++;
     guide.push({
       timeOffsetMinutes: rt,
-      action: `Refill bottles (fill ${refuelFillNumber + 1} of ${refuelStops + 1})`,
+      action: `Refill bottles (fill ${refuelsEmitted + 1} of ${refuelStops + 1})`,
       carbsConsumed: 0,
       cumulativeCarbs,
     });
