@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '@/store';
 import { Card, CardContent, CardHeader, Button, Toast } from '@/components/ui';
@@ -6,13 +6,16 @@ import { RideForm } from '@/components/planner/ride-form';
 import { FuelResult } from '@/components/planner/fuel-result';
 import { FuelOptionsCard } from '@/components/planner/fuel-options-card';
 import { DebugCopyButton } from '@/components/planner/debug-copy-button';
-import { calculateFuelPlan } from '@/lib/calculator';
+import { calculateFuelPlan, recalculatePlan } from '@/lib/calculator';
 import type { RideCharacteristics, FuelPlan } from '@/types';
+import type { CalculatorInput } from '@/lib/calculator';
 
 export function PlannerPage() {
   const [plan, setPlan] = useState<Omit<FuelPlan, 'id' | 'createdAt'> | null>(
     null
   );
+  const lastInputRef = useRef<CalculatorInput | null>(null);
+
   const bottles = useStore((s) => s.bottles);
   const products = useStore((s) => s.products);
   const saveFuelPlan = useStore((s) => s.saveFuelPlan);
@@ -43,14 +46,43 @@ export function PlannerPage() {
       selectedSolidIds.includes(p.id)
     );
 
-    const result = calculateFuelPlan({
+    const input: CalculatorInput = {
       ride,
       availableBottles,
       drinkMix,
       availableSolids,
-    });
+    };
 
+    const result = calculateFuelPlan(input);
+    lastInputRef.current = input;
     setPlan(result);
+  };
+
+  const handleSolidQuantityChange = (productId: string, quantity: number) => {
+    if (!plan || !lastInputRef.current) return;
+
+    const solidOverrides = plan.solids.map((s) => ({
+      productId: s.productId,
+      quantity: s.productId === productId ? quantity : s.quantity,
+    }));
+
+    const updated = recalculatePlan(lastInputRef.current, plan, { solidOverrides });
+    setPlan(updated);
+  };
+
+  const handleBottleCountChange = (count: number) => {
+    if (!plan || !lastInputRef.current) return;
+
+    const solidOverrides = plan.solids.map((s) => ({
+      productId: s.productId,
+      quantity: s.quantity,
+    }));
+
+    const updated = recalculatePlan(lastInputRef.current, plan, {
+      solidOverrides,
+      bottleCount: count,
+    });
+    setPlan(updated);
   };
 
   const handleSavePlan = () => {
@@ -118,7 +150,13 @@ export function PlannerPage() {
         <div>
           {plan ? (
             <>
-              <FuelResult plan={plan} bottles={bottles} products={products} />
+              <FuelResult
+                plan={plan}
+                bottles={bottles}
+                products={products}
+                onSolidQuantityChange={handleSolidQuantityChange}
+                onBottleCountChange={handleBottleCountChange}
+              />
               <Button
                 className="w-full mt-4"
                 variant="secondary"

@@ -4,28 +4,37 @@ import { MAX_CARB_CONCENTRATION_G_PER_ML } from './constants';
 
 export function selectBottlesForHydration(
   available: Bottle[],
-  ride: RideCharacteristics
+  ride: RideCharacteristics,
+  countOverride?: number
 ): Bottle[] {
-  const refuelMultiplier = (ride.refuelStops || 0) + 1;
-  const hydrationNeeded = calculateHydrationNeeds(ride) / refuelMultiplier;
-
   const sortedBottles = available
     .filter((b) => b.isAvailable)
-    .sort((a, b) => a.capacityMl - b.capacityMl);
+    .sort((a, b) => b.capacityMl - a.capacityMl); // Largest first for fewer-bottle bias
 
   if (sortedBottles.length === 0) return [];
 
-  // Try single bottle first
+  // If count override specified, return that many bottles (largest first)
+  if (countOverride !== undefined && countOverride > 0) {
+    return sortedBottles.slice(0, Math.min(countOverride, sortedBottles.length));
+  }
+
+  const refuelMultiplier = (ride.refuelStops || 0) + 1;
+  const hydrationNeeded = calculateHydrationNeeds(ride) / refuelMultiplier;
+
+  // Prefer fewest bottles: try single bottle first (largest that fits)
   const singleBottle = sortedBottles.find((b) => b.capacityMl >= hydrationNeeded);
   if (singleBottle) return [singleBottle];
 
+  // If largest single bottle doesn't meet need, try 2-bottle combos
   if (sortedBottles.length >= 2) {
-    let bestCombo: Bottle[] = sortedBottles.slice(-2);
+    // Sort ascending for combo search
+    const ascending = [...sortedBottles].sort((a, b) => a.capacityMl - b.capacityMl);
+    let bestCombo: Bottle[] = ascending.slice(-2);
     let bestCapacity = bestCombo.reduce((sum, b) => sum + b.capacityMl, 0);
 
-    for (let i = 0; i < sortedBottles.length; i++) {
-      for (let j = i + 1; j < sortedBottles.length; j++) {
-        const combo = [sortedBottles[i], sortedBottles[j]];
+    for (let i = 0; i < ascending.length; i++) {
+      for (let j = i + 1; j < ascending.length; j++) {
+        const combo = [ascending[i], ascending[j]];
         const capacity = combo.reduce((sum, b) => sum + b.capacityMl, 0);
         if (capacity >= hydrationNeeded && capacity < bestCapacity) {
           bestCombo = combo;
@@ -36,6 +45,7 @@ export function selectBottlesForHydration(
     return bestCombo;
   }
 
+  // Fallback: single largest bottle
   return sortedBottles.slice(0, 1);
 }
 
@@ -113,12 +123,13 @@ export function allocateMixToBottles(
     const mixGrams = Math.round(targetBottleCarbs / carbsPerGram);
     const isWaterOnly = mixGrams === 0;
     const carbsTotal = isWaterOnly ? 0 : Math.round(mixGrams * carbsPerGram);
+    const scoops = isWaterOnly ? 0 : Math.round((mixGrams / scoopSize) * 2) / 2;
 
     return {
       bottleId: bottle.id,
       productId: drinkMix.id,
       mixGrams,
-      mixScoops: isWaterOnly ? 0 : Math.round((mixGrams / scoopSize) * 10) / 10,
+      mixScoops: scoops,
       carbsTotal,
       isWaterOnly,
     };

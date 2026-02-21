@@ -12,6 +12,11 @@ export interface ServingInfo {
   scoopSizeGrams?: number;
 }
 
+export interface ConcentrationRange {
+  minGPerMl?: number;
+  maxGPerMl?: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -19,6 +24,7 @@ export interface Product {
   type: ProductType;
   nutrition: NutritionInfo;
   serving: ServingInfo;
+  concentration?: ConcentrationRange;
   createdAt: number;
   updatedAt: number;
 }

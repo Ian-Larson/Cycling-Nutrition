@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button, Input, Select } from '@/components/ui';
-import type { Product, ProductType } from '@/types';
+import type { Product, ProductType, ConcentrationRange } from '@/types';
 
 interface ProductFormProps {
   onSubmit: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -23,10 +23,20 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
   const [carbsGrams, setCarbsGrams] = useState(initialData ? String(initialData.nutrition.carbsGrams) : '');
   const [servingSizeGrams, setServingSizeGrams] = useState(initialData?.serving.servingSizeGrams ? String(initialData.serving.servingSizeGrams) : '');
   const [scoopSizeGrams, setScoopSizeGrams] = useState(initialData?.serving.scoopSizeGrams ? String(initialData.serving.scoopSizeGrams) : '');
+  const [concMin, setConcMin] = useState(initialData?.concentration?.minGPerMl ? String(initialData.concentration.minGPerMl) : '');
+  const [concMax, setConcMax] = useState(initialData?.concentration?.maxGPerMl ? String(initialData.concentration.maxGPerMl) : '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !carbsGrams) return;
+
+    const concentration: ConcentrationRange | undefined =
+      type === 'drink_mix' && (concMin || concMax)
+        ? {
+            minGPerMl: concMin ? Number(concMin) : undefined,
+            maxGPerMl: concMax ? Number(concMax) : undefined,
+          }
+        : undefined;
 
     onSubmit({
       name: name.trim(),
@@ -39,6 +49,7 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
         servingSizeGrams: servingSizeGrams ? Number(servingSizeGrams) : undefined,
         scoopSizeGrams: scoopSizeGrams ? Number(scoopSizeGrams) : undefined,
       },
+      ...(concentration ? { concentration } : {}),
     });
   };
 
@@ -100,6 +111,31 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
           onChange={(e) => setScoopSizeGrams(e.target.value)}
           min="0"
         />
+      )}
+
+      {isDrinkMix && (
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="Min concentration (g/ml)"
+            type="number"
+            placeholder="per label"
+            value={concMin}
+            onChange={(e) => setConcMin(e.target.value)}
+            min="0"
+            max="0.16"
+            step="0.01"
+          />
+          <Input
+            label="Max concentration (g/ml)"
+            type="number"
+            placeholder="per label"
+            value={concMax}
+            onChange={(e) => setConcMax(e.target.value)}
+            min="0"
+            max="0.16"
+            step="0.01"
+          />
+        </div>
       )}
 
       <div className="flex gap-2">

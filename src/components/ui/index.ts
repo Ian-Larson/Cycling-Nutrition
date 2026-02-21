@@ -5,5 +5,6 @@ export { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsib
 export { Input } from './input';
 export { PresetButtons } from './preset-buttons';
 export { Select } from './select';
+export { Stepper } from './stepper';
 export { Toast } from './toast';
 export { Toggle } from './toggle';

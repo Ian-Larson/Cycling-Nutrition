@@ -5,6 +5,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
+  Stepper,
 } from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
 import { NeedsIntensityBar } from './needs-intensity-bar';
@@ -14,9 +15,52 @@ interface FuelResultProps {
   plan: Omit<FuelPlan, 'id' | 'createdAt'>;
   bottles: Bottle[];
   products: Product[];
+  onSolidQuantityChange?: (productId: string, quantity: number) => void;
+  onBottleCountChange?: (count: number) => void;
 }
 
-export function FuelResult({ plan, bottles, products }: FuelResultProps) {
+function TargetBar({ planned, needed }: { planned: number; needed: number }) {
+  const delta = planned - needed;
+  const absDelta = Math.abs(delta);
+  const pct = needed > 0 ? Math.min((planned / needed) * 100, 120) : 0;
+
+  let barColor = 'bg-emerald-500';
+  let textColor = 'text-emerald-700';
+  if (absDelta > 10) {
+    barColor = 'bg-red-500';
+    textColor = 'text-red-700';
+  } else if (absDelta > 5) {
+    barColor = 'bg-amber-500';
+    textColor = 'text-amber-700';
+  }
+
+  const sign = delta >= 0 ? '+' : '';
+
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs">
+        <span className="text-gray-500">{planned}g planned / {needed}g target</span>
+        <span className={`font-medium ${textColor}`}>
+          {sign}{delta}g
+        </span>
+      </div>
+      <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all ${barColor}`}
+          style={{ width: `${Math.min(pct, 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function FuelResult({
+  plan,
+  bottles,
+  products,
+  onSolidQuantityChange,
+  onBottleCountChange,
+}: FuelResultProps) {
   const formatDuration = (mins: number) => {
     const h = Math.floor(mins / 60);
     const m = mins % 60;
@@ -35,33 +79,28 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
   const refuelStops = plan.rideCharacteristics.refuelStops || 0;
   const autoMetrics = plan.rideCharacteristics.autoMetrics;
 
-  const nonWaterConcentrations = plan.bottles
-    .filter((alloc) => !alloc.isWaterOnly)
-    .map((alloc) => {
-      const bottle = bottles.find((b) => b.id === alloc.bottleId);
-      if (!bottle || bottle.capacityMl <= 0) return 0;
-      return alloc.carbsTotal / bottle.capacityMl;
-    });
-  const concentrationVariance =
-    nonWaterConcentrations.length > 1
-      ? Math.max(...nonWaterConcentrations) - Math.min(...nonWaterConcentrations)
-      : 0;
-  const hasBalancedConcentrations =
-    nonWaterConcentrations.length >= 2 && concentrationVariance <= 0.01;
+  const currentBottleCount = plan.bottles.length;
+  const availableBottleCount = bottles.filter((b) => b.isAvailable).length;
 
   return (
     <div className="space-y-4">
       {plan.warnings && plan.warnings.length > 0 && (
         <Card className="border-amber-300 bg-amber-50">
-          <CardContent className="py-4">
+          <CardContent className="py-3">
             {plan.warnings.map((warning, i) => (
               <p key={i} className="text-amber-800 text-sm">
-                <span className="font-semibold">Warning:</span> {warning.message}
+                {warning.message}
               </p>
             ))}
           </CardContent>
         </Card>
       )}
+
+      {/* Target progress bar */}
+      <TargetBar
+        planned={plan.summary.totalCarbsPlanned}
+        needed={plan.summary.totalCarbsNeeded}
+      />
 
       <Card>
         <CardHeader>
@@ -122,18 +161,11 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
           <Card>
             <CardHeader>
               <CollapsibleTrigger className="px-0 py-0 rounded-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">Bottles</h3>
-                  {hasBalancedConcentrations && (
-                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
-                      Balanced concentration
-                    </span>
-                  )}
-                </div>
+                <h3 className="font-semibold">Bottles</h3>
               </CollapsibleTrigger>
             </CardHeader>
             <CollapsibleContent>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 {plan.bottles.map((alloc, i) => {
                   const bottle = bottles.find((b) => b.id === alloc.bottleId);
                   const product = products.find((p) => p.id === alloc.productId);
@@ -164,7 +196,7 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
                             </p>
                             <p className="text-sm text-gray-500">
                               ~{alloc.mixScoops} scoops • {alloc.carbsTotal}g carbs •{' '}
-                              {(concentration * 100).toFixed(1)}%
+                              {(concentration * 100).toFixed(1)}g/100ml
                             </p>
                           </>
                         )}
@@ -172,6 +204,18 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
                     </div>
                   );
                 })}
+
+                {onBottleCountChange && (
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                    <span className="text-sm text-gray-600">Bottles</span>
+                    <Stepper
+                      value={currentBottleCount}
+                      onChange={onBottleCountChange}
+                      min={1}
+                      max={availableBottleCount}
+                    />
+                  </div>
+                )}
               </CardContent>
             </CollapsibleContent>
           </Card>
@@ -183,11 +227,11 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
           <Card>
             <CardHeader>
               <CollapsibleTrigger className="px-0 py-0 rounded-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                <h3 className="font-semibold">Recommended Solids</h3>
+                <h3 className="font-semibold">Solids</h3>
               </CollapsibleTrigger>
             </CardHeader>
             <CollapsibleContent>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 {plan.solids.map((alloc, i) => {
                   const product = products.find((p) => p.id === alloc.productId);
                   return (
@@ -200,17 +244,21 @@ export function FuelResult({ plan, bottles, products }: FuelResultProps) {
                           {product?.name || 'Solid fuel'}
                         </p>
                         <p className="text-sm text-gray-500">
-                          Every ~{alloc.timingIntervalMinutes}min
+                          {alloc.carbsTotal}g carbs • every ~{alloc.timingIntervalMinutes}min
                         </p>
                       </div>
-                      <div className="text-right">
+                      {onSolidQuantityChange ? (
+                        <Stepper
+                          value={alloc.quantity}
+                          onChange={(qty) => onSolidQuantityChange(alloc.productId, qty)}
+                          min={0}
+                          max={10}
+                        />
+                      ) : (
                         <p className="text-lg font-bold text-brand-600">
                           x{alloc.quantity}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          {alloc.carbsTotal}g carbs
-                        </p>
-                      </div>
+                      )}
                     </div>
                   );
                 })}

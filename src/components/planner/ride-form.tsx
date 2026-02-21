@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   Select,
   Button,
-  PresetButtons,
   Input,
   Collapsible,
   CollapsibleContent,
@@ -34,10 +33,25 @@ const HEAT_LABELS = {
   },
 } as const;
 
+const DURATION_PRESETS = [
+  { label: '1h', value: 60 },
+  { label: '1.5h', value: 90 },
+  { label: '2h', value: 120 },
+  { label: '3h', value: 180 },
+  { label: '4h', value: 240 },
+];
+
+const CARB_PRESETS = [
+  { label: '30', value: 30 },
+  { label: '60', value: 60 },
+  { label: '90', value: 90 },
+  { label: '120', value: 120 },
+];
+
 function formatDuration(mins: number): string {
   const h = Math.floor(mins / 60);
   const m = mins % 60;
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
 }
 
 function parseOptionalNumber(value: string): number | undefined {
@@ -49,12 +63,14 @@ function parseOptionalNumber(value: string): number | undefined {
 
 export function RideForm({ onCalculate, disabled }: RideFormProps) {
   const [durationMinutes, setDuration] = useState(90);
+  const [editingDuration, setEditingDuration] = useState(false);
   const [durationInput, setDurationInput] = useState('90');
   const [intensity, setIntensity] =
     useState<RideCharacteristics['intensity']>('endurance');
   const [heatFactor, setHeatFactor] =
     useState<RideCharacteristics['heatFactor']>('moderate');
   const [carbTarget, setCarbTarget] = useState(60);
+  const [editingCarbs, setEditingCarbs] = useState(false);
   const [carbTargetInput, setCarbTargetInput] = useState('60');
   const [refuelStops, setRefuelStops] = useState(0);
 
@@ -132,23 +148,27 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
   const setManualDuration = (nextMinutes: number) => {
     setDuration(nextMinutes);
     setDurationInput(String(nextMinutes));
+    setEditingDuration(false);
   };
 
   const setManualCarbTarget = (nextCarbTarget: number) => {
     setCarbTarget(nextCarbTarget);
     setCarbTargetInput(String(nextCarbTarget));
+    setEditingCarbs(false);
   };
 
   const commitDurationInput = () => {
     const parsed = parseOptionalNumber(durationInput);
     if (parsed === undefined) {
       setDurationInput(String(durationMinutes));
+      setEditingDuration(false);
       return;
     }
 
     const normalized = Math.round(parsed);
     if (normalized < 30 || normalized > 300) {
       setDurationInput(String(durationMinutes));
+      setEditingDuration(false);
       return;
     }
 
@@ -159,12 +179,14 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
     const parsed = parseOptionalNumber(carbTargetInput);
     if (parsed === undefined) {
       setCarbTargetInput(String(carbTarget));
+      setEditingCarbs(false);
       return;
     }
 
     const normalized = Math.round(parsed);
     if (normalized < 30 || normalized > 120) {
       setCarbTargetInput(String(carbTarget));
+      setEditingCarbs(false);
       return;
     }
 
@@ -206,7 +228,7 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
       : undefined;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="space-y-2">
         <p className="text-sm font-medium text-gray-700">Planning Mode</p>
         <div className="grid grid-cols-2 rounded-lg border border-gray-200 p-1">
@@ -236,87 +258,131 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
       </div>
 
       {planningMode === 'manual' ? (
-        <>
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-gray-700 min-w-20">
-                Duration
-              </span>
-              <input
-                id="manual-duration"
-                type="text"
-                inputMode="numeric"
-                value={durationInput}
-                onChange={(event) => setDurationInput(event.target.value)}
-                onBlur={commitDurationInput}
-                onKeyDown={blurOnEnter}
-                aria-label="Duration (minutes)"
-                className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-center focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none"
-              />
-              <span className="text-xs text-gray-500">min</span>
-              <PresetButtons
-                options={[
-                  { label: '1h', value: 60 },
-                  { label: '1.5h', value: 90 },
-                  { label: '2h', value: 120 },
-                  { label: '3h', value: 180 },
-                  { label: '4h', value: 240 },
-                ]}
-                value={durationMinutes}
-                onChange={setManualDuration}
-              />
-              <span className="ml-auto text-sm font-semibold text-brand-600">
-                {formatDuration(durationMinutes)}
-              </span>
+        <div className="space-y-4">
+          {/* Duration row + presets */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Duration</span>
+              {editingDuration ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                    value={durationInput}
+                    onChange={(e) => setDurationInput(e.target.value)}
+                    onBlur={commitDurationInput}
+                    onKeyDown={blurOnEnter}
+                    className="w-16 rounded-md border border-brand-300 px-2 py-1 text-sm text-center focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                  />
+                  <span className="text-xs text-gray-500">min</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDurationInput(String(durationMinutes));
+                    setEditingDuration(true);
+                  }}
+                  className="text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline cursor-pointer"
+                >
+                  {formatDuration(durationMinutes)}
+                </button>
+              )}
             </div>
-            <p className="text-xs text-gray-400 ml-22">30–300 min</p>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-gray-700 min-w-20">Carbs</span>
-              <input
-                id="manual-carb-target"
-                type="text"
-                inputMode="numeric"
-                value={carbTargetInput}
-                onChange={(event) => setCarbTargetInput(event.target.value)}
-                onBlur={commitCarbTargetInput}
-                onKeyDown={blurOnEnter}
-                aria-label="Carbs (grams per hour)"
-                className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-center focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none"
-              />
-              <span className="text-xs text-gray-500">g/h</span>
-              <PresetButtons
-                options={[
-                  { label: 'Low 30g', value: 30 },
-                  { label: 'Moderate 60g', value: 60 },
-                  { label: 'High 90g', value: 90 },
-                  { label: 'Max 120g', value: 120 },
-                ]}
-                value={carbTarget}
-                onChange={setManualCarbTarget}
-              />
-              <span className="ml-auto text-sm font-semibold text-brand-600">
-                {carbTarget}g/hour
-              </span>
+            <div className="flex flex-wrap gap-1.5">
+              {DURATION_PRESETS.map((preset) => (
+                <button
+                  key={preset.value}
+                  type="button"
+                  onClick={() => setManualDuration(preset.value)}
+                  className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                    durationMinutes === preset.value
+                      ? 'bg-brand-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
             </div>
-            <p className="text-xs text-gray-400 ml-22">30–120 g/h</p>
           </div>
 
-          <Select
-            label="Intensity"
-            value={intensity}
-            onChange={(e) =>
-              setIntensity(e.target.value as RideCharacteristics['intensity'])
-            }
-            options={[
-              { value: 'recovery', label: 'Recovery - Easy spin' },
-              { value: 'endurance', label: 'Endurance - Zone 2' },
-              { value: 'tempo', label: 'Tempo - Steady effort' },
-              { value: 'threshold', label: 'Threshold - Hard' },
-              { value: 'race', label: 'Race - All out' },
-            ]}
-          />
-        </>
+          {/* Carbs row + presets */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Carbs</span>
+              {editingCarbs ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                    value={carbTargetInput}
+                    onChange={(e) => setCarbTargetInput(e.target.value)}
+                    onBlur={commitCarbTargetInput}
+                    onKeyDown={blurOnEnter}
+                    className="w-16 rounded-md border border-brand-300 px-2 py-1 text-sm text-center focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                  />
+                  <span className="text-xs text-gray-500">g/h</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCarbTargetInput(String(carbTarget));
+                    setEditingCarbs(true);
+                  }}
+                  className="text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline cursor-pointer"
+                >
+                  {carbTarget} g/hr
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {CARB_PRESETS.map((preset) => (
+                <button
+                  key={preset.value}
+                  type="button"
+                  onClick={() => setManualCarbTarget(preset.value)}
+                  className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                    carbTarget === preset.value
+                      ? 'bg-brand-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Intensity + Weather side by side */}
+          <div className="grid grid-cols-2 gap-3">
+            <Select
+              label="Intensity"
+              value={intensity}
+              onChange={(e) =>
+                setIntensity(e.target.value as RideCharacteristics['intensity'])
+              }
+              options={[
+                { value: 'recovery', label: 'Recovery' },
+                { value: 'endurance', label: 'Endurance' },
+                { value: 'tempo', label: 'Tempo' },
+                { value: 'threshold', label: 'Threshold' },
+                { value: 'race', label: 'Race' },
+              ]}
+            />
+            <Select
+              label="Weather"
+              value={heatFactor}
+              onChange={(e) =>
+                setHeatFactor(e.target.value as RideCharacteristics['heatFactor'])
+              }
+              options={heatOptions}
+            />
+          </div>
+        </div>
       ) : (
         <div className="space-y-4 rounded-xl border border-brand-100 bg-gradient-to-b from-white to-brand-50/40 p-4">
           {!hasFtp && (
@@ -452,17 +518,17 @@ export function RideForm({ onCalculate, disabled }: RideFormProps) {
           {autoPreview.error && hasFtp && (
             <p className="text-sm text-red-600">{autoPreview.error}</p>
           )}
+
+          <Select
+            label="Weather"
+            value={heatFactor}
+            onChange={(e) =>
+              setHeatFactor(e.target.value as RideCharacteristics['heatFactor'])
+            }
+            options={heatOptions}
+          />
         </div>
       )}
-
-      <Select
-        label="Weather / Heat"
-        value={heatFactor}
-        onChange={(e) =>
-          setHeatFactor(e.target.value as RideCharacteristics['heatFactor'])
-        }
-        options={heatOptions}
-      />
 
       {effectiveDurationMinutes >= 120 && (
         <Select

@@ -19,6 +19,11 @@ export const BASE_HYDRATION_ML_PER_HOUR = 500;
 // Max carbs per ml of liquid (80g per 500ml = hydrogel upper bound like Maurten)
 export const MAX_CARB_CONCENTRATION_G_PER_ML = 0.16;
 
+// Concentration range for drink mix (g carbs per ml water)
+export const DEFAULT_MIN_CONCENTRATION = 0.04;
+export const DEFAULT_MAX_CONCENTRATION = 0.10;
+export const DEFAULT_TARGET_CONCENTRATION = 0.07;
+
 // Solid fuel pacing limits
 export const PREFERRED_SOLIDS_PER_HOUR = 1;
 export const MAX_SOLIDS_PER_HOUR = 2;
