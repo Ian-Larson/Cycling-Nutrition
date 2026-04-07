@@ -1,6 +1,7 @@
 import { clsx } from 'clsx';
 import { useMemo, useState, type KeyboardEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { PageIntro } from '@/components/layout/page-intro';
 import {
   Button,
   Card,
@@ -31,6 +32,11 @@ type OptionalNumericAthleteField =
   | 'weightKg'
   | 'age'
   | 'sweatRateLph';
+
+type AthleteFieldErrorKey =
+  | OptionalNumericAthleteField
+  | 'heightImperial'
+  | 'gutTrainingTargetGph';
 
 const GUT_TARGET_PRESETS = [60, 65, 75, 85, 95] as const;
 
@@ -84,8 +90,28 @@ function getImperialHeightDrafts(heightCm: number | undefined): {
 }
 
 export function AthletePage() {
+  const [searchParams] = useSearchParams();
   const athleteProfile = useStore((s) => s.settings.athleteProfile);
   const updateAthleteProfile = useStore((s) => s.updateAthleteProfile);
+  const profileCompletionPercent = useMemo(() => {
+    const checks = [
+      typeof athleteProfile.ftpWatts === 'number' && athleteProfile.ftpWatts > 0,
+      typeof athleteProfile.weightKg === 'number' && athleteProfile.weightKg > 0,
+      typeof athleteProfile.age === 'number' && athleteProfile.age > 0,
+      typeof athleteProfile.sweatRateLph === 'number' && athleteProfile.sweatRateLph > 0,
+      typeof athleteProfile.gutTrainingTargetGph === 'number' &&
+        athleteProfile.gutTrainingTargetGph >= 50 &&
+        athleteProfile.gutTrainingTargetGph <= 110,
+    ];
+    const completed = checks.filter(Boolean).length;
+    return Math.round((completed / checks.length) * 100);
+  }, [
+    athleteProfile.age,
+    athleteProfile.ftpWatts,
+    athleteProfile.gutTrainingTargetGph,
+    athleteProfile.sweatRateLph,
+    athleteProfile.weightKg,
+  ]);
 
   const stravaProvider = useMemo(() => createStravaProvider(), []);
   const [authStatus, setAuthStatus] = useState<AuthStatus>(
@@ -129,6 +155,26 @@ export function AthletePage() {
   const [sweatRateDraft, setSweatRateDraft] = useState(() =>
     formatNumberInputValue(athleteProfile.sweatRateLph, 1)
   );
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<AthleteFieldErrorKey, string>>
+  >({});
+
+  const plannerReturnStep = searchParams.get('return') === 'planner-step2' ? '?step=2' : '';
+
+  const setFieldError = (
+    key: AthleteFieldErrorKey,
+    message: string | undefined
+  ) => {
+    setFieldErrors((current) => {
+      if (!message && !current[key]) return current;
+      if (!message) {
+        const next = { ...current };
+        delete next[key];
+        return next;
+      }
+      return { ...current, [key]: message };
+    });
+  };
 
   const blurOnEnter = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -146,20 +192,24 @@ export function AthletePage() {
       integer?: boolean;
       decimals?: number;
       fallbackValue?: number;
+      fieldErrorKey?: AthleteFieldErrorKey;
     }
   ) => {
     const parsed = parseDraftNumber(draftValue);
     const decimals = options.integer ? 0 : (options.decimals ?? 1);
     const fallback = formatNumberInputValue(options.fallbackValue, decimals);
+    const errorKey = options.fieldErrorKey ?? key;
 
     if (parsed === null) {
       setDraft(fallback);
+      setFieldError(errorKey, 'Enter a valid number.');
       return;
     }
 
     if (parsed === undefined) {
       updateAthleteProfile({ [key]: undefined } as Partial<AthleteProfile>);
       setDraft('');
+      setFieldError(errorKey, undefined);
       return;
     }
 
@@ -170,11 +220,19 @@ export function AthletePage() {
 
     if (outOfRange) {
       setDraft(fallback);
+      const minLabel = options.min !== undefined ? `≥ ${options.min}` : undefined;
+      const maxLabel = options.max !== undefined ? `≤ ${options.max}` : undefined;
+      const rangeLabel =
+        minLabel && maxLabel
+          ? `${minLabel} and ${maxLabel}`
+          : minLabel || maxLabel || 'within range';
+      setFieldError(errorKey, `Use a value ${rangeLabel}.`);
       return;
     }
 
     updateAthleteProfile({ [key]: nextValue } as Partial<AthleteProfile>);
     setDraft(formatNumberInputValue(nextValue, decimals));
+    setFieldError(errorKey, undefined);
   };
 
   const commitAgeDraft = () =>
@@ -198,6 +256,7 @@ export function AthletePage() {
         min: 1,
         decimals: 1,
         fallbackValue: athleteProfile.weightKg,
+        fieldErrorKey: 'weightKg',
       });
       return;
     }
@@ -207,22 +266,26 @@ export function AthletePage() {
 
     if (parsed === null) {
       setWeightDraft(fallback);
+      setFieldError('weightKg', 'Enter a valid number.');
       return;
     }
 
     if (parsed === undefined) {
       updateAthleteProfile({ weightKg: undefined });
       setWeightDraft('');
+      setFieldError('weightKg', undefined);
       return;
     }
 
     if (parsed < 1) {
       setWeightDraft(fallback);
+      setFieldError('weightKg', 'Use a value ≥ 1.');
       return;
     }
 
     updateAthleteProfile({ weightKg: poundsToKilograms(parsed) });
     setWeightDraft(formatNumberInputValue(parsed, 1));
+    setFieldError('weightKg', undefined);
   };
 
   const commitMetricHeightDraft = () =>
@@ -230,6 +293,7 @@ export function AthletePage() {
       min: 50,
       integer: true,
       fallbackValue: athleteProfile.heightCm,
+      fieldErrorKey: 'heightCm',
     });
 
   const commitImperialHeightDraft = () => {
@@ -240,6 +304,7 @@ export function AthletePage() {
     if (parsedFeet === null || parsedInches === null) {
       setHeightFeetDraft(fallbackDrafts.feet);
       setHeightInchesDraft(fallbackDrafts.inches);
+      setFieldError('heightImperial', 'Enter valid feet/inches values.');
       return;
     }
 
@@ -247,6 +312,7 @@ export function AthletePage() {
       updateAthleteProfile({ heightCm: undefined });
       setHeightFeetDraft('');
       setHeightInchesDraft('');
+      setFieldError('heightImperial', undefined);
       return;
     }
 
@@ -255,6 +321,7 @@ export function AthletePage() {
     if (!Number.isInteger(feet) || feet < 0 || inches < 0 || inches >= 12) {
       setHeightFeetDraft(fallbackDrafts.feet);
       setHeightInchesDraft(fallbackDrafts.inches);
+      setFieldError('heightImperial', 'Use whole feet and inches between 0 and 11.9.');
       return;
     }
 
@@ -262,6 +329,7 @@ export function AthletePage() {
     if (nextHeightCm < 50) {
       setHeightFeetDraft(fallbackDrafts.feet);
       setHeightInchesDraft(fallbackDrafts.inches);
+      setFieldError('heightImperial', 'Height must be at least 50 cm equivalent.');
       return;
     }
 
@@ -269,6 +337,7 @@ export function AthletePage() {
     const normalizedDrafts = getImperialHeightDrafts(nextHeightCm);
     setHeightFeetDraft(normalizedDrafts.feet);
     setHeightInchesDraft(normalizedDrafts.inches);
+    setFieldError('heightImperial', undefined);
   };
 
   const commitGutTargetDraft = () => {
@@ -277,22 +346,26 @@ export function AthletePage() {
 
     if (parsed === null || parsed === undefined) {
       setGutTargetDraft(fallback);
+      setFieldError('gutTrainingTargetGph', 'Enter a value between 50 and 110.');
       return;
     }
 
     const nextTarget = Math.round(parsed);
     if (nextTarget < 50 || nextTarget > 110) {
       setGutTargetDraft(fallback);
+      setFieldError('gutTrainingTargetGph', 'Use a value between 50 and 110.');
       return;
     }
 
     updateAthleteProfile({ gutTrainingTargetGph: nextTarget });
     setGutTargetDraft(formatNumberInputValue(nextTarget, 0));
+    setFieldError('gutTrainingTargetGph', undefined);
   };
 
   const applyGutTargetPreset = (targetGph: number) => {
     updateAthleteProfile({ gutTrainingTargetGph: targetGph });
     setGutTargetDraft(formatNumberInputValue(targetGph, 0));
+    setFieldError('gutTrainingTargetGph', undefined);
   };
 
   const commitSweatRateDraft = () =>
@@ -304,6 +377,7 @@ export function AthletePage() {
         min: 0.1,
         decimals: 1,
         fallbackValue: athleteProfile.sweatRateLph,
+        fieldErrorKey: 'sweatRateLph',
       }
     );
 
@@ -329,6 +403,8 @@ export function AthletePage() {
     const imperialDrafts = getImperialHeightDrafts(athleteProfile.heightCm);
     setHeightFeetDraft(imperialDrafts.feet);
     setHeightInchesDraft(imperialDrafts.inches);
+    setFieldError('heightImperial', undefined);
+    setFieldError('heightCm', undefined);
   };
 
   const handleConnectStrava = () => {
@@ -354,31 +430,66 @@ export function AthletePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">Athlete Profile</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          These settings power auto nutrition planning. Use the{' '}
-          <Link to="/" className="underline font-medium text-brand-700">
-            Planner
-          </Link>{' '}
-          to see recommendations update immediately.
-        </p>
-      </div>
+    <div className="page-shell space-y-5">
+      <PageIntro
+        eyebrow="Athlete Data"
+        title="Tune the rider profile"
+        description={
+          <>
+            These inputs power auto nutrition planning. Add the core fields once,
+            then return to the planner to see recommendations update immediately.
+          </>
+        }
+        actions={
+          <Link
+            to={`/${plannerReturnStep}`}
+            className="inline-flex items-center rounded-full border border-[color:var(--border-soft)] bg-white px-4 py-2 text-sm font-semibold text-ink-800 shadow-[0_14px_26px_-22px_rgb(72_36_12_/_0.45)]"
+          >
+            Return to Planner
+          </Link>
+        }
+        meta={
+          <div className="page-stat-grid">
+            <div className="page-stat">
+              <p className="page-stat-label">Completion</p>
+              <p className="page-stat-value">{profileCompletionPercent}%</p>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-shell-200">
+                <div
+                  className="h-full rounded-full bg-brand-600 transition-all"
+                  style={{ width: `${profileCompletionPercent}%` }}
+                />
+              </div>
+            </div>
+            <div className="page-stat">
+              <p className="page-stat-label">W / Kg</p>
+              <p className="page-stat-value">{wKg ?? '--'}</p>
+              <p className="page-stat-copy">Based on FTP and saved weight.</p>
+            </div>
+            <div className="page-stat">
+              <p className="page-stat-label">Gut Target</p>
+              <p className="page-stat-value">{gutTrainingTargetGph}g</p>
+              <p className="page-stat-copy">{getGutTargetLabel(gutTrainingTargetGph)}.</p>
+            </div>
+          </div>
+        }
+      />
 
-      <Card>
-        <CardHeader className="px-4 py-3">
+      <Card className="overflow-hidden">
+        <CardHeader className="space-y-2 bg-white/55">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold">Profile</h2>
-            <div className="inline-flex rounded-lg border border-gray-200 p-1">
+            <div>
+              <p className="section-kicker">Core Profile</p>
+              <h2 className="section-title text-lg">Power and body data</h2>
+            </div>
+            <div className="inline-flex rounded-full border border-[color:var(--border-soft)] bg-white p-1">
               <button
                 type="button"
                 onClick={() => handleAnthropometricsUnitChange('metric')}
                 className={clsx(
-                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                  'rounded-full px-4 py-2 text-sm font-semibold tracking-[0.04em] transition-colors',
                   anthropometricsUnit === 'metric'
-                    ? 'bg-brand-600 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-brand-600 text-shell-50'
+                    : 'text-ink-700 hover:bg-shell-50'
                 )}
               >
                 Metric
@@ -387,10 +498,10 @@ export function AthletePage() {
                 type="button"
                 onClick={() => handleAnthropometricsUnitChange('imperial')}
                 className={clsx(
-                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                  'rounded-full px-4 py-2 text-sm font-semibold tracking-[0.04em] transition-colors',
                   anthropometricsUnit === 'imperial'
-                    ? 'bg-brand-600 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-brand-600 text-shell-50'
+                    : 'text-ink-700 hover:bg-shell-50'
                 )}
               >
                 Imperial
@@ -398,7 +509,10 @@ export function AthletePage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="px-4 py-3 space-y-3">
+        <CardContent className="space-y-3">
+          <p className="section-copy">
+            Required for stronger auto planning: FTP and body metrics. Optional details improve personalization.
+          </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Input
               id="athlete-name"
@@ -422,6 +536,7 @@ export function AthletePage() {
               onBlur={commitAgeDraft}
               onKeyDown={blurOnEnter}
               placeholder="e.g., 34"
+              error={fieldErrors.age}
             />
             <Input
               id="athlete-ftp"
@@ -433,6 +548,7 @@ export function AthletePage() {
               onBlur={commitFtpDraft}
               onKeyDown={blurOnEnter}
               placeholder="e.g., 280"
+              error={fieldErrors.ftpWatts}
             />
             <Input
               id="athlete-weight"
@@ -444,6 +560,7 @@ export function AthletePage() {
               onBlur={commitWeightDraft}
               onKeyDown={blurOnEnter}
               placeholder={anthropometricsUnit === 'imperial' ? 'e.g., 160' : 'e.g., 72'}
+              error={fieldErrors.weightKg}
             />
             {anthropometricsUnit === 'imperial' ? (
               <>
@@ -457,6 +574,7 @@ export function AthletePage() {
                   onBlur={commitImperialHeightDraft}
                   onKeyDown={blurOnEnter}
                   placeholder="e.g., 5"
+                  error={fieldErrors.heightImperial}
                 />
                 <Input
                   id="athlete-height-inches"
@@ -468,6 +586,7 @@ export function AthletePage() {
                   onBlur={commitImperialHeightDraft}
                   onKeyDown={blurOnEnter}
                   placeholder="e.g., 11"
+                  error={fieldErrors.heightImperial}
                 />
               </>
             ) : (
@@ -481,11 +600,12 @@ export function AthletePage() {
                 onBlur={commitMetricHeightDraft}
                 onKeyDown={blurOnEnter}
                 placeholder="e.g., 178"
+                error={fieldErrors.heightCm}
               />
             )}
           </div>
-          <p className="text-xs text-gray-500">
-            W/kg: <span className="font-medium text-gray-700">{wKg ?? '--'}</span>
+          <p className="text-sm leading-6 text-ink-600">
+            W/kg: <span className="font-semibold text-ink-900">{wKg ?? '--'}</span>
             {anthropometricsUnit === 'imperial' && metricStorageDetails
               ? ` • Stored as ${metricStorageDetails}`
               : ''}
@@ -493,11 +613,12 @@ export function AthletePage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="px-4 py-3">
-          <h2 className="font-semibold">Fuel & Hydration</h2>
+      <Card className="overflow-hidden">
+        <CardHeader className="space-y-2 bg-white/55">
+          <p className="section-kicker">Fuel Profile</p>
+          <h2 className="section-title text-lg">Fuel and hydration</h2>
         </CardHeader>
-        <CardContent className="px-4 py-3 space-y-3">
+        <CardContent className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <Input
               id="athlete-gut-target"
@@ -509,6 +630,7 @@ export function AthletePage() {
               onBlur={commitGutTargetDraft}
               onKeyDown={blurOnEnter}
               placeholder="e.g., 75"
+              error={fieldErrors.gutTrainingTargetGph}
             />
             <Input
               id="athlete-sweat-rate"
@@ -520,11 +642,12 @@ export function AthletePage() {
               onBlur={commitSweatRateDraft}
               onKeyDown={blurOnEnter}
               placeholder="Optional, e.g., 0.9"
+              error={fieldErrors.sweatRateLph}
             />
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs font-medium text-gray-600">Common targets</p>
+            <p className="section-kicker text-[0.68rem]">Common Targets</p>
             <PresetButtons
               options={GUT_TARGET_PRESETS.map((target) => ({
                 label: `${target} g/h`,
@@ -535,15 +658,15 @@ export function AthletePage() {
             />
           </div>
 
-          <p className="text-xs text-gray-600">
+          <p className="text-sm leading-6 text-ink-600">
             {getGutTargetLabel(gutTrainingTargetGph)}. Auto recommendations bias
             toward this value while staying within effort-based bounds.
           </p>
 
-          <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+          <div className="surface-note flex items-center justify-between gap-3 p-4">
             <div>
-              <p className="font-medium text-sm">Heavy sweater</p>
-              <p className="text-xs text-gray-500">
+              <p className="font-semibold text-ink-900">Heavy sweater</p>
+              <p className="text-sm leading-6 text-ink-600">
                 Adds a higher sodium recommendation in auto mode.
               </p>
             </div>
@@ -558,15 +681,16 @@ export function AthletePage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="px-4 py-3">
-          <h2 className="font-semibold">Connections</h2>
+      <Card className="overflow-hidden">
+        <CardHeader className="space-y-2 bg-white/55">
+          <p className="section-kicker">Experimental</p>
+          <h2 className="section-title text-lg">Connections</h2>
         </CardHeader>
-        <CardContent className="px-4 py-3 space-y-2">
+        <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium">Strava</span>
+            <span className="font-semibold text-ink-900">Strava</span>
             <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+              className={`rounded-full px-2.5 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em] ${
                 authStatus === 'not_configured'
                   ? 'bg-amber-100 text-amber-800'
                   : authStatus === 'pending'
@@ -590,8 +714,8 @@ export function AthletePage() {
             </span>
           </div>
 
-          <p className="text-sm text-gray-600">
-            OAuth shell is in place for future backend token exchange.
+          <p className="text-sm leading-6 text-ink-600">
+            This integration is not required for planning and is still marked as experimental.
           </p>
 
           <Button
@@ -599,10 +723,10 @@ export function AthletePage() {
             onClick={handleConnectStrava}
             disabled={authStatus === 'pending'}
           >
-            Connect Strava (Coming soon)
+            Connect Strava (Experimental)
           </Button>
 
-          {authMessage && <p className="text-sm text-gray-600">{authMessage}</p>}
+          {authMessage && <p className="text-sm leading-6 text-ink-600">{authMessage}</p>}
         </CardContent>
       </Card>
     </div>

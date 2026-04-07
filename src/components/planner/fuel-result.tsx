@@ -1,12 +1,4 @@
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-  Stepper,
-} from '@/components/ui';
+import { Card, CardContent, CardHeader, Stepper } from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
 import { NeedsIntensityBar } from './needs-intensity-bar';
 import type { FuelPlan, Bottle, Product } from '@/types';
@@ -17,6 +9,7 @@ interface FuelResultProps {
   products: Product[];
   onSolidQuantityChange?: (productId: string, quantity: number) => void;
   onBottleCountChange?: (count: number) => void;
+  section?: 'all' | 'pack' | 'guide' | 'metrics';
 }
 
 function TargetBar({ planned, needed }: { planned: number; needed: number }) {
@@ -27,8 +20,8 @@ function TargetBar({ planned, needed }: { planned: number; needed: number }) {
   let barColor = 'bg-emerald-500';
   let textColor = 'text-emerald-700';
   if (absDelta > 10) {
-    barColor = 'bg-red-500';
-    textColor = 'text-red-700';
+    barColor = 'bg-rose-600';
+    textColor = 'text-rose-700';
   } else if (absDelta > 5) {
     barColor = 'bg-amber-500';
     textColor = 'text-amber-700';
@@ -37,14 +30,20 @@ function TargetBar({ planned, needed }: { planned: number; needed: number }) {
   const sign = delta >= 0 ? '+' : '';
 
   return (
-    <div className="space-y-1">
-      <div className="flex justify-between text-xs">
-        <span className="text-gray-500">{planned}g planned / {needed}g target</span>
-        <span className={`font-medium ${textColor}`}>
-          {sign}{delta}g
-        </span>
+    <div className="surface-note p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="section-kicker text-[0.68rem]">Target Delta</p>
+          <p className="mt-2 text-sm leading-6 text-ink-700">
+            {planned}g planned against {needed}g target.
+          </p>
+        </div>
+        <p className={`font-sans text-[1.55rem] font-semibold uppercase leading-none ${textColor}`}>
+          {sign}
+          {delta}g
+        </p>
       </div>
-      <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
+      <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-shell-200">
         <div
           className={`h-full rounded-full transition-all ${barColor}`}
           style={{ width: `${Math.min(pct, 100)}%` }}
@@ -54,19 +53,20 @@ function TargetBar({ planned, needed }: { planned: number; needed: number }) {
   );
 }
 
+function formatDuration(mins: number): string {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
 export function FuelResult({
   plan,
   bottles,
   products,
   onSolidQuantityChange,
   onBottleCountChange,
+  section = 'all',
 }: FuelResultProps) {
-  const formatDuration = (mins: number) => {
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
-  };
-
   const carbsPerHour =
     plan.rideCharacteristics.durationMinutes > 0
       ? Math.round(
@@ -78,17 +78,24 @@ export function FuelResult({
 
   const refuelStops = plan.rideCharacteristics.refuelStops || 0;
   const autoMetrics = plan.rideCharacteristics.autoMetrics;
-
   const currentBottleCount = plan.bottles.length;
   const availableBottleCount = bottles.filter((b) => b.isAvailable).length;
 
+  const showPack = section === 'all' || section === 'pack';
+  const showGuide = section === 'all' || section === 'guide';
+  const showMetrics = section === 'all' || section === 'metrics';
+
   return (
     <div className="space-y-4">
-      {plan.warnings && plan.warnings.length > 0 && (
-        <Card className="border-amber-300 bg-amber-50">
-          <CardContent className="py-3">
+      {showMetrics && plan.warnings && plan.warnings.length > 0 && (
+        <Card className="overflow-hidden border-amber-300 bg-[color:color-mix(in_oklch,white_72%,rgb(254_243_199))]">
+          <CardHeader className="space-y-2 bg-white/35">
+            <p className="section-kicker text-[0.68rem] text-amber-800">Watchouts</p>
+            <h3 className="section-title text-lg text-amber-900">Before you roll out</h3>
+          </CardHeader>
+          <CardContent className="space-y-2">
             {plan.warnings.map((warning, i) => (
-              <p key={i} className="text-amber-800 text-sm">
+              <p key={i} className="text-sm leading-6 text-amber-900">
                 {warning.message}
               </p>
             ))}
@@ -96,76 +103,84 @@ export function FuelResult({
         </Card>
       )}
 
-      {/* Target progress bar */}
-      <TargetBar
-        planned={plan.summary.totalCarbsPlanned}
-        needed={plan.summary.totalCarbsNeeded}
-      />
+      {showMetrics && (
+        <TargetBar
+          planned={plan.summary.totalCarbsPlanned}
+          needed={plan.summary.totalCarbsNeeded}
+        />
+      )}
 
-      <Card>
-        <CardHeader>
-          <h3 className="font-semibold">Summary</h3>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <dt className="text-gray-500">Duration</dt>
-              <dd className="text-lg font-bold">
-                {formatDuration(plan.rideCharacteristics.durationMinutes)}
-              </dd>
+      {showMetrics && (
+        <Card className="overflow-hidden">
+          <CardHeader className="space-y-2 bg-white/55">
+            <p className="section-kicker">Metrics</p>
+            <h3 className="section-title">Ride summary</h3>
+            <p className="section-copy">
+              Use these numbers to sanity-check the plan. The pack list and guide
+              below are the action version.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="surface-note p-4">
+                <p className="page-stat-label">Duration</p>
+                <p className="page-stat-value">{formatDuration(plan.rideCharacteristics.durationMinutes)}</p>
+              </div>
+              <div className="surface-note p-4">
+                <p className="page-stat-label">Hydration</p>
+                <p className="page-stat-value">{plan.summary.hydrationMl}ml</p>
+              </div>
+              <div className="surface-note p-4">
+                <p className="page-stat-label">Total Carbs</p>
+                <p className="page-stat-value text-brand-700">{plan.summary.totalCarbsPlanned}g</p>
+              </div>
+              <div className="surface-note p-4">
+                <p className="page-stat-label">Carbs / Hour</p>
+                <p className="page-stat-value">{carbsPerHour}g</p>
+              </div>
+              {plan.summary.sodiumMgPerHour !== undefined && (
+                <div className="surface-note p-4">
+                  <p className="page-stat-label">Sodium / Hour</p>
+                  <p className="page-stat-value">{plan.summary.sodiumMgPerHour}mg</p>
+                </div>
+              )}
+              {plan.summary.sodiumMgTotal !== undefined && (
+                <div className="surface-note p-4">
+                  <p className="page-stat-label">Total Sodium</p>
+                  <p className="page-stat-value">{plan.summary.sodiumMgTotal}mg</p>
+                </div>
+              )}
             </div>
-            <div>
-              <dt className="text-gray-500">Hydration</dt>
-              <dd className="text-lg font-bold">{plan.summary.hydrationMl}ml</dd>
-            </div>
-            <div>
-              <dt className="text-gray-500">Total Carbs</dt>
-              <dd className="text-lg font-bold text-brand-600">
-                {plan.summary.totalCarbsPlanned}g
-              </dd>
-            </div>
-            <div>
-              <dt className="text-gray-500">Carbs/Hour</dt>
-              <dd className="text-lg font-bold">{carbsPerHour}g/hr</dd>
-            </div>
-            {plan.summary.sodiumMgPerHour !== undefined && (
-              <div>
-                <dt className="text-gray-500">Sodium / Hour</dt>
-                <dd className="text-lg font-bold">
-                  {plan.summary.sodiumMgPerHour}mg/hr
-                </dd>
+
+            {autoMetrics?.needsScore !== undefined && autoMetrics?.needsLevel && (
+              <div className="surface-note p-4">
+                <NeedsIntensityBar
+                  score={autoMetrics.needsScore}
+                  level={autoMetrics.needsLevel}
+                />
               </div>
             )}
-            {plan.summary.sodiumMgTotal !== undefined && (
-              <div>
-                <dt className="text-gray-500">Total Sodium</dt>
-                <dd className="text-lg font-bold">
-                  {plan.summary.sodiumMgTotal}mg
-                </dd>
-              </div>
-            )}
-          </dl>
-          {autoMetrics?.needsScore !== undefined && autoMetrics?.needsLevel && (
-            <div className="mt-4 border-t border-gray-100 pt-4">
-              <NeedsIntensityBar
-                score={autoMetrics.needsScore}
-                level={autoMetrics.needsLevel}
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
-      {plan.bottles.length > 0 && (
-        <Collapsible defaultOpen>
-          <Card>
-            <CardHeader>
-              <CollapsibleTrigger className="px-0 py-0 rounded-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                <h3 className="font-semibold">Bottles</h3>
-              </CollapsibleTrigger>
-            </CardHeader>
-            <CollapsibleContent>
-              <CardContent className="space-y-3">
+      {showPack && (
+        <Card className="overflow-hidden">
+          <CardHeader className="space-y-2 bg-white/55">
+            <p className="section-kicker">Pack List</p>
+            <h3 className="section-title">Pack before rollout</h3>
+            <p className="section-copy">
+              Pack these quantities before you leave. Bottle amounts are shown per fill.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <TargetBar
+              planned={plan.summary.totalCarbsPlanned}
+              needed={plan.summary.totalCarbsNeeded}
+            />
+
+            {plan.bottles.length > 0 && (
+              <div className="space-y-3">
                 {plan.bottles.map((alloc, i) => {
                   const bottle = bottles.find((b) => b.id === alloc.bottleId);
                   const product = products.find((p) => p.id === alloc.productId);
@@ -173,30 +188,46 @@ export function FuelResult({
                     bottle && bottle.capacityMl > 0
                       ? alloc.carbsTotal / bottle.capacityMl
                       : 0;
+
                   return (
                     <div
-                      key={i}
-                      className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                      key={`${alloc.bottleId}-${i}`}
+                      className="grid gap-4 rounded-[1.25rem] border border-[color:var(--border-soft)] bg-white px-4 py-4 md:grid-cols-[auto_1fr_auto] md:items-center"
                     >
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-shell-100 font-sans text-[1.35rem] font-semibold uppercase text-ink-900">
+                        {String(i + 1).padStart(2, '0')}
+                      </div>
                       <div>
-                        <p className="font-medium">
+                        <p className="font-semibold text-ink-900">
                           {bottle?.name || `Bottle ${i + 1}`}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          {bottle?.capacityMl}ml • {product?.name}
+                        <p className="mt-1 text-sm leading-6 text-ink-600">
+                          {bottle?.capacityMl}ml • {alloc.isWaterOnly ? 'Water only' : product?.name}
                         </p>
+                        {!alloc.isWaterOnly && (
+                          <p className="text-sm leading-6 text-ink-600">
+                            {alloc.carbsTotal}g carbs • ~{alloc.mixScoops} scoops •{' '}
+                            {(concentration * 100).toFixed(1)}g per 100ml
+                          </p>
+                        )}
                       </div>
-                      <div className="text-right">
+                      <div className="text-left md:text-right">
                         {alloc.isWaterOnly ? (
-                          <p className="text-lg font-bold text-blue-500">Water only</p>
+                          <>
+                            <p className="font-sans text-[1.3rem] font-semibold uppercase leading-none text-ink-900">
+                              Water
+                            </p>
+                            <p className="mt-2 text-sm leading-6 text-ink-600">
+                              Carry plain water in this bottle.
+                            </p>
+                          </>
                         ) : (
                           <>
-                            <p className="text-lg font-bold text-brand-600">
-                              {alloc.mixGrams}g
+                            <p className="font-sans text-[1.55rem] font-semibold uppercase leading-none text-brand-700">
+                              {alloc.mixGrams}g mix
                             </p>
-                            <p className="text-sm text-gray-500">
-                              ~{alloc.mixScoops} scoops • {alloc.carbsTotal}g carbs •{' '}
-                              {(concentration * 100).toFixed(1)}g/100ml
+                            <p className="mt-2 text-sm leading-6 text-ink-600">
+                              Add to {bottle?.capacityMl}ml bottle
                             </p>
                           </>
                         )}
@@ -206,8 +237,13 @@ export function FuelResult({
                 })}
 
                 {onBottleCountChange && (
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                    <span className="text-sm text-gray-600">Bottles</span>
+                  <div className="surface-note flex items-center justify-between gap-3 p-4">
+                    <div>
+                      <p className="section-kicker text-[0.68rem]">Bottle Count</p>
+                      <p className="mt-2 text-sm leading-6 text-ink-700">
+                        Adjust how many available bottles this plan should use.
+                      </p>
+                    </div>
                     <Stepper
                       value={currentBottleCount}
                       onChange={onBottleCountChange}
@@ -216,35 +252,32 @@ export function FuelResult({
                     />
                   </div>
                 )}
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-      )}
+              </div>
+            )}
 
-      {plan.solids.length > 0 && (
-        <Collapsible defaultOpen>
-          <Card>
-            <CardHeader>
-              <CollapsibleTrigger className="px-0 py-0 rounded-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                <h3 className="font-semibold">Solids</h3>
-              </CollapsibleTrigger>
-            </CardHeader>
-            <CollapsibleContent>
-              <CardContent className="space-y-3">
+            {plan.solids.length > 0 && (
+              <div className="space-y-3">
+                <div>
+                  <p className="section-kicker text-[0.68rem]">Solid Fuel</p>
+                  <h4 className="section-title text-lg">Pack these extras</h4>
+                </div>
                 {plan.solids.map((alloc, i) => {
                   const product = products.find((p) => p.id === alloc.productId);
                   return (
                     <div
-                      key={i}
-                      className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                      key={`${alloc.productId}-${i}`}
+                      className="grid gap-4 rounded-[1.25rem] border border-[color:var(--border-soft)] bg-white px-4 py-4 md:grid-cols-[auto_1fr_auto] md:items-center"
                     >
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-shell-100 font-sans text-[1.35rem] font-semibold uppercase text-ink-900">
+                        {String(i + 1).padStart(2, '0')}
+                      </div>
                       <div>
-                        <p className="font-medium">
+                        <p className="font-semibold text-ink-900">
                           {product?.name || 'Solid fuel'}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          {alloc.carbsTotal}g carbs • every ~{alloc.timingIntervalMinutes}min
+                        <p className="mt-1 text-sm leading-6 text-ink-600">
+                          {alloc.carbsTotal}g carbs total • aim for one every ~
+                          {alloc.timingIntervalMinutes} minutes
                         </p>
                       </div>
                       {onSolidQuantityChange ? (
@@ -255,67 +288,63 @@ export function FuelResult({
                           max={10}
                         />
                       ) : (
-                        <p className="text-lg font-bold text-brand-600">
-                          x{alloc.quantity}
-                        </p>
+                        <div className="text-left md:text-right">
+                          <p className="font-sans text-[1.55rem] font-semibold uppercase leading-none text-brand-700">
+                            x{alloc.quantity}
+                          </p>
+                          <p className="mt-2 text-sm leading-6 text-ink-600">
+                            Pack this quantity
+                          </p>
+                        </div>
                       )}
                     </div>
                   );
                 })}
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-      )}
+              </div>
+            )}
 
-      {refuelStops > 0 && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="py-3">
-            <p className="text-blue-800 text-sm font-medium">
-              Prepare {refuelStops + 1} sets of mix (amounts shown are per fill)
-            </p>
-            <p className="text-blue-700 text-xs mt-1">
-              Refill your bottles {refuelStops} time{refuelStops > 1 ? 's' : ''} during the ride
-            </p>
+            {refuelStops > 0 && (
+              <div className="surface-note border-brand-200 bg-[color:color-mix(in_oklch,var(--color-brand-50)_58%,white)] p-4">
+                <p className="section-kicker text-[0.68rem]">Refills</p>
+                <p className="mt-2 font-semibold text-ink-900">
+                  Prepare {refuelStops + 1} total fill sets.
+                </p>
+                <p className="mt-2 text-sm leading-6 text-ink-600">
+                  Quantities above are per fill. Plan to refill bottles {refuelStops}{' '}
+                  time{refuelStops > 1 ? 's' : ''} during the ride.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {plan.consumptionGuide.length > 0 && (
-        <Collapsible defaultOpen={false}>
-          <Card>
-            <CardHeader>
-              <CollapsibleTrigger className="px-0 py-0 rounded-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                <div>
-                  <h3 className="font-semibold">Consumption Guide</h3>
-                  <p className="text-xs text-gray-500">
-                    {plan.consumptionGuide.length} fueling events
-                  </p>
+      {showGuide && plan.consumptionGuide.length > 0 && (
+        <Card className="overflow-hidden">
+          <CardHeader className="space-y-2 bg-white/55">
+            <p className="section-kicker">During Ride Guide</p>
+            <h3 className="section-title">Follow this sequence on the bike</h3>
+            <p className="section-copy">
+              These are the time-based actions to execute once the ride starts.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {plan.consumptionGuide.map((item, i) => (
+              <div
+                key={`${item.timeOffsetMinutes}-${i}`}
+                className="grid gap-3 rounded-[1.25rem] border border-[color:var(--border-soft)] bg-white px-4 py-4 md:grid-cols-[auto_1fr_auto] md:items-start"
+              >
+                <div className="rounded-full bg-brand-600 px-4 py-2 font-sans text-[1rem] font-semibold uppercase tracking-[0.08em] text-shell-50">
+                  {formatTime(item.timeOffsetMinutes)}
                 </div>
-              </CollapsibleTrigger>
-            </CardHeader>
-            <CollapsibleContent>
-              <CardContent>
-                <div className="space-y-2">
-                  {plan.consumptionGuide.map((item, i) => (
-                    <div
-                      key={i}
-                      className="flex items-start gap-3 text-sm py-2 border-b border-gray-100 last:border-0"
-                    >
-                      <span className="font-mono text-gray-500 w-14 shrink-0">
-                        {formatTime(item.timeOffsetMinutes)}
-                      </span>
-                      <span className="flex-1">{item.action}</span>
-                      <span className="text-gray-500 shrink-0">
-                        {item.cumulativeCarbs}g total
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
+                <p className="text-sm leading-6 text-ink-900">{item.action}</p>
+                <p className="text-sm leading-6 text-ink-600 md:text-right">
+                  {item.cumulativeCarbs}g total
+                </p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       )}
     </div>
   );

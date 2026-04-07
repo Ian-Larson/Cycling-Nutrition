@@ -22,6 +22,7 @@ export interface Product {
   name: string;
   brand?: string;
   type: ProductType;
+  isAvailable: boolean;
   nutrition: NutritionInfo;
   serving: ServingInfo;
   concentration?: ConcentrationRange;

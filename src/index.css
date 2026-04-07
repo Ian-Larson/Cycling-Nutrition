@@ -1,31 +1,78 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Outfit", system-ui, sans-serif;
-  --font-body: "Source Sans 3", system-ui, sans-serif;
+  --font-sans: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Barlow", system-ui, sans-serif;
 
-  --color-brand-50: #f0f9ff;
-  --color-brand-100: #e0f2fe;
-  --color-brand-200: #bae6fd;
-  --color-brand-300: #7dd3fc;
-  --color-brand-400: #38bdf8;
-  --color-brand-500: #0ea5e9;
-  --color-brand-600: #0284c7;
-  --color-brand-700: #0369a1;
-  --color-brand-800: #075985;
-  --color-brand-900: #0c4a6e;
+  --color-brand-50: oklch(0.98 0.018 48);
+  --color-brand-100: oklch(0.95 0.043 48);
+  --color-brand-200: oklch(0.89 0.08 47);
+  --color-brand-300: oklch(0.81 0.13 46);
+  --color-brand-400: oklch(0.73 0.17 44);
+  --color-brand-500: oklch(0.66 0.19 41);
+  --color-brand-600: oklch(0.58 0.18 39);
+  --color-brand-700: oklch(0.49 0.15 37);
+  --color-brand-800: oklch(0.4 0.12 35);
+  --color-brand-900: oklch(0.31 0.09 34);
+
+  --color-shell-50: oklch(0.985 0.008 70);
+  --color-shell-100: oklch(0.968 0.014 68);
+  --color-shell-200: oklch(0.935 0.02 66);
+  --color-shell-300: oklch(0.885 0.024 63);
+  --color-ink-50: oklch(0.972 0.004 54);
+  --color-ink-100: oklch(0.93 0.008 50);
+  --color-ink-200: oklch(0.84 0.012 48);
+  --color-ink-300: oklch(0.74 0.014 45);
+  --color-ink-400: oklch(0.63 0.018 42);
+  --color-ink-500: oklch(0.52 0.022 40);
+  --color-ink-600: oklch(0.42 0.026 38);
+  --color-ink-700: oklch(0.32 0.025 36);
+  --color-ink-800: oklch(0.24 0.022 34);
+  --color-ink-900: oklch(0.17 0.016 32);
 }
 
 @layer base {
+  :root {
+    --surface-panel: color-mix(in oklch, white 86%, var(--color-shell-100));
+    --surface-panel-strong: color-mix(in oklch, white 72%, var(--color-shell-100));
+    --surface-soft: color-mix(in oklch, white 54%, var(--color-shell-100));
+    --border-soft: color-mix(in oklch, var(--color-shell-300) 78%, var(--color-brand-100));
+    --border-strong: color-mix(in oklch, var(--color-shell-300) 42%, var(--color-brand-300));
+    --shadow-panel: 0 30px 80px -50px rgb(72 36 12 / 0.45);
+    --shadow-soft: 0 18px 40px -34px rgb(72 36 12 / 0.22);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply font-body text-gray-900 bg-gray-50 antialiased;
+    @apply font-body text-ink-900 bg-shell-50 antialiased;
+    font-kerning: normal;
+    font-variant-numeric: proportional-nums;
     margin: 0;
     min-height: 100vh;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-sans;
+    @apply font-sans text-ink-900;
+    letter-spacing: 0.015em;
+    line-height: 0.96;
+  }
+
+  p,
+  label,
+  input,
+  select,
+  button,
+  textarea {
+    letter-spacing: 0.01em;
+  }
+
+  ::selection {
+    background: color-mix(in oklch, var(--color-brand-300) 36%, white);
+    color: var(--color-ink-900);
   }
 }
 
@@ -51,4 +98,151 @@
 
 @utility animate-fade-in {
   animation: fade-in 0.2s ease-out;
+}
+
+@layer components {
+  .app-shell {
+    position: relative;
+    isolation: isolate;
+    background:
+      radial-gradient(circle at 8% 6%, color-mix(in oklch, var(--color-brand-100) 62%, transparent) 0, transparent 28%),
+      radial-gradient(circle at 88% 4%, color-mix(in oklch, var(--color-brand-50) 82%, transparent) 0, transparent 26%),
+      linear-gradient(180deg, var(--color-shell-50) 0%, color-mix(in oklch, var(--color-shell-50) 76%, var(--color-shell-100)) 48%, var(--color-shell-50) 100%);
+  }
+
+  .app-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(115deg, transparent 0 68%, rgb(173 86 37 / 0.04) 68% 70%, transparent 70%),
+      linear-gradient(180deg, transparent 0, rgb(110 65 27 / 0.03) 100%);
+    z-index: -1;
+  }
+
+  .page-shell {
+    @apply max-w-6xl mx-auto px-4 pt-6 pb-36 md:px-6 md:pt-8;
+  }
+
+  .page-intro {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.75rem;
+    border: 1px solid var(--border-strong);
+    background:
+      linear-gradient(135deg, color-mix(in oklch, white 76%, var(--color-shell-100)) 0%, color-mix(in oklch, white 62%, var(--color-brand-50)) 100%);
+    box-shadow: var(--shadow-panel);
+    padding: clamp(1.4rem, 1rem + 1vw, 2rem);
+  }
+
+  .page-intro::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(118deg, transparent 0 60%, rgb(177 88 35 / 0.08) 60% 63%, transparent 63% 100%);
+    pointer-events: none;
+  }
+
+  .page-intro::after {
+    content: "";
+    position: absolute;
+    right: -5rem;
+    bottom: -6rem;
+    width: 18rem;
+    height: 18rem;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgb(178 84 33 / 0.16) 0, transparent 68%);
+    pointer-events: none;
+  }
+
+  .page-intro-grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 960px) {
+    .page-intro-grid {
+      grid-template-columns: minmax(0, 1.35fr) minmax(16rem, 0.85fr);
+      align-items: end;
+    }
+  }
+
+  .section-kicker {
+    @apply font-sans text-brand-700;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .page-title {
+    @apply font-sans text-ink-900;
+    font-size: clamp(2.55rem, 2rem + 3vw, 4.8rem);
+    font-weight: 700;
+    line-height: 0.9;
+    max-width: 12ch;
+    text-transform: uppercase;
+  }
+
+  .page-summary {
+    @apply text-base leading-7 text-ink-700;
+    max-width: 60ch;
+  }
+
+  .page-stat-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  }
+
+  .page-stat {
+    border: 1px solid var(--border-soft);
+    border-radius: 1.25rem;
+    background: rgb(255 255 255 / 0.66);
+    box-shadow: var(--shadow-soft);
+    padding: 0.95rem 1rem;
+  }
+
+  .page-stat-value {
+    @apply font-sans text-ink-900;
+    font-size: 2rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 0.92;
+    text-transform: uppercase;
+  }
+
+  .page-stat-label {
+    @apply text-ink-600;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .page-stat-copy {
+    @apply text-sm leading-6 text-ink-700;
+  }
+
+  .section-title {
+    @apply font-sans text-xl text-ink-900;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  .section-copy {
+    @apply text-sm leading-6 text-ink-600;
+    max-width: 62ch;
+  }
+
+  .surface-note {
+    border: 1px solid var(--border-soft);
+    border-radius: 1.1rem;
+    background: var(--surface-soft);
+  }
 }

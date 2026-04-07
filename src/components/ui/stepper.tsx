@@ -12,24 +12,28 @@ export function Stepper({ value, onChange, min = 0, max = 99, label }: StepperPr
 
   return (
     <div className="flex items-center gap-2">
-      {label && <span className="text-xs text-gray-500 mr-1">{label}</span>}
+      {label && (
+        <span className="mr-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-ink-500">
+          {label}
+        </span>
+      )}
       <button
         type="button"
         onClick={() => canDecrement && onChange(value - 1)}
         disabled={!canDecrement}
-        className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-300 text-sm font-medium transition-colors enabled:hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-white text-sm font-semibold text-ink-700 transition-colors enabled:hover:bg-shell-50 disabled:cursor-not-allowed disabled:opacity-30"
         aria-label="Decrease"
       >
         -
       </button>
-      <span className="min-w-[1.5rem] text-center text-sm font-semibold tabular-nums">
+      <span className="min-w-[2rem] text-center font-sans text-xl font-semibold uppercase leading-none text-ink-900 tabular-nums">
         {value}
       </span>
       <button
         type="button"
         onClick={() => canIncrement && onChange(value + 1)}
         disabled={!canIncrement}
-        className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-300 text-sm font-medium transition-colors enabled:hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-white text-sm font-semibold text-ink-700 transition-colors enabled:hover:bg-shell-50 disabled:cursor-not-allowed disabled:opacity-30"
         aria-label="Increase"
       >
         +

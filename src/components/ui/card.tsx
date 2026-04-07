@@ -7,7 +7,8 @@ export function Card({ className, children, ...props }: CardProps) {
   return (
     <div
       className={clsx(
-        'bg-white rounded-xl border border-gray-200 shadow-sm',
+        'rounded-[1.55rem] border bg-[var(--surface-panel)] shadow-[var(--shadow-soft)] backdrop-blur-sm',
+        'border-[color:var(--border-soft)]',
         className
       )}
       {...props}
@@ -20,7 +21,10 @@ export function Card({ className, children, ...props }: CardProps) {
 export function CardHeader({ className, children, ...props }: CardProps) {
   return (
     <div
-      className={clsx('px-6 py-4 border-b border-gray-100', className)}
+      className={clsx(
+        'border-b border-[color:var(--border-soft)] px-5 py-4 md:px-6',
+        className
+      )}
       {...props}
     >
       {children}
@@ -30,7 +34,7 @@ export function CardHeader({ className, children, ...props }: CardProps) {
 
 export function CardContent({ className, children, ...props }: CardProps) {
   return (
-    <div className={clsx('px-6 py-4', className)} {...props}>
+    <div className={clsx('px-5 py-4 md:px-6', className)} {...props}>
       {children}
     </div>
   );

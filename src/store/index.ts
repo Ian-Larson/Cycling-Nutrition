@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { nanoid } from 'nanoid';
-import type { Bottle, Product, FuelPlan } from '@/types';
+import type { Bottle, Product, FuelPlan, RideCharacteristics } from '@/types';
 import { DEFAULT_BOTTLES, DEFAULT_PRODUCTS } from '@/lib/defaults';
 import {
   normalizeAnthropometricsUnit,
@@ -32,11 +32,31 @@ type SettingsUpdate = Partial<Omit<Settings, 'athleteProfile'>> & {
   athleteProfile?: Partial<AthleteProfile>;
 };
 
+export interface PlannerDraft {
+  ride: RideCharacteristics;
+  selectedDrinkMixId?: string | null;
+  selectedSolidIds?: string[];
+  includeUnavailableBottles?: boolean;
+  includeUnavailableProducts?: boolean;
+  title?: string;
+}
+
+export interface AppReadiness {
+  hasAvailableBottle: boolean;
+  hasAvailableDrinkMix: boolean;
+  availableSolidCount: number;
+  kitReady: boolean;
+  autoReady: boolean;
+  profileCompletionPercent: number;
+  missingProfileFields: string[];
+}
+
 interface AppState {
   bottles: Bottle[];
   products: Product[];
   fuelPlans: FuelPlan[];
   settings: Settings;
+  plannerDraft: PlannerDraft | null;
   _initialized: boolean;
 
   addBottle: (bottle: Omit<Bottle, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -49,9 +69,12 @@ interface AppState {
 
   saveFuelPlan: (plan: Omit<FuelPlan, 'id' | 'createdAt'>) => void;
   deleteFuelPlan: (id: string) => void;
+  setPlannerDraft: (draft: PlannerDraft | null) => void;
+  consumePlannerDraft: () => PlannerDraft | null;
 
   updateSettings: (settings: SettingsUpdate) => void;
   updateAthleteProfile: (updates: Partial<AthleteProfile>) => void;
+  getReadiness: () => AppReadiness;
 
   initializeDefaults: () => void;
 }
@@ -132,6 +155,112 @@ function normalizeSettings(value: unknown): Settings {
   };
 }
 
+export function normalizeProducts(
+  value: unknown,
+  fallback: Product[]
+): Product[] {
+  if (!Array.isArray(value)) return fallback;
+
+  return value.map((product) => ({
+    ...(product as Product),
+    isAvailable: (product as Product).isAvailable ?? true,
+  }));
+}
+
+function normalizePlannerDraft(value: unknown): PlannerDraft | null {
+  if (!value || typeof value !== 'object') return null;
+  const draft = value as Partial<PlannerDraft>;
+  const ride = draft.ride as Partial<RideCharacteristics> | undefined;
+
+  if (!ride || typeof ride !== 'object') return null;
+  if (
+    typeof ride.durationMinutes !== 'number' ||
+    !Number.isFinite(ride.durationMinutes) ||
+    ride.durationMinutes <= 0
+  ) {
+    return null;
+  }
+  if (
+    typeof ride.carbTargetGramsPerHour !== 'number' ||
+    !Number.isFinite(ride.carbTargetGramsPerHour) ||
+    ride.carbTargetGramsPerHour < 0
+  ) {
+    return null;
+  }
+  if (
+    !['recovery', 'endurance', 'tempo', 'threshold', 'race'].includes(
+      String(ride.intensity)
+    )
+  ) {
+    return null;
+  }
+  if (!['cool', 'moderate', 'warm', 'hot'].includes(String(ride.heatFactor))) {
+    return null;
+  }
+
+  return {
+    ...draft,
+    ride: ride as RideCharacteristics,
+    selectedDrinkMixId:
+      typeof draft.selectedDrinkMixId === 'string' || draft.selectedDrinkMixId === null
+        ? draft.selectedDrinkMixId
+        : null,
+    selectedSolidIds: Array.isArray(draft.selectedSolidIds)
+      ? draft.selectedSolidIds.filter((id): id is string => typeof id === 'string')
+      : [],
+    includeUnavailableBottles: Boolean(draft.includeUnavailableBottles),
+    includeUnavailableProducts: Boolean(draft.includeUnavailableProducts),
+    title: typeof draft.title === 'string' ? draft.title : undefined,
+  };
+}
+
+export function getReadinessFromState(
+  state: Pick<AppState, 'bottles' | 'products' | 'settings'>
+): AppReadiness {
+  const hasAvailableBottle = state.bottles.some((bottle) => bottle.isAvailable);
+  const hasAvailableDrinkMix = state.products.some(
+    (product) => product.type === 'drink_mix' && product.isAvailable
+  );
+  const availableSolidCount = state.products.filter(
+    (product) => product.type !== 'drink_mix' && product.isAvailable
+  ).length;
+
+  const profile = state.settings.athleteProfile;
+  const profileChecks: Array<{ label: string; complete: boolean }> = [
+    { label: 'FTP', complete: typeof profile.ftpWatts === 'number' && profile.ftpWatts > 0 },
+    { label: 'Weight', complete: typeof profile.weightKg === 'number' && profile.weightKg > 0 },
+    { label: 'Age', complete: typeof profile.age === 'number' && profile.age > 0 },
+    {
+      label: 'Sweat Rate',
+      complete: typeof profile.sweatRateLph === 'number' && profile.sweatRateLph > 0,
+    },
+    {
+      label: 'Gut Target',
+      complete:
+        typeof profile.gutTrainingTargetGph === 'number' &&
+        profile.gutTrainingTargetGph >= 50 &&
+        profile.gutTrainingTargetGph <= 110,
+    },
+  ];
+
+  const completedFields = profileChecks.filter((field) => field.complete).length;
+  const profileCompletionPercent = Math.round(
+    (completedFields / profileChecks.length) * 100
+  );
+
+  return {
+    hasAvailableBottle,
+    hasAvailableDrinkMix,
+    availableSolidCount,
+    kitReady: hasAvailableBottle && hasAvailableDrinkMix,
+    autoReady: profileChecks[0].complete,
+    profileCompletionPercent,
+    missingProfileFields: profileChecks
+      .filter((field) => !field.complete)
+      .map((field) => field.label),
+  };
+}
+
 export const useStore = create<AppState>()(
   persist(
     immer((set, get) => ({
@@ -142,6 +271,7 @@ export const useStore = create<AppState>()(
         ...DEFAULT_SETTINGS,
         athleteProfile: { ...DEFAULT_SETTINGS.athleteProfile },
       },
+      plannerDraft: null,
       _initialized: false,
 
       addBottle: (bottle) =>
@@ -175,6 +305,7 @@ export const useStore = create<AppState>()(
         set((state) => {
           state.products.push({
             ...product,
+            isAvailable: product.isAvailable ?? true,
             id: nanoid(),
             createdAt: Date.now(),
             updatedAt: Date.now(),
@@ -212,6 +343,22 @@ export const useStore = create<AppState>()(
           state.fuelPlans = state.fuelPlans.filter((p) => p.id !== id);
         }),
 
+      setPlannerDraft: (draft) =>
+        set((state) => {
+          state.plannerDraft = draft;
+        }),
+
+      consumePlannerDraft: () => {
+        const current = get().plannerDraft;
+        if (!current) return null;
+
+        set((state) => {
+          state.plannerDraft = null;
+        });
+
+        return current;
+      },
+
       updateSettings: (updates) =>
         set((state) => {
           const { athleteProfile, ...rest } = updates;
@@ -227,6 +374,8 @@ export const useStore = create<AppState>()(
           Object.assign(state.settings.athleteProfile, updates);
         }),
 
+      getReadiness: () => getReadinessFromState(get()),
+
       initializeDefaults: () => {
         const state = get();
         if (state._initialized) return;
@@ -234,6 +383,7 @@ export const useStore = create<AppState>()(
         set((draft) => {
           draft._initialized = true;
           draft.settings = normalizeSettings(draft.settings);
+          draft.products = normalizeProducts(draft.products, []);
 
           if (draft.bottles.length === 0) {
             DEFAULT_BOTTLES.forEach((b) => {
@@ -267,7 +417,9 @@ export const useStore = create<AppState>()(
         return {
           ...currentState,
           ...incoming,
+          products: normalizeProducts(incoming.products, currentState.products),
           settings: normalizeSettings(incoming.settings),
+          plannerDraft: normalizePlannerDraft(incoming.plannerDraft),
         };
       },
     }

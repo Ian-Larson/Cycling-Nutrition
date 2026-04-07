@@ -33,6 +33,9 @@ export function BottleForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
+      <p className="text-sm leading-6 text-ink-600">
+        Save the bottle sizes you actually ride with so pack lists match your kit.
+      </p>
       <Input
         label="Bottle Name"
         placeholder="e.g., Blue Specialized 26oz"
@@ -46,7 +49,7 @@ export function BottleForm({
         value={capacityMl}
         onChange={(e) => setCapacityMl(e.target.value)}
       />
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button type="submit">{submitLabel ?? 'Add Bottle'}</Button>
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancel

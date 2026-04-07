@@ -275,4 +275,16 @@ describe('calculateAutoTarget integration', () => {
       })
     ).toThrow(/supported range/i);
   });
+
+  it('throws when required pair input is missing', () => {
+    expect(() =>
+      calculateAutoTarget({
+        inputPair: 'duration_if',
+        durationMinutes: 120,
+        ftpWatts: 250,
+        heatFactor: 'moderate',
+        heavySweater: false,
+      })
+    ).toThrow();
+  });
 });

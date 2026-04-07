@@ -8,25 +8,33 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export function Input({ label, error, className, id, ...props }: InputProps) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor={id}
+          className="block text-[0.74rem] font-semibold uppercase tracking-[0.18em] text-ink-600"
+        >
           {label}
         </label>
       )}
       <input
         id={id}
         className={clsx(
-          'block w-full rounded-lg border border-gray-300 px-3 py-2',
-          'focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none',
-          'placeholder:text-gray-400',
-          error && 'border-red-500',
+          'block min-h-12 w-full rounded-[1rem] border px-4 py-3 text-base text-ink-900',
+          'border-[color:var(--border-soft)] bg-white/88 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.65)]',
+          'focus:border-brand-400 focus:ring-2 focus:ring-brand-300 focus:outline-none',
+          'placeholder:text-ink-400',
+          error && 'border-rose-500 focus:border-rose-500 focus:ring-rose-200',
           className
         )}
         {...(error ? { 'aria-invalid': true, 'aria-describedby': `${id}-error` } : {})}
         {...props}
       />
-      {error && <p id={`${id}-error`} className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p id={`${id}-error`} className="text-sm text-rose-700">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

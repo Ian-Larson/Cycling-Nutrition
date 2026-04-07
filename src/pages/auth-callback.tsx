@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui';
+import { PageIntro } from '@/components/layout/page-intro';
 import {
   createStravaProvider,
   validateStravaAuthState,
@@ -9,6 +10,7 @@ import {
 type CallbackState = 'loading' | 'success' | 'error';
 
 export function AuthCallbackPage() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const provider = useMemo(() => createStravaProvider(), []);
   const [state, setState] = useState<CallbackState>('loading');
@@ -61,13 +63,31 @@ export function AuthCallbackPage() {
     void run();
   }, [provider, searchParams]);
 
-  return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold mb-6">Strava Connection</h1>
+  useEffect(() => {
+    if (state === 'loading') return;
+    const timer = setTimeout(() => {
+      navigate('/athlete');
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [navigate, state]);
 
-      <Card>
-        <CardHeader>
-          <h2 className="font-semibold">
+  return (
+    <div className="page-shell max-w-3xl space-y-6">
+      <PageIntro
+        eyebrow="Connection"
+        title="Strava status"
+        description={
+          <>
+            We&apos;re finishing the Strava handoff and then returning you to your
+            athlete profile automatically.
+          </>
+        }
+      />
+
+      <Card className="overflow-hidden">
+        <CardHeader className="space-y-2 bg-white/55">
+          <p className="section-kicker">OAuth Callback</p>
+          <h2 className="section-title text-lg">
             {state === 'loading'
               ? 'Connecting...'
               : state === 'success'
@@ -78,19 +98,21 @@ export function AuthCallbackPage() {
         <CardContent className="space-y-3">
           <p
             className={
-              state === 'error' ? 'text-sm text-red-600' : 'text-sm text-gray-700'
+              state === 'error'
+                ? 'text-sm leading-6 text-rose-700'
+                : 'text-sm leading-6 text-ink-700'
             }
           >
             {message}
           </p>
 
           {state !== 'loading' && (
-            <p className="text-sm text-gray-500">
-              Return to the{' '}
-              <Link to="/athlete" className="underline font-medium text-brand-700">
+            <p className="text-sm leading-6 text-ink-600">
+              You will be redirected to the{' '}
+              <Link to="/athlete" className="underline font-semibold text-brand-700">
                 Athlete page
               </Link>{' '}
-              to continue setup.
+              in a moment.
             </p>
           )}
         </CardContent>

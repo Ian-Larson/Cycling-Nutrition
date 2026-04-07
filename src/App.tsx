@@ -20,7 +20,7 @@ function App() {
 
   return (
     <BrowserRouter basename={basename}>
-      <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+      <div className="app-shell min-h-screen pb-24 md:pb-0">
         <Header />
         <main>
           <Routes>

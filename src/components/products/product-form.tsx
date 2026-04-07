@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Input, Select } from '@/components/ui';
+import { Button, Input, Select, Toggle } from '@/components/ui';
 import type { Product, ProductType, ConcentrationRange } from '@/types';
 
 interface ProductFormProps {
@@ -25,6 +25,7 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
   const [scoopSizeGrams, setScoopSizeGrams] = useState(initialData?.serving.scoopSizeGrams ? String(initialData.serving.scoopSizeGrams) : '');
   const [concMin, setConcMin] = useState(initialData?.concentration?.minGPerMl ? String(initialData.concentration.minGPerMl) : '');
   const [concMax, setConcMax] = useState(initialData?.concentration?.maxGPerMl ? String(initialData.concentration.maxGPerMl) : '');
+  const [isAvailable, setIsAvailable] = useState(initialData?.isAvailable ?? true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +43,7 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
       name: name.trim(),
       brand: brand.trim() || undefined,
       type,
+      isAvailable,
       nutrition: {
         carbsGrams: Number(carbsGrams),
       },
@@ -57,7 +59,12 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <p className="text-sm leading-6 text-ink-600">
+        Add the bottle mix, gels, or bars you actually keep on hand so the planner
+        can build realistic pack lists.
+      </p>
+
+      <div className="grid gap-4 sm:grid-cols-2">
         <Input
           label="Product Name"
           placeholder="e.g., Maurten 320"
@@ -80,7 +87,7 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
         onChange={(e) => setType(e.target.value as ProductType)}
       />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Input
           label="Carbs per serving (g)"
           type="number"
@@ -114,7 +121,7 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
       )}
 
       {isDrinkMix && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="Min concentration (g/ml)"
             type="number"
@@ -138,7 +145,21 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="surface-note flex items-center justify-between gap-3 px-4 py-3">
+        <div>
+          <p className="font-semibold text-ink-900">Available now</p>
+          <p className="text-sm leading-6 text-ink-600">
+            Use this product in planner recommendations.
+          </p>
+        </div>
+        <Toggle
+          checked={isAvailable}
+          onChange={setIsAvailable}
+          label="Product availability"
+        />
+      </div>
+
+      <div className="flex flex-wrap gap-2">
         <Button type="submit">{initialData ? 'Save Changes' : 'Add Product'}</Button>
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancel

@@ -1,11 +1,47 @@
 import { useState } from 'react';
 import { useStore } from '@/store';
 import { Button, Card, CardContent, CardHeader } from '@/components/ui';
+import { PageIntro } from '@/components/layout/page-intro';
 import { BottleCard } from '@/components/bottles/bottle-card';
 import { BottleForm } from '@/components/bottles/bottle-form';
 import { ProductCard } from '@/components/products/product-card';
 import { ProductForm } from '@/components/products/product-form';
 import type { Product } from '@/types';
+
+const QUICK_BOTTLE_TEMPLATES: Array<{ name: string; capacityMl: number }> = [
+  { name: '550ml Small', capacityMl: 550 },
+  { name: '750ml Standard', capacityMl: 750 },
+  { name: '950ml Large', capacityMl: 950 },
+];
+
+const QUICK_PRODUCT_TEMPLATES: Array<
+  Omit<Product, 'id' | 'createdAt' | 'updatedAt'>
+> = [
+  {
+    name: 'Maurten 320',
+    brand: 'Maurten',
+    type: 'drink_mix',
+    isAvailable: true,
+    nutrition: { carbsGrams: 80 },
+    serving: { servingSizeGrams: 80, servingSizeMl: 500, scoopSizeGrams: 40 },
+  },
+  {
+    name: 'PF 30 Gel',
+    brand: 'Precision Fuel & Hydration',
+    type: 'gel',
+    isAvailable: true,
+    nutrition: { carbsGrams: 30 },
+    serving: {},
+  },
+  {
+    name: 'Clif Bloks',
+    brand: 'Clif',
+    type: 'chews',
+    isAvailable: true,
+    nutrition: { carbsGrams: 24 },
+    serving: {},
+  },
+];
 
 export function InventoryPage() {
   const [showBottleForm, setShowBottleForm] = useState(false);
@@ -16,6 +52,9 @@ export function InventoryPage() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [filterType, setFilterType] = useState<Product['type'] | 'all'>('all');
+  const [availabilityFilter, setAvailabilityFilter] = useState<
+    'all' | 'available' | 'unavailable'
+  >('all');
 
   const bottles = useStore((s) => s.bottles);
   const addBottle = useStore((s) => s.addBottle);
@@ -46,6 +85,7 @@ export function InventoryPage() {
   ) => {
     addProduct(data);
     setShowProductForm(false);
+    setEditingProduct(null);
   };
 
   const handleEditProduct = (
@@ -61,6 +101,11 @@ export function InventoryPage() {
     filterType === 'all'
       ? products
       : products.filter((p) => p.type === filterType);
+  const availabilityFilteredProducts = filteredProducts.filter((product) => {
+    if (availabilityFilter === 'all') return true;
+    if (availabilityFilter === 'available') return product.isAvailable;
+    return !product.isAvailable;
+  });
   const sortedBottles = [...bottles].sort((a, b) =>
     bottleSortDirection === 'asc'
       ? a.capacityMl - b.capacityMl
@@ -75,12 +120,67 @@ export function InventoryPage() {
     { value: 'bar', label: 'Bars' },
   ];
 
+  const availableBottleCount = bottles.filter((bottle) => bottle.isAvailable).length;
+  const availableProductCount = products.filter((product) => product.isAvailable).length;
+
+  const quickAddBottle = (template: { name: string; capacityMl: number }) => {
+    addBottle({ ...template, isAvailable: true });
+    setShowBottleForm(false);
+    setEditingBottleId(null);
+  };
+
+  const quickAddProduct = (
+    template: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>
+  ) => {
+    addProduct(template);
+    setShowProductForm(false);
+    setEditingProduct(null);
+  };
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-4 space-y-6">
+    <div className="page-shell space-y-6">
+      <PageIntro
+        eyebrow="Inventory"
+        title="Keep the kit current"
+        description={
+          <>
+            Save the bottles and fuel products you actually have today. The planner
+            defaults to available items so the final pack list matches reality.
+          </>
+        }
+        meta={
+          <div className="page-stat-grid">
+            <div className="page-stat">
+              <p className="page-stat-label">Available Bottles</p>
+              <p className="page-stat-value">{availableBottleCount}</p>
+              <p className="page-stat-copy">{bottles.length} saved total.</p>
+            </div>
+            <div className="page-stat">
+              <p className="page-stat-label">Available Products</p>
+              <p className="page-stat-value">{availableProductCount}</p>
+              <p className="page-stat-copy">{products.length} saved total.</p>
+            </div>
+            <div className="page-stat">
+              <p className="page-stat-label">Quick Adds</p>
+              <p className="page-stat-value">
+                {QUICK_BOTTLE_TEMPLATES.length + QUICK_PRODUCT_TEMPLATES.length}
+              </p>
+              <p className="page-stat-copy">Fast starting points for common setups.</p>
+            </div>
+          </div>
+        }
+      />
+
       {/* Bottles Section */}
       <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold">Bottles</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="section-kicker">Bottles</p>
+            <h2 className="section-title text-lg">Ride-day bottles</h2>
+            <p className="section-copy">
+              Mark only the bottles you can actually pack today as available.
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -89,7 +189,7 @@ export function InventoryPage() {
                   current === 'asc' ? 'desc' : 'asc'
                 )
               }
-              className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="rounded-full border border-[color:var(--border-soft)] bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:bg-shell-50"
             >
               Size {bottleSortDirection === 'asc' ? '↑' : '↓'}
             </button>
@@ -106,10 +206,30 @@ export function InventoryPage() {
             )}
           </div>
         </div>
+        <p className="mb-3 text-sm leading-6 text-ink-600">
+          {availableBottleCount}/{bottles.length || 0} available for planning
+        </p>
+
+        <div className="mb-3 flex flex-wrap gap-2">
+          {QUICK_BOTTLE_TEMPLATES.map((template) => (
+            <button
+              key={template.name}
+              type="button"
+              onClick={() => quickAddBottle(template)}
+              className="rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-semibold text-ink-700 transition-colors hover:bg-shell-50"
+            >
+              + {template.name}
+            </button>
+          ))}
+        </div>
 
         {showBottleForm && (
           <Card className="mb-3">
-            <CardContent className="px-4 py-3">
+            <CardHeader className="space-y-2 bg-white/55">
+              <p className="section-kicker">New Bottle</p>
+              <h3 className="section-title text-lg">Add a bottle</h3>
+            </CardHeader>
+            <CardContent>
               <BottleForm
                 onSubmit={handleAddBottle}
                 onCancel={() => setShowBottleForm(false)}
@@ -121,7 +241,7 @@ export function InventoryPage() {
         {bottles.length === 0 && !showBottleForm ? (
           <Card>
             <CardContent className="text-center py-6">
-              <p className="text-gray-500 mb-4">No bottles added yet</p>
+              <p className="mb-4 text-ink-600">No bottles added yet.</p>
               <Button onClick={() => setShowBottleForm(true)}>
                 Add Your First Bottle
               </Button>
@@ -132,7 +252,11 @@ export function InventoryPage() {
             {sortedBottles.map((bottle) =>
               editingBottleId === bottle.id ? (
                 <Card key={bottle.id} className={!bottle.isAvailable ? 'opacity-60' : ''}>
-                  <CardContent className="px-4 py-3">
+                  <CardHeader className="space-y-2 bg-white/55">
+                    <p className="section-kicker">Edit Bottle</p>
+                    <h3 className="section-title text-lg">{bottle.name}</h3>
+                  </CardHeader>
+                  <CardContent>
                     <BottleForm
                       initialData={{
                         name: bottle.name,
@@ -165,21 +289,44 @@ export function InventoryPage() {
 
       {/* Products Section */}
       <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold">Nutrition Products</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="section-kicker">Fuel Products</p>
+            <h2 className="section-title text-lg">Nutrition inventory</h2>
+            <p className="section-copy">
+              Keep availability current so the planner recommends what you can actually pack.
+            </p>
+          </div>
           {!showProductForm && !editingProduct && (
             <Button size="sm" onClick={() => setShowProductForm(true)}>
               Add Product
             </Button>
           )}
         </div>
+        <p className="mb-3 text-sm leading-6 text-ink-600">
+          {availableProductCount}/{products.length || 0} available for planning
+        </p>
+
+        <div className="mb-3 flex flex-wrap gap-2">
+          {QUICK_PRODUCT_TEMPLATES.map((template) => (
+            <button
+              key={template.name}
+              type="button"
+              onClick={() => quickAddProduct(template)}
+              className="rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-semibold text-ink-700 transition-colors hover:bg-shell-50"
+            >
+              + {template.name}
+            </button>
+          ))}
+        </div>
 
         {showProductForm && (
           <Card className="mb-3">
-            <CardHeader>
-              <h3 className="font-semibold">New Product</h3>
+            <CardHeader className="space-y-2 bg-white/55">
+              <p className="section-kicker">New Product</p>
+              <h3 className="section-title text-lg">Add a nutrition product</h3>
             </CardHeader>
-            <CardContent className="px-4 py-3">
+            <CardContent>
               <ProductForm
                 onSubmit={handleAddProduct}
                 onCancel={() => setShowProductForm(false)}
@@ -190,10 +337,11 @@ export function InventoryPage() {
 
         {editingProduct && (
           <Card className="mb-3">
-            <CardHeader>
-              <h3 className="font-semibold">Edit Product</h3>
+            <CardHeader className="space-y-2 bg-white/55">
+              <p className="section-kicker">Edit Product</p>
+              <h3 className="section-title text-lg">{editingProduct.name}</h3>
             </CardHeader>
-            <CardContent className="px-4 py-3">
+            <CardContent>
               <ProductForm
                 initialData={editingProduct}
                 onSubmit={handleEditProduct}
@@ -204,27 +352,48 @@ export function InventoryPage() {
         )}
 
         {products.length > 0 && (
-          <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
-            {typeFilters.map((filter) => (
-              <button
-                key={filter.value}
-                onClick={() => setFilterType(filter.value)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  filterType === filter.value
-                    ? 'bg-brand-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
+          <div className="mb-3 space-y-2">
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {typeFilters.map((filter) => (
+                <button
+                  key={filter.value}
+                  onClick={() => setFilterType(filter.value)}
+                  className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ${
+                    filterType === filter.value
+                      ? 'border-brand-700 bg-brand-600 text-shell-50'
+                      : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {(['all', 'available', 'unavailable'] as const).map((value) => (
+                <button
+                  key={value}
+                  onClick={() => setAvailabilityFilter(value)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] whitespace-nowrap transition-colors ${
+                    availabilityFilter === value
+                      ? 'border-brand-300 bg-brand-100 text-brand-800'
+                      : 'border-[color:var(--border-soft)] bg-white text-ink-600 hover:bg-shell-50'
+                  }`}
+                >
+                  {value === 'all'
+                    ? 'Any availability'
+                    : value === 'available'
+                      ? 'Available'
+                      : 'Unavailable'}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
         {products.length === 0 && !showProductForm ? (
           <Card>
             <CardContent className="text-center py-6">
-              <p className="text-gray-500 mb-4">No products added yet</p>
+              <p className="mb-4 text-ink-600">No products added yet.</p>
               <Button onClick={() => setShowProductForm(true)}>
                 Add Your First Product
               </Button>
@@ -232,10 +401,13 @@ export function InventoryPage() {
           </Card>
         ) : (
           <div className="space-y-2">
-            {filteredProducts.map((product) => (
+            {availabilityFilteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
+                onToggleAvailable={() =>
+                  updateProduct(product.id, { isAvailable: !product.isAvailable })
+                }
                 onEdit={() => {
                   setShowProductForm(false);
                   setEditingProduct(product);
@@ -243,8 +415,8 @@ export function InventoryPage() {
                 onDelete={() => deleteProduct(product.id)}
               />
             ))}
-            {filteredProducts.length === 0 && products.length > 0 && (
-              <p className="text-center text-gray-500 py-6">
+            {availabilityFilteredProducts.length === 0 && products.length > 0 && (
+              <p className="py-6 text-center text-ink-500">
                 No products match this filter
               </p>
             )}

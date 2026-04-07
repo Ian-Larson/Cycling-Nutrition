@@ -15,16 +15,18 @@ export function Toggle({ checked, onChange, label, disabled }: ToggleProps) {
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={clsx(
-        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors',
-        'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2',
+        'relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border transition-colors',
+        'focus:outline-none focus:ring-2 focus:ring-brand-300 focus:ring-offset-2 focus:ring-offset-shell-50',
         'disabled:opacity-50 disabled:cursor-not-allowed',
-        checked ? 'bg-brand-600' : 'bg-gray-300'
+        checked
+          ? 'border-brand-700 bg-brand-600'
+          : 'border-[color:var(--border-soft)] bg-shell-200'
       )}
     >
       <span
         className={clsx(
-          'absolute h-4 w-4 rounded-full bg-white transition-transform',
-          checked ? 'translate-x-6' : 'translate-x-1'
+          'absolute h-[1.125rem] w-[1.125rem] rounded-full bg-white shadow-[0_4px_14px_-8px_rgb(0_0_0_/_0.45)] transition-transform',
+          checked ? 'translate-x-[1.625rem]' : 'translate-x-1.5'
         )}
       />
       {label && <span className="sr-only">{label}</span>}

@@ -35,6 +35,7 @@ export interface ConsumptionGuideItem {
 
 export interface FuelPlan {
   id: string;
+  title?: string;
   rideCharacteristics: RideCharacteristics;
   bottles: BottleAllocation[];
   solids: SolidAllocation[];

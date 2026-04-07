@@ -26,6 +26,7 @@ const mix: Product = {
   id: 'mix',
   name: 'PF 60',
   type: 'drink_mix',
+  isAvailable: true,
   nutrition: {
     carbsGrams: 60,
   },

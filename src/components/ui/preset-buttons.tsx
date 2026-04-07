@@ -20,10 +20,10 @@ export function PresetButtons({ options, value, onChange }: PresetButtonsProps) 
           type="button"
           onClick={() => onChange(opt.value)}
           className={clsx(
-            'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+            'rounded-full border px-3.5 py-1.5 text-sm font-semibold tracking-[0.03em] transition-all',
             value === opt.value
-              ? 'bg-brand-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'border-brand-700 bg-brand-600 text-shell-50 shadow-[0_16px_28px_-24px_rgb(145_66_24_/_0.72)]'
+              : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
           )}
         >
           {opt.label}

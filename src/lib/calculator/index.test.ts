@@ -25,6 +25,7 @@ const drinkMix: Product = {
   id: 'mix-1',
   name: 'Carb Mix',
   type: 'drink_mix',
+  isAvailable: true,
   nutrition: {
     carbsGrams: 40,
   },
