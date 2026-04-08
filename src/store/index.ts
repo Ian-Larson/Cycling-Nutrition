@@ -94,6 +94,12 @@ function normalizePositiveNumber(value: unknown): number | undefined {
     : undefined;
 }
 
+function normalizeNonNegativeNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? value
+    : undefined;
+}
+
 function normalizeOptionalText(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
   const trimmed = value.trim();
@@ -161,10 +167,85 @@ export function normalizeProducts(
 ): Product[] {
   if (!Array.isArray(value)) return fallback;
 
-  return value.map((product) => ({
-    ...(product as Product),
-    isAvailable: (product as Product).isAvailable ?? true,
-  }));
+  return value.map((product) => {
+    const incoming = product as Partial<Product> & {
+      nutrition?: Partial<Product['nutrition']>;
+    };
+    const carbsGrams = normalizeNonNegativeNumber(incoming.nutrition?.carbsGrams) ?? 0;
+
+    return {
+      ...(incoming as Product),
+      isAvailable: incoming.isAvailable ?? true,
+      nutrition: {
+        ...incoming.nutrition,
+        carbsGrams,
+        calories:
+          normalizeNonNegativeNumber(incoming.nutrition?.calories) ??
+          carbsGrams * 4,
+        sodiumMg: normalizeNonNegativeNumber(incoming.nutrition?.sodiumMg),
+        caffeineMg: normalizeNonNegativeNumber(incoming.nutrition?.caffeineMg),
+      },
+    };
+  });
+}
+
+function estimateCaloriesFromCarbs(product: Product | undefined, carbsGrams: number): number {
+  if (!Number.isFinite(carbsGrams) || carbsGrams <= 0) return 0;
+  if (!product) return Math.round(carbsGrams * 4);
+
+  const servingCarbs = product.nutrition.carbsGrams;
+  const servingCalories = product.nutrition.calories;
+
+  if (servingCarbs > 0 && Number.isFinite(servingCalories)) {
+    return Math.round((servingCalories / servingCarbs) * carbsGrams);
+  }
+
+  return Math.round(carbsGrams * 4);
+}
+
+function normalizeFuelPlans(
+  value: unknown,
+  fallback: FuelPlan[],
+  products: Product[]
+): FuelPlan[] {
+  if (!Array.isArray(value)) return fallback;
+
+  const productMap = new Map(products.map((product) => [product.id, product]));
+
+  return value.map((plan) => {
+    const incoming = plan as FuelPlan;
+    const refuelMultiplier =
+      ((incoming.rideCharacteristics?.refuelStops ?? 0) || 0) + 1;
+    const bottleCaloriesPerFill = (incoming.bottles ?? []).reduce((sum, allocation) => {
+      if (allocation.isWaterOnly) return sum;
+      return (
+        sum +
+        estimateCaloriesFromCarbs(
+          productMap.get(allocation.productId),
+          allocation.carbsTotal
+        )
+      );
+    }, 0);
+    const totalSolidCalories = (incoming.solids ?? []).reduce((sum, allocation) => {
+      return (
+        sum +
+        estimateCaloriesFromCarbs(
+          productMap.get(allocation.productId),
+          allocation.carbsTotal
+        )
+      );
+    }, 0);
+
+    return {
+      ...incoming,
+      summary: {
+        ...incoming.summary,
+        totalCaloriesPlanned:
+          normalizeNonNegativeNumber(incoming.summary?.totalCaloriesPlanned) ??
+          bottleCaloriesPerFill * refuelMultiplier + totalSolidCalories,
+      },
+    };
+  });
 }
 
 function normalizePlannerDraft(value: unknown): PlannerDraft | null {
@@ -384,6 +465,11 @@ export const useStore = create<AppState>()(
           draft._initialized = true;
           draft.settings = normalizeSettings(draft.settings);
           draft.products = normalizeProducts(draft.products, []);
+          draft.fuelPlans = normalizeFuelPlans(
+            draft.fuelPlans,
+            [],
+            draft.products
+          );
 
           if (draft.bottles.length === 0) {
             DEFAULT_BOTTLES.forEach((b) => {
@@ -413,11 +499,17 @@ export const useStore = create<AppState>()(
       name: 'cycling-nutrition-storage',
       merge: (persistedState, currentState) => {
         const incoming = (persistedState as Partial<AppState>) || {};
+        const products = normalizeProducts(incoming.products, currentState.products);
 
         return {
           ...currentState,
           ...incoming,
-          products: normalizeProducts(incoming.products, currentState.products),
+          products,
+          fuelPlans: normalizeFuelPlans(
+            incoming.fuelPlans,
+            currentState.fuelPlans,
+            products
+          ),
           settings: normalizeSettings(incoming.settings),
           plannerDraft: normalizePlannerDraft(incoming.plannerDraft),
         };

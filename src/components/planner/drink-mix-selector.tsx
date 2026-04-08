@@ -46,7 +46,7 @@ export function DrinkMixSelector({
               <div>
                 <p className="font-semibold text-ink-900">{mix.name}</p>
                 <p className="mt-1 text-sm leading-6 text-ink-600">
-                  {mix.nutrition.carbsGrams}g carbs/serving
+                  {mix.nutrition.carbsGrams}g carbs • {mix.nutrition.calories} kcal / serving
                 </p>
                 {!mix.isAvailable && (
                   <p className="text-xs font-medium text-amber-700">

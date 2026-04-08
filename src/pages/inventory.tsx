@@ -22,7 +22,7 @@ const QUICK_PRODUCT_TEMPLATES: Array<
     brand: 'Maurten',
     type: 'drink_mix',
     isAvailable: true,
-    nutrition: { carbsGrams: 80 },
+    nutrition: { carbsGrams: 80, calories: 320 },
     serving: { servingSizeGrams: 80, servingSizeMl: 500, scoopSizeGrams: 40 },
   },
   {
@@ -30,7 +30,7 @@ const QUICK_PRODUCT_TEMPLATES: Array<
     brand: 'Precision Fuel & Hydration',
     type: 'gel',
     isAvailable: true,
-    nutrition: { carbsGrams: 30 },
+    nutrition: { carbsGrams: 30, calories: 120 },
     serving: {},
   },
   {
@@ -38,7 +38,7 @@ const QUICK_PRODUCT_TEMPLATES: Array<
     brand: 'Clif',
     type: 'chews',
     isAvailable: true,
-    nutrition: { carbsGrams: 24 },
+    nutrition: { carbsGrams: 24, calories: 100 },
     serving: {},
   },
 ];

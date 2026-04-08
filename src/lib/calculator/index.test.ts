@@ -28,6 +28,7 @@ const drinkMix: Product = {
   isAvailable: true,
   nutrition: {
     carbsGrams: 40,
+    calories: 150,
   },
   serving: {
     servingSizeGrams: 40,
@@ -36,6 +37,22 @@ const drinkMix: Product = {
   createdAt: 0,
   updatedAt: 0,
 };
+
+function getExpectedDrinkCalories(plan: ReturnType<typeof calculateFuelPlan>) {
+  const refuelMultiplier = (plan.rideCharacteristics.refuelStops || 0) + 1;
+
+  return (
+    plan.bottles.reduce((sum, allocation) => {
+      return (
+        sum +
+        Math.round(
+          (drinkMix.nutrition.calories / drinkMix.nutrition.carbsGrams) *
+            allocation.carbsTotal
+        )
+      );
+    }, 0) * refuelMultiplier
+  );
+}
 
 describe('calculateFuelPlan summary behavior', () => {
   it('keeps manual mode summary unchanged (no sodium fields)', () => {
@@ -55,6 +72,7 @@ describe('calculateFuelPlan summary behavior', () => {
     });
 
     expect(plan.summary.hydrationMl).toBe(1000);
+    expect(plan.summary.totalCaloriesPlanned).toBe(getExpectedDrinkCalories(plan));
     expect(plan.summary.sodiumMgPerHour).toBeUndefined();
     expect(plan.summary.sodiumMgTotal).toBeUndefined();
   });
@@ -87,6 +105,7 @@ describe('calculateFuelPlan summary behavior', () => {
     });
 
     expect(plan.summary.hydrationMl).toBe(1800);
+    expect(plan.summary.totalCaloriesPlanned).toBe(getExpectedDrinkCalories(plan));
     expect(plan.summary.sodiumMgPerHour).toBe(1000);
     expect(plan.summary.sodiumMgTotal).toBe(2000);
   });

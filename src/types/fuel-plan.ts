@@ -43,6 +43,7 @@ export interface FuelPlan {
   warnings?: FuelPlanWarning[];
   summary: {
     totalCarbsPlanned: number;
+    totalCaloriesPlanned: number;
     totalCarbsNeeded: number;
     hydrationMl: number;
     sodiumMgTotal?: number;

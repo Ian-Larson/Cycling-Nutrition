@@ -42,6 +42,26 @@ function getPlanTitleSuggestion(ride: RideCharacteristics): string {
   return `${formatDuration(ride.durationMinutes)} ${intensity} Plan`;
 }
 
+function estimateCaloriesForCarbs(
+  caloriesPerServing: number | undefined,
+  carbsPerServing: number | undefined,
+  carbsGrams: number
+): number {
+  if (!Number.isFinite(carbsGrams) || carbsGrams <= 0) return 0;
+
+  if (
+    typeof caloriesPerServing === 'number' &&
+    Number.isFinite(caloriesPerServing) &&
+    typeof carbsPerServing === 'number' &&
+    Number.isFinite(carbsPerServing) &&
+    carbsPerServing > 0
+  ) {
+    return Math.round((caloriesPerServing / carbsPerServing) * carbsGrams);
+  }
+
+  return Math.round(carbsGrams * 4);
+}
+
 function isPlannerDraftShape(value: unknown): value is PlannerDraft {
   if (!value || typeof value !== 'object') return false;
   const draft = value as Partial<PlannerDraft>;
@@ -210,6 +230,54 @@ export function PlannerPage() {
   const availableSolidCount = products.filter(
     (product) => product.type !== 'drink_mix' && product.isAvailable
   ).length;
+  const fuelBreakdown = useMemo(() => {
+    if (!plan) return null;
+
+    const refuelMultiplier = (plan.rideCharacteristics.refuelStops || 0) + 1;
+    const drinksPerFillCarbs = plan.bottles.reduce((sum, allocation) => {
+      return allocation.isWaterOnly ? sum : sum + allocation.carbsTotal;
+    }, 0);
+    const drinksPerFillCalories = plan.bottles.reduce((sum, allocation) => {
+      if (allocation.isWaterOnly) return sum;
+
+      const product = products.find((candidate) => candidate.id === allocation.productId);
+      return (
+        sum +
+        estimateCaloriesForCarbs(
+          product?.nutrition.calories,
+          product?.nutrition.carbsGrams,
+          allocation.carbsTotal
+        )
+      );
+    }, 0);
+    const solidsCarbs = plan.solids.reduce(
+      (sum, allocation) => sum + allocation.carbsTotal,
+      0
+    );
+    const solidsCalories = plan.solids.reduce((sum, allocation) => {
+      const product = products.find((candidate) => candidate.id === allocation.productId);
+      return (
+        sum +
+        estimateCaloriesForCarbs(
+          product?.nutrition.calories,
+          product?.nutrition.carbsGrams,
+          allocation.carbsTotal
+        )
+      );
+    }, 0);
+
+    const drinksCarbs = drinksPerFillCarbs * refuelMultiplier;
+    const drinksCalories = drinksPerFillCalories * refuelMultiplier;
+
+    return {
+      drinks: { carbs: drinksCarbs, calories: drinksCalories },
+      solids: { carbs: solidsCarbs, calories: solidsCalories },
+      total: {
+        carbs: drinksCarbs + solidsCarbs,
+        calories: drinksCalories + solidsCalories,
+      },
+    };
+  }, [plan, products]);
 
   const handleCalculate = (ride: RideCharacteristics) => {
     if (!canCalculate || !selectedDrinkMix) return;
@@ -559,6 +627,42 @@ export function PlannerPage() {
                       onChange={(event) => setPlanTitle(event.target.value)}
                       placeholder="Optional"
                     />
+
+                    {fuelBreakdown && (
+                      <div className="surface-note p-4">
+                        <div className="mb-3">
+                          <p className="section-kicker text-[0.68rem]">Breakdown</p>
+                          <h3 className="section-title text-lg">Fuel sources</h3>
+                        </div>
+                        <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-2 text-sm">
+                          <p className="page-stat-label">Source</p>
+                          <p className="page-stat-label text-right">Carbs</p>
+                          <p className="page-stat-label text-right">Calories</p>
+
+                          <p className="text-ink-900">Drinks</p>
+                          <p className="text-right text-ink-700">
+                            {fuelBreakdown.drinks.carbs}g
+                          </p>
+                          <p className="text-right text-ink-700">
+                            {fuelBreakdown.drinks.calories} kcal
+                          </p>
+
+                          <p className="text-ink-900">Solids</p>
+                          <p className="text-right text-ink-700">
+                            {fuelBreakdown.solids.carbs}g
+                          </p>
+                          <p className="text-right text-ink-700">
+                            {fuelBreakdown.solids.calories} kcal
+                          </p>
+                        </div>
+                        <div className="my-3 border-t border-[color:var(--border-soft)]" />
+                        <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 text-sm font-semibold text-ink-900">
+                          <p>Total</p>
+                          <p className="text-right">{fuelBreakdown.total.carbs}g</p>
+                          <p className="text-right">{fuelBreakdown.total.calories} kcal</p>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="grid gap-2 sm:grid-cols-3">
                       <button

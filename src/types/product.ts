@@ -2,6 +2,7 @@ export type ProductType = 'drink_mix' | 'gel' | 'chews' | 'bar' | 'other';
 
 export interface NutritionInfo {
   carbsGrams: number;
+  calories: number;
   sodiumMg?: number;
   caffeineMg?: number;
 }

@@ -21,6 +21,19 @@ export interface PlanAdjustments {
   bottleCount?: number;
 }
 
+function estimateCaloriesForCarbs(product: Product | undefined, carbsGrams: number): number {
+  if (!Number.isFinite(carbsGrams) || carbsGrams <= 0) return 0;
+  if (!product) return Math.round(carbsGrams * 4);
+
+  const servingCarbs = product.nutrition.carbsGrams;
+  const servingCalories = product.nutrition.calories;
+  if (servingCarbs > 0 && Number.isFinite(servingCalories)) {
+    return Math.round((servingCalories / servingCarbs) * carbsGrams);
+  }
+
+  return Math.round(carbsGrams * 4);
+}
+
 function getTargetConcentration(drinkMix: Product): {
   target: number;
   min: number;
@@ -110,6 +123,19 @@ export function calculateFuelPlan(
 
   const bottleCarbsPerFill = bottles.reduce((sum, b) => sum + b.carbsTotal, 0);
   const totalCarbsPlanned = bottleCarbsPerFill * refuelMultiplier + actualSolidCarbs;
+  const totalBottleCaloriesPerFill = bottles.reduce((sum, allocation) => {
+    if (allocation.isWaterOnly) return sum;
+    return (
+      sum +
+      estimateCaloriesForCarbs(input.drinkMix, allocation.carbsTotal)
+    );
+  }, 0);
+  const totalSolidCalories = solidAllocations.reduce((sum, allocation) => {
+    const product = input.availableSolids.find((candidate) => candidate.id === allocation.productId);
+    return sum + estimateCaloriesForCarbs(product, allocation.carbsTotal);
+  }, 0);
+  const totalCaloriesPlanned =
+    totalBottleCaloriesPerFill * refuelMultiplier + totalSolidCalories;
 
   // Build warnings
   const warnings: FuelPlanWarning[] = [];
@@ -143,6 +169,7 @@ export function calculateFuelPlan(
 
   const summary: Omit<FuelPlan, 'id' | 'createdAt'>['summary'] = {
     totalCarbsPlanned,
+    totalCaloriesPlanned,
     totalCarbsNeeded,
     hydrationMl: calculateHydrationNeeds(input.ride),
   };
@@ -222,6 +249,19 @@ export function recalculatePlan(
 
   const bottleCarbsPerFill = bottles.reduce((sum, b) => sum + b.carbsTotal, 0);
   const totalCarbsPlanned = bottleCarbsPerFill * refuelMultiplier + actualSolidCarbs;
+  const totalBottleCaloriesPerFill = bottles.reduce((sum, allocation) => {
+    if (allocation.isWaterOnly) return sum;
+    return (
+      sum +
+      estimateCaloriesForCarbs(originalInput.drinkMix, allocation.carbsTotal)
+    );
+  }, 0);
+  const totalSolidCalories = solidAllocations.reduce((sum, allocation) => {
+    const product = originalInput.availableSolids.find((candidate) => candidate.id === allocation.productId);
+    return sum + estimateCaloriesForCarbs(product, allocation.carbsTotal);
+  }, 0);
+  const totalCaloriesPlanned =
+    totalBottleCaloriesPerFill * refuelMultiplier + totalSolidCalories;
 
   // Rebuild consumption guide
   const allProducts = [
@@ -264,6 +304,7 @@ export function recalculatePlan(
     summary: {
       ...currentPlan.summary,
       totalCarbsPlanned,
+      totalCaloriesPlanned,
     },
   };
 }

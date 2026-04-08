@@ -51,7 +51,7 @@ export function ProductCard({
             <p className="text-sm leading-6 text-ink-600">{product.brand}</p>
           )}
           <p className="text-sm leading-6 text-ink-700">
-            {product.nutrition.carbsGrams}g carbs
+            {product.nutrition.carbsGrams}g carbs • {product.nutrition.calories} kcal
             {product.serving.servingSizeGrams &&
               ` per ${product.serving.servingSizeGrams}g serving`}
           </p>

@@ -58,7 +58,7 @@ export function SolidFuelSelector({
               <div>
                 <p className="font-semibold text-ink-900">{product.name}</p>
                 <p className="mt-1 text-sm leading-6 text-ink-600">
-                  {product.nutrition.carbsGrams}g carbs each
+                  {product.nutrition.carbsGrams}g carbs • {product.nutrition.calories} kcal each
                 </p>
                 {!product.isAvailable && (
                   <p className="text-xs font-medium text-amber-700">

@@ -136,6 +136,9 @@ export function HistoryPage() {
       ) : (
         <div className="space-y-4">
           {sortedPlans.map((plan) => {
+            const totalCaloriesPlanned =
+              plan.summary.totalCaloriesPlanned ??
+              Math.round(plan.summary.totalCarbsPlanned * 4);
             const bottleNames = plan.bottles
               .map((b) => bottles.find((bt) => bt.id === b.bottleId)?.name)
               .filter(Boolean)
@@ -169,11 +172,17 @@ export function HistoryPage() {
                           {plan.rideCharacteristics.intensity} ride
                         </p>
                       )}
-                      <div className="grid gap-2 sm:grid-cols-3">
+                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                         <div className="surface-note px-4 py-3">
                           <p className="page-stat-label">Carbs</p>
                           <p className="font-sans text-[1.05rem] font-semibold leading-none text-brand-700">
                             {plan.summary.totalCarbsPlanned}g
+                          </p>
+                        </div>
+                        <div className="surface-note px-4 py-3">
+                          <p className="page-stat-label">Calories</p>
+                          <p className="font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
+                            {totalCaloriesPlanned} kcal
                           </p>
                         </div>
                         <div className="surface-note px-4 py-3">

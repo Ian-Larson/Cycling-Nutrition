@@ -30,6 +30,7 @@ describe('normalizeProducts', () => {
 
     expect(migrated).toHaveLength(1);
     expect(migrated[0].isAvailable).toBe(true);
+    expect(migrated[0].nutrition.calories).toBe(240);
   });
 });
 
@@ -51,7 +52,7 @@ describe('getReadinessFromState', () => {
         name: 'Mix',
         type: 'drink_mix',
         isAvailable: true,
-        nutrition: { carbsGrams: 60 },
+        nutrition: { carbsGrams: 60, calories: 240 },
         serving: {},
         createdAt: 0,
         updatedAt: 0,
@@ -61,7 +62,7 @@ describe('getReadinessFromState', () => {
         name: 'Gel',
         type: 'gel',
         isAvailable: true,
-        nutrition: { carbsGrams: 25 },
+        nutrition: { carbsGrams: 25, calories: 100 },
         serving: {},
         createdAt: 0,
         updatedAt: 0,
@@ -104,7 +105,7 @@ describe('getReadinessFromState', () => {
         name: 'Mix',
         type: 'drink_mix',
         isAvailable: false,
-        nutrition: { carbsGrams: 60 },
+        nutrition: { carbsGrams: 60, calories: 240 },
         serving: {},
         createdAt: 0,
         updatedAt: 0,

@@ -161,6 +161,7 @@ function buildDebugText(
   lines.push(
     `Total Carbs: ${plan.summary.totalCarbsPlanned}g / ${plan.summary.totalCarbsNeeded}g needed`
   );
+  lines.push(`Calories: ${plan.summary.totalCaloriesPlanned} kcal`);
   lines.push(`Hydration: ${plan.summary.hydrationMl}ml`);
   if (plan.summary.sodiumMgPerHour !== undefined) {
     lines.push(`Sodium/Hour: ${plan.summary.sodiumMgPerHour}mg`);

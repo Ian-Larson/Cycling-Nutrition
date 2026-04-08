@@ -29,6 +29,7 @@ const mix: Product = {
   isAvailable: true,
   nutrition: {
     carbsGrams: 60,
+    calories: 240,
   },
   serving: {
     servingSizeGrams: 60,

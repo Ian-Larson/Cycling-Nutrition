@@ -67,12 +67,7 @@ const DURATION_PRESETS = [
   { label: '4h', value: 240 },
 ];
 
-const CARB_PRESETS = [
-  { label: '30', value: 30 },
-  { label: '60', value: 60 },
-  { label: '90', value: 90 },
-  { label: '120', value: 120 },
-];
+const DEFAULT_CARB_PRESET_VALUES = [30, 60, 90, 120];
 
 function formatDuration(mins: number): string {
   const h = Math.floor(mins / 60);
@@ -151,6 +146,18 @@ export function RideForm({
   const heatOptions = Object.entries(HEAT_LABELS[temperatureUnit]).map(
     ([value, label]) => ({ value, label })
   );
+  const carbPresets = useMemo(() => {
+    const gutTarget = Math.round(athleteProfile.gutTrainingTargetGph ?? 0);
+    const values = new Set(DEFAULT_CARB_PRESET_VALUES);
+
+    if (gutTarget >= 30 && gutTarget <= 120) {
+      values.add(gutTarget);
+    }
+
+    return [...values]
+      .sort((a, b) => a - b)
+      .map((value) => ({ label: String(value), value }));
+  }, [athleteProfile.gutTrainingTargetGph]);
 
   const autoPreview = useMemo(() => {
     if (!hasFtp) {
@@ -537,7 +544,7 @@ export function RideForm({
                 Set your intake target.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
-                {CARB_PRESETS.map((preset) => (
+                {carbPresets.map((preset) => (
                   <button
                     key={preset.value}
                     type="button"

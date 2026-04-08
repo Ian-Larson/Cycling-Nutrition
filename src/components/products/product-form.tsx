@@ -21,6 +21,9 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
   const [brand, setBrand] = useState(initialData?.brand ?? '');
   const [type, setType] = useState<ProductType>(initialData?.type ?? 'drink_mix');
   const [carbsGrams, setCarbsGrams] = useState(initialData ? String(initialData.nutrition.carbsGrams) : '');
+  const [calories, setCalories] = useState(
+    initialData ? String(initialData.nutrition.calories) : ''
+  );
   const [servingSizeGrams, setServingSizeGrams] = useState(initialData?.serving.servingSizeGrams ? String(initialData.serving.servingSizeGrams) : '');
   const [scoopSizeGrams, setScoopSizeGrams] = useState(initialData?.serving.scoopSizeGrams ? String(initialData.serving.scoopSizeGrams) : '');
   const [concMin, setConcMin] = useState(initialData?.concentration?.minGPerMl ? String(initialData.concentration.minGPerMl) : '');
@@ -29,7 +32,7 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !carbsGrams) return;
+    if (!name.trim() || !carbsGrams || !calories) return;
 
     const concentration: ConcentrationRange | undefined =
       type === 'drink_mix' && (concMin || concMax)
@@ -46,6 +49,7 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
       isAvailable,
       nutrition: {
         carbsGrams: Number(carbsGrams),
+        calories: Number(calories),
       },
       serving: {
         servingSizeGrams: servingSizeGrams ? Number(servingSizeGrams) : undefined,
@@ -92,7 +96,19 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
           required
           min="0"
         />
-        {isDrinkMix && (
+        <Input
+          label="Calories per serving"
+          type="number"
+          placeholder="e.g., 320"
+          value={calories}
+          onChange={(e) => setCalories(e.target.value)}
+          required
+          min="0"
+        />
+      </div>
+
+      {isDrinkMix && (
+        <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="Serving size (g)"
             type="number"
@@ -101,18 +117,15 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
             onChange={(e) => setServingSizeGrams(e.target.value)}
             min="0"
           />
-        )}
-      </div>
-
-      {isDrinkMix && (
-        <Input
-          label="Scoop size (g, optional)"
-          type="number"
-          placeholder="e.g., 40"
-          value={scoopSizeGrams}
-          onChange={(e) => setScoopSizeGrams(e.target.value)}
-          min="0"
-        />
+          <Input
+            label="Scoop size (g, optional)"
+            type="number"
+            placeholder="e.g., 40"
+            value={scoopSizeGrams}
+            onChange={(e) => setScoopSizeGrams(e.target.value)}
+            min="0"
+          />
+        </div>
       )}
 
       {isDrinkMix && (

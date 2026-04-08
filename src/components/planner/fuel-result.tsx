@@ -67,6 +67,9 @@ export function FuelResult({
   onBottleCountChange,
   section = 'all',
 }: FuelResultProps) {
+  const totalCaloriesPlanned =
+    plan.summary.totalCaloriesPlanned ??
+    Math.round(plan.summary.totalCarbsPlanned * 4);
   const carbsPerHour =
     plan.rideCharacteristics.durationMinutes > 0
       ? Math.round(
@@ -117,7 +120,7 @@ export function FuelResult({
             <h3 className="section-title">Stats</h3>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <div className="surface-note p-4">
                 <p className="page-stat-label">Duration</p>
                 <p className="page-stat-value">{formatDuration(plan.rideCharacteristics.durationMinutes)}</p>
@@ -129,6 +132,10 @@ export function FuelResult({
               <div className="surface-note p-4">
                 <p className="page-stat-label">Total Carbs</p>
                 <p className="page-stat-value text-brand-700">{plan.summary.totalCarbsPlanned}g</p>
+              </div>
+              <div className="surface-note p-4">
+                <p className="page-stat-label">Calories</p>
+                <p className="page-stat-value">{totalCaloriesPlanned} kcal</p>
               </div>
               <div className="surface-note p-4">
                 <p className="page-stat-label">Carbs / Hour</p>
