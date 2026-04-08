@@ -378,7 +378,7 @@ export function PlannerPage() {
           title="Fuel plan"
           description={
             <>
-              Select fuel, enter ride data, and review the plan.
+              Select fuel and enter ride data.
             </>
           }
           meta={
@@ -393,7 +393,7 @@ export function PlannerPage() {
               <div className="page-stat">
                 <p className="page-stat-label">Bottles</p>
                 <p className="page-stat-value">{availableBottleCount}</p>
-                <p className="page-stat-copy">Available now</p>
+                <p className="page-stat-copy">Available</p>
               </div>
               <div className="page-stat">
                 <p className="page-stat-label">Fuel</p>
@@ -401,8 +401,8 @@ export function PlannerPage() {
                   {availableDrinkMixCount + availableSolidCount}
                 </p>
                 <p className="page-stat-copy">
-                  {availableDrinkMixCount} drink mix{availableDrinkMixCount === 1 ? '' : 'es'}
-                  {' '}and {availableSolidCount} solid option{availableSolidCount === 1 ? '' : 's'}.
+                  {availableDrinkMixCount} mix{availableDrinkMixCount === 1 ? '' : 'es'}
+                  {' '}• {availableSolidCount} solid{availableSolidCount === 1 ? '' : 's'}
                 </p>
               </div>
             </div>
@@ -438,12 +438,9 @@ export function PlannerPage() {
         {step === 1 && (
           <div className="grid gap-5 xl:grid-cols-[0.92fr_1.28fr]">
             <Card className="overflow-hidden">
-              <CardHeader className="space-y-2 bg-white/55">
-                <p className="section-kicker">Setup</p>
-                <h2 className="section-title">Available today</h2>
-                <p className="section-copy">
-                  Planner uses available items by default.
-                </p>
+              <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
+                <h2 className="section-title">Setup</h2>
+                <p className="section-copy">Planner uses available items by default.</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
@@ -466,7 +463,7 @@ export function PlannerPage() {
                     </Link>
                   </div>
                   <div className="surface-note p-4">
-                    <p className="section-kicker text-[0.68rem]">Bottle Mix</p>
+                    <p className="section-kicker text-[0.68rem]">Drink mix</p>
                     <p
                       className={`mt-2 font-semibold ${
                         readiness.hasAvailableDrinkMix ? 'text-emerald-700' : 'text-amber-700'
@@ -580,12 +577,9 @@ export function PlannerPage() {
 
         {step === 2 && (
           <Card className="overflow-hidden">
-            <CardHeader className="space-y-2 bg-white/55">
-              <p className="section-kicker">Ride</p>
+            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <h2 className="section-title">Ride data</h2>
-              <p className="section-copy">
-                Manual sets carbs. Auto calculates from workload.
-              </p>
+              <p className="section-copy">Manual sets carbs. Auto uses workload.</p>
             </CardHeader>
             <CardContent className="space-y-5">
               {!canCalculate && (
@@ -612,27 +606,23 @@ export function PlannerPage() {
             {plan ? (
               <>
                 <Card className="overflow-hidden">
-                  <CardHeader className="space-y-2 bg-white/55">
-                    <p className="section-kicker">Plan</p>
-                    <h2 className="section-title">Plan</h2>
-                    <p className="section-copy">
-                      Save a title if you want to reuse this plan.
-                    </p>
+                  <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
+                    <h2 className="section-title">Review plan</h2>
+                    <p className="section-copy">Save a title to reuse it later.</p>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <Input
                       id="plan-title"
-                      label="Name"
+                      label="Plan name"
                       value={planTitle}
                       onChange={(event) => setPlanTitle(event.target.value)}
                       placeholder="Optional"
                     />
 
                     {fuelBreakdown && (
-                      <div className="rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_86%,white)] p-4">
+                      <div className="rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_90%,white)] p-4">
                         <div className="mb-3">
-                          <p className="section-kicker text-[0.68rem]">Breakdown</p>
-                          <h3 className="section-title text-lg">Fuel sources</h3>
+                          <h3 className="section-title text-lg">Fuel breakdown</h3>
                         </div>
                         <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-2 text-sm">
                           <p className="page-stat-label">Source</p>

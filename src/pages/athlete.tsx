@@ -12,8 +12,6 @@ import {
   Toggle,
 } from '@/components/ui';
 import {
-  centimetersToFeetInches,
-  feetInchesToCentimeters,
   formatNumberInputValue,
   kilogramsToPounds,
   poundsToKilograms,
@@ -28,14 +26,12 @@ import { useStore, type AthleteProfile } from '@/store';
 
 type OptionalNumericAthleteField =
   | 'ftpWatts'
-  | 'heightCm'
   | 'weightKg'
   | 'age'
   | 'sweatRateLph';
 
 type AthleteFieldErrorKey =
   | OptionalNumericAthleteField
-  | 'heightImperial'
   | 'gutTrainingTargetGph';
 
 const GUT_TARGET_PRESETS = [60, 65, 75, 85, 95] as const;
@@ -72,21 +68,6 @@ function getWeightDraftFromProfile(
   return unit === 'imperial'
     ? formatNumberInputValue(kilogramsToPounds(weightKg), 1)
     : formatNumberInputValue(weightKg, 1);
-}
-
-function getImperialHeightDrafts(heightCm: number | undefined): {
-  feet: string;
-  inches: string;
-} {
-  if (typeof heightCm !== 'number' || !Number.isFinite(heightCm)) {
-    return { feet: '', inches: '' };
-  }
-
-  const converted = centimetersToFeetInches(heightCm);
-  return {
-    feet: formatNumberInputValue(converted.feet, 0),
-    inches: formatNumberInputValue(converted.inches, 1),
-  };
 }
 
 export function AthletePage() {
@@ -136,18 +117,6 @@ export function AthletePage() {
   );
   const [weightDraft, setWeightDraft] = useState(() =>
     getWeightDraftFromProfile(athleteProfile.weightKg, anthropometricsUnit)
-  );
-  const [heightCmDraft, setHeightCmDraft] = useState(() =>
-    formatNumberInputValue(athleteProfile.heightCm, 0)
-  );
-  const initialImperialHeightDrafts = getImperialHeightDrafts(
-    athleteProfile.heightCm
-  );
-  const [heightFeetDraft, setHeightFeetDraft] = useState(
-    initialImperialHeightDrafts.feet
-  );
-  const [heightInchesDraft, setHeightInchesDraft] = useState(
-    initialImperialHeightDrafts.inches
   );
   const [gutTargetDraft, setGutTargetDraft] = useState(() =>
     formatNumberInputValue(gutTrainingTargetGph, 0)
@@ -288,58 +257,6 @@ export function AthletePage() {
     setFieldError('weightKg', undefined);
   };
 
-  const commitMetricHeightDraft = () =>
-    commitOptionalNumberDraft('heightCm', heightCmDraft, setHeightCmDraft, {
-      min: 50,
-      integer: true,
-      fallbackValue: athleteProfile.heightCm,
-      fieldErrorKey: 'heightCm',
-    });
-
-  const commitImperialHeightDraft = () => {
-    const parsedFeet = parseDraftNumber(heightFeetDraft);
-    const parsedInches = parseDraftNumber(heightInchesDraft);
-    const fallbackDrafts = getImperialHeightDrafts(athleteProfile.heightCm);
-
-    if (parsedFeet === null || parsedInches === null) {
-      setHeightFeetDraft(fallbackDrafts.feet);
-      setHeightInchesDraft(fallbackDrafts.inches);
-      setFieldError('heightImperial', 'Enter valid feet/inches values.');
-      return;
-    }
-
-    if (parsedFeet === undefined && parsedInches === undefined) {
-      updateAthleteProfile({ heightCm: undefined });
-      setHeightFeetDraft('');
-      setHeightInchesDraft('');
-      setFieldError('heightImperial', undefined);
-      return;
-    }
-
-    const feet = parsedFeet ?? 0;
-    const inches = parsedInches ?? 0;
-    if (!Number.isInteger(feet) || feet < 0 || inches < 0 || inches >= 12) {
-      setHeightFeetDraft(fallbackDrafts.feet);
-      setHeightInchesDraft(fallbackDrafts.inches);
-      setFieldError('heightImperial', 'Use whole feet and inches between 0 and 11.9.');
-      return;
-    }
-
-    const nextHeightCm = feetInchesToCentimeters(feet, inches);
-    if (nextHeightCm < 50) {
-      setHeightFeetDraft(fallbackDrafts.feet);
-      setHeightInchesDraft(fallbackDrafts.inches);
-      setFieldError('heightImperial', 'Height must be at least 50 cm equivalent.');
-      return;
-    }
-
-    updateAthleteProfile({ heightCm: nextHeightCm });
-    const normalizedDrafts = getImperialHeightDrafts(nextHeightCm);
-    setHeightFeetDraft(normalizedDrafts.feet);
-    setHeightInchesDraft(normalizedDrafts.inches);
-    setFieldError('heightImperial', undefined);
-  };
-
   const commitGutTargetDraft = () => {
     const parsed = parseDraftNumber(gutTargetDraft);
     const fallback = formatNumberInputValue(gutTrainingTargetGph, 0);
@@ -381,17 +298,6 @@ export function AthletePage() {
       }
     );
 
-  const metricStorageDetails = [
-    typeof athleteProfile.weightKg === 'number'
-      ? `${formatNumberInputValue(athleteProfile.weightKg, 1)} kg`
-      : null,
-    typeof athleteProfile.heightCm === 'number'
-      ? `${formatNumberInputValue(athleteProfile.heightCm, 0)} cm`
-      : null,
-  ]
-    .filter((value): value is string => value !== null)
-    .join(' • ');
-
   const handleAnthropometricsUnitChange = (nextUnit: AnthropometricsUnit) => {
     if (nextUnit === anthropometricsUnit) {
       return;
@@ -399,12 +305,6 @@ export function AthletePage() {
 
     updateAthleteProfile({ anthropometricsUnit: nextUnit });
     setWeightDraft(getWeightDraftFromProfile(athleteProfile.weightKg, nextUnit));
-    setHeightCmDraft(formatNumberInputValue(athleteProfile.heightCm, 0));
-    const imperialDrafts = getImperialHeightDrafts(athleteProfile.heightCm);
-    setHeightFeetDraft(imperialDrafts.feet);
-    setHeightInchesDraft(imperialDrafts.inches);
-    setFieldError('heightImperial', undefined);
-    setFieldError('heightCm', undefined);
   };
 
   const handleConnectStrava = () => {
@@ -432,11 +332,11 @@ export function AthletePage() {
   return (
     <div className="page-shell space-y-5">
       <PageIntro
-        eyebrow="Athlete Data"
+        eyebrow="Athlete"
         title="Athlete"
         description={
           <>
-            Used for auto targets.
+            Used for auto mode.
           </>
         }
         actions={
@@ -462,23 +362,22 @@ export function AthletePage() {
             <div className="page-stat">
               <p className="page-stat-label">W / Kg</p>
               <p className="page-stat-value">{wKg ?? '--'}</p>
-              <p className="page-stat-copy">Based on FTP and saved weight.</p>
+              <p className="page-stat-copy">From FTP and weight</p>
             </div>
             <div className="page-stat">
               <p className="page-stat-label">Gut Target</p>
               <p className="page-stat-value">{gutTrainingTargetGph}g</p>
-              <p className="page-stat-copy">{getGutTargetLabel(gutTrainingTargetGph)}.</p>
+              <p className="page-stat-copy">{getGutTargetLabel(gutTrainingTargetGph)}</p>
             </div>
           </div>
         }
       />
 
       <Card className="overflow-hidden">
-        <CardHeader className="space-y-2 bg-white/55">
+        <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="section-kicker">Profile</p>
-              <h2 className="section-title text-lg">Power and body data</h2>
+              <h2 className="section-title text-lg">Profile</h2>
             </div>
             <div className="inline-flex rounded-full border border-[color:var(--border-soft)] bg-white p-1">
               <button
@@ -509,9 +408,7 @@ export function AthletePage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="section-copy">
-            FTP and weight matter most.
-          </p>
+          <p className="section-copy">FTP and weight drive auto mode.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Input
               id="athlete-name"
@@ -561,60 +458,15 @@ export function AthletePage() {
               placeholder={anthropometricsUnit === 'imperial' ? 'e.g., 160' : 'e.g., 72'}
               error={fieldErrors.weightKg}
             />
-            {anthropometricsUnit === 'imperial' ? (
-              <>
-                <Input
-                  id="athlete-height-feet"
-                  label="Height (ft)"
-                  type="text"
-                  inputMode="numeric"
-                  value={heightFeetDraft}
-                  onChange={(event) => setHeightFeetDraft(event.target.value)}
-                  onBlur={commitImperialHeightDraft}
-                  onKeyDown={blurOnEnter}
-                  placeholder="e.g., 5"
-                  error={fieldErrors.heightImperial}
-                />
-                <Input
-                  id="athlete-height-inches"
-                  label="Height (in)"
-                  type="text"
-                  inputMode="decimal"
-                  value={heightInchesDraft}
-                  onChange={(event) => setHeightInchesDraft(event.target.value)}
-                  onBlur={commitImperialHeightDraft}
-                  onKeyDown={blurOnEnter}
-                  placeholder="e.g., 11"
-                  error={fieldErrors.heightImperial}
-                />
-              </>
-            ) : (
-              <Input
-                id="athlete-height"
-                label="Height (cm)"
-                type="text"
-                inputMode="numeric"
-                value={heightCmDraft}
-                onChange={(event) => setHeightCmDraft(event.target.value)}
-                onBlur={commitMetricHeightDraft}
-                onKeyDown={blurOnEnter}
-                placeholder="e.g., 178"
-                error={fieldErrors.heightCm}
-              />
-            )}
           </div>
           <p className="text-sm leading-6 text-ink-600">
             W/kg: <span className="font-semibold text-ink-900">{wKg ?? '--'}</span>
-            {anthropometricsUnit === 'imperial' && metricStorageDetails
-              ? ` • Stored as ${metricStorageDetails}`
-              : ''}
           </p>
         </CardContent>
       </Card>
 
       <Card className="overflow-hidden">
-        <CardHeader className="space-y-2 bg-white/55">
-          <p className="section-kicker">Fuel</p>
+        <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
           <h2 className="section-title text-lg">Fuel and hydration</h2>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -680,8 +532,7 @@ export function AthletePage() {
       </Card>
 
       <Card className="overflow-hidden">
-        <CardHeader className="space-y-2 bg-white/55">
-          <p className="section-kicker">Connections</p>
+        <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
           <h2 className="section-title text-lg">Connections</h2>
         </CardHeader>
         <CardContent className="space-y-3">

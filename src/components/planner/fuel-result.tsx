@@ -93,7 +93,6 @@ export function FuelResult({
       {showMetrics && plan.warnings && plan.warnings.length > 0 && (
         <Card className="overflow-hidden border-amber-300 bg-[color:color-mix(in_oklch,white_72%,rgb(254_243_199))]">
           <CardHeader className="space-y-2 bg-white/35">
-            <p className="section-kicker text-[0.68rem] text-amber-800">Warnings</p>
             <h3 className="section-title text-lg text-amber-900">Warnings</h3>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -115,8 +114,7 @@ export function FuelResult({
 
       {showMetrics && (
         <Card className="overflow-hidden">
-          <CardHeader className="space-y-2 bg-white/55">
-            <p className="section-kicker">Stats</p>
+          <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
             <h3 className="section-title">Stats</h3>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -169,12 +167,9 @@ export function FuelResult({
 
       {showPack && (
         <Card className="overflow-hidden">
-          <CardHeader className="space-y-2 bg-white/55">
-            <p className="section-kicker">Pack</p>
+          <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
             <h3 className="section-title">Pack list</h3>
-            <p className="section-copy">
-              Amounts are shown per fill.
-            </p>
+            <p className="section-copy">Amounts are shown per fill.</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <TargetBar
@@ -261,7 +256,6 @@ export function FuelResult({
             {plan.solids.length > 0 && (
               <div className="space-y-3">
                 <div>
-                  <p className="section-kicker text-[0.68rem]">Solids</p>
                   <h4 className="section-title text-lg">Solids</h4>
                 </div>
                 {plan.solids.map((alloc, i) => {
@@ -323,8 +317,7 @@ export function FuelResult({
 
       {showGuide && plan.consumptionGuide.length > 0 && (
         <Card className="overflow-hidden">
-          <CardHeader className="space-y-2 bg-white/55">
-            <p className="section-kicker">Ride Guide</p>
+          <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
             <h3 className="section-title">Ride guide</h3>
           </CardHeader>
           <CardContent className="space-y-3">

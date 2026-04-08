@@ -41,11 +41,6 @@ export function ProductCard({
             <span className="rounded-full bg-shell-100 px-2.5 py-1 text-xs font-medium text-ink-600">
               {typeLabels[product.type]}
             </span>
-            {!product.isAvailable && (
-              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
-                Unavailable
-              </span>
-            )}
           </div>
           {product.brand && (
             <p className="text-sm leading-6 text-ink-600">{product.brand}</p>
@@ -57,11 +52,11 @@ export function ProductCard({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 md:justify-end">
-          <div className="flex items-center gap-3 rounded-full border border-[color:var(--border-soft)] bg-white px-3 py-2">
+          <div className="flex items-center gap-3 rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] px-3 py-2">
             <Toggle
               checked={product.isAvailable}
               onChange={onToggleAvailable}
-              label={product.isAvailable ? 'Available' : 'Unavailable'}
+              label="Set availability"
             />
             <span className="text-sm font-semibold text-ink-600">
               {product.isAvailable ? 'Available' : 'Unavailable'}

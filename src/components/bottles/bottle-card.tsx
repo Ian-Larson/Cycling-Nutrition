@@ -28,22 +28,15 @@ export function BottleCard({
     <Card className={clsx('overflow-hidden', !bottle.isAvailable && 'opacity-70')}>
       <CardContent className="flex flex-col gap-4 px-5 py-5 md:flex-row md:items-start md:justify-between">
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-semibold text-ink-900">{bottle.name}</h3>
-            {!bottle.isAvailable && (
-              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
-                Unavailable
-              </span>
-            )}
-          </div>
+          <h3 className="font-semibold text-ink-900">{bottle.name}</h3>
           <p className="text-sm leading-6 text-ink-600">{bottle.capacityMl}ml</p>
         </div>
         <div className="flex flex-wrap items-center gap-3 md:justify-end">
-          <div className="flex items-center gap-3 rounded-full border border-[color:var(--border-soft)] bg-white px-3 py-2">
+          <div className="flex items-center gap-3 rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] px-3 py-2">
             <Toggle
               checked={bottle.isAvailable}
               onChange={onToggleAvailable}
-              label={bottle.isAvailable ? 'On' : 'Off'}
+              label="Set availability"
             />
             <span className="text-sm font-semibold text-ink-600">
               {bottle.isAvailable ? 'Available' : 'Unavailable'}

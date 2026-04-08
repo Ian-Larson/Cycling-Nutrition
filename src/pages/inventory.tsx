@@ -114,7 +114,7 @@ export function InventoryPage() {
 
   const typeFilters: Array<{ value: Product['type'] | 'all'; label: string }> = [
     { value: 'all', label: 'All' },
-    { value: 'drink_mix', label: 'Drink Mix' },
+    { value: 'drink_mix', label: 'Drink mix' },
     { value: 'gel', label: 'Gels' },
     { value: 'chews', label: 'Chews' },
     { value: 'bar', label: 'Bars' },
@@ -144,7 +144,7 @@ export function InventoryPage() {
         title="Inventory"
         description={
           <>
-            Bottles and fuel available today.
+            Bottles and fuel for today.
           </>
         }
         meta={
@@ -152,19 +152,19 @@ export function InventoryPage() {
             <div className="page-stat">
               <p className="page-stat-label">Bottles</p>
               <p className="page-stat-value">{availableBottleCount}</p>
-              <p className="page-stat-copy">{bottles.length} saved total.</p>
+              <p className="page-stat-copy">{bottles.length} saved</p>
             </div>
             <div className="page-stat">
               <p className="page-stat-label">Products</p>
               <p className="page-stat-value">{availableProductCount}</p>
-              <p className="page-stat-copy">{products.length} saved total.</p>
+              <p className="page-stat-copy">{products.length} saved</p>
             </div>
             <div className="page-stat">
               <p className="page-stat-label">Quick add</p>
               <p className="page-stat-value">
                 {QUICK_BOTTLE_TEMPLATES.length + QUICK_PRODUCT_TEMPLATES.length}
               </p>
-              <p className="page-stat-copy">Common presets.</p>
+              <p className="page-stat-copy">Common items</p>
             </div>
           </div>
         }
@@ -174,9 +174,10 @@ export function InventoryPage() {
       <section>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="section-kicker">Bottles</p>
             <h2 className="section-title text-lg">Bottles</h2>
-            <p className="section-copy">Set availability for today.</p>
+            <p className="section-copy">
+              {availableBottleCount}/{bottles.length || 0} available today
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -203,27 +204,26 @@ export function InventoryPage() {
             )}
           </div>
         </div>
-        <p className="mb-3 text-sm leading-6 text-ink-600">
-          {availableBottleCount}/{bottles.length || 0} available for planning
-        </p>
 
-        <div className="mb-3 flex flex-wrap gap-2">
-          {QUICK_BOTTLE_TEMPLATES.map((template) => (
-            <button
-              key={template.name}
-              type="button"
-              onClick={() => quickAddBottle(template)}
-              className="rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50"
-            >
-              {template.name}
-            </button>
-          ))}
+        <div className="mb-3 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-4">
+          <p className="mb-3 text-sm font-medium text-ink-700">Quick add</p>
+          <div className="flex flex-wrap gap-2">
+            {QUICK_BOTTLE_TEMPLATES.map((template) => (
+              <button
+                key={template.name}
+                type="button"
+                onClick={() => quickAddBottle(template)}
+                className="rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50"
+              >
+                {template.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {showBottleForm && (
           <Card className="mb-3">
-            <CardHeader className="space-y-2 bg-white/55">
-              <p className="section-kicker">New Bottle</p>
+            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <h3 className="section-title text-lg">New bottle</h3>
             </CardHeader>
             <CardContent>
@@ -249,8 +249,7 @@ export function InventoryPage() {
             {sortedBottles.map((bottle) =>
               editingBottleId === bottle.id ? (
                 <Card key={bottle.id} className={!bottle.isAvailable ? 'opacity-60' : ''}>
-                  <CardHeader className="space-y-2 bg-white/55">
-                    <p className="section-kicker">Edit Bottle</p>
+                  <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
                     <h3 className="section-title text-lg">{bottle.name}</h3>
                   </CardHeader>
                   <CardContent>
@@ -288,9 +287,10 @@ export function InventoryPage() {
       <section>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="section-kicker">Products</p>
             <h2 className="section-title text-lg">Products</h2>
-            <p className="section-copy">Set availability for today.</p>
+            <p className="section-copy">
+              {availableProductCount}/{products.length || 0} available today
+            </p>
           </div>
           {!showProductForm && !editingProduct && (
             <Button size="sm" onClick={() => setShowProductForm(true)}>
@@ -298,27 +298,26 @@ export function InventoryPage() {
             </Button>
           )}
         </div>
-        <p className="mb-3 text-sm leading-6 text-ink-600">
-          {availableProductCount}/{products.length || 0} available for planning
-        </p>
 
-        <div className="mb-3 flex flex-wrap gap-2">
-          {QUICK_PRODUCT_TEMPLATES.map((template) => (
-            <button
-              key={template.name}
-              type="button"
-              onClick={() => quickAddProduct(template)}
-              className="rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50"
-            >
-              {template.name}
-            </button>
-          ))}
+        <div className="mb-3 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-4">
+          <p className="mb-3 text-sm font-medium text-ink-700">Quick add</p>
+          <div className="flex flex-wrap gap-2">
+            {QUICK_PRODUCT_TEMPLATES.map((template) => (
+              <button
+                key={template.name}
+                type="button"
+                onClick={() => quickAddProduct(template)}
+                className="rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50"
+              >
+                {template.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {showProductForm && (
           <Card className="mb-3">
-            <CardHeader className="space-y-2 bg-white/55">
-              <p className="section-kicker">New Product</p>
+            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <h3 className="section-title text-lg">New product</h3>
             </CardHeader>
             <CardContent>
@@ -332,8 +331,7 @@ export function InventoryPage() {
 
         {editingProduct && (
           <Card className="mb-3">
-            <CardHeader className="space-y-2 bg-white/55">
-              <p className="section-kicker">Edit Product</p>
+            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <h3 className="section-title text-lg">{editingProduct.name}</h3>
             </CardHeader>
             <CardContent>
@@ -347,40 +345,48 @@ export function InventoryPage() {
         )}
 
         {products.length > 0 && (
-          <div className="mb-3 space-y-2">
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {typeFilters.map((filter) => (
-                <button
-                  key={filter.value}
-                  onClick={() => setFilterType(filter.value)}
-                  className={`rounded-full border px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
-                    filterType === filter.value
-                      ? 'border-brand-300 bg-brand-100 text-brand-800'
-                      : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                  }`}
-                >
-                  {filter.label}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {(['all', 'available', 'unavailable'] as const).map((value) => (
-                <button
-                  key={value}
-                  onClick={() => setAvailabilityFilter(value)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors ${
-                    availabilityFilter === value
-                      ? 'border-brand-300 bg-brand-100 text-brand-800'
-                      : 'border-[color:var(--border-soft)] bg-white text-ink-600 hover:bg-shell-50'
-                  }`}
-                >
-                  {value === 'all'
-                    ? 'Any availability'
-                    : value === 'available'
-                      ? 'Available'
-                      : 'Unavailable'}
-                </button>
-              ))}
+          <div className="mb-3 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                <p className="min-w-24 text-sm font-medium text-ink-700">Type</p>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {typeFilters.map((filter) => (
+                    <button
+                      key={filter.value}
+                      onClick={() => setFilterType(filter.value)}
+                      className={`rounded-full border px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
+                        filterType === filter.value
+                          ? 'border-brand-300 bg-brand-100 text-brand-800'
+                          : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                <p className="min-w-24 text-sm font-medium text-ink-700">Availability</p>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {(['all', 'available', 'unavailable'] as const).map((value) => (
+                    <button
+                      key={value}
+                      onClick={() => setAvailabilityFilter(value)}
+                      className={`rounded-full border px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
+                        availabilityFilter === value
+                          ? 'border-brand-300 bg-brand-100 text-brand-800'
+                          : 'border-[color:var(--border-soft)] bg-white text-ink-600 hover:bg-shell-50'
+                      }`}
+                    >
+                      {value === 'all'
+                        ? 'All'
+                        : value === 'available'
+                          ? 'Available'
+                          : 'Unavailable'}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -412,7 +418,7 @@ export function InventoryPage() {
             ))}
             {availabilityFilteredProducts.length === 0 && products.length > 0 && (
               <p className="py-6 text-center text-ink-500">
-                No products match this filter
+                No products match these filters.
               </p>
             )}
           </div>
