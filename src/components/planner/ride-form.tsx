@@ -173,7 +173,7 @@ export function RideForm({
 
     if (missingRequired) {
       return {
-        error: `Enter ${getAutoPairLabel(autoInputPair)} to preview an auto recommendation.`,
+        error: `Enter both selected inputs.`,
       };
     }
 
@@ -386,46 +386,54 @@ export function RideForm({
   return (
     <div className="space-y-5">
       <div className="space-y-2">
-        <p className="section-kicker text-[0.68rem]">Planning Mode</p>
+        <p className="section-kicker text-[0.68rem]">Mode</p>
         <div className="grid gap-3 md:grid-cols-2">
           <button
             type="button"
             className={`rounded-[1.35rem] border p-4 text-left transition-colors ${
               planningMode === 'manual'
-                ? 'border-brand-700 bg-brand-600 text-shell-50 shadow-[0_20px_36px_-24px_rgb(145_66_24_/_0.72)]'
+                ? 'border-brand-300 bg-brand-100'
                 : 'border-[color:var(--border-soft)] bg-white text-ink-800 hover:bg-shell-50'
             }`}
             onClick={() => setPlanningMode('manual')}
           >
-            <p className="font-sans text-[1.2rem] font-semibold uppercase tracking-[0.08em]">
+            <p
+              className={`font-sans text-[1.05rem] font-semibold ${
+                planningMode === 'manual' ? 'text-brand-900' : 'text-ink-900'
+              }`}
+            >
               Manual
             </p>
             <p
               className={`mt-2 text-sm leading-6 ${
-                planningMode === 'manual' ? 'text-shell-50/88' : 'text-ink-600'
+                planningMode === 'manual' ? 'text-brand-800' : 'text-ink-600'
               }`}
             >
-              You already know the ride target and want a fast pack list.
+              Set carbs per hour yourself.
             </p>
           </button>
           <button
             type="button"
             className={`rounded-[1.35rem] border p-4 text-left transition-colors ${
               planningMode === 'auto'
-                ? 'border-brand-700 bg-brand-600 text-shell-50 shadow-[0_20px_36px_-24px_rgb(145_66_24_/_0.72)]'
+                ? 'border-brand-300 bg-brand-100'
                 : 'border-[color:var(--border-soft)] bg-white text-ink-800 hover:bg-shell-50'
             }`}
             onClick={() => setPlanningMode('auto')}
           >
-            <p className="font-sans text-[1.2rem] font-semibold uppercase tracking-[0.08em]">
+            <p
+              className={`font-sans text-[1.05rem] font-semibold ${
+                planningMode === 'auto' ? 'text-brand-900' : 'text-ink-900'
+              }`}
+            >
               Auto
             </p>
             <p
               className={`mt-2 text-sm leading-6 ${
-                planningMode === 'auto' ? 'text-shell-50/88' : 'text-ink-600'
+                planningMode === 'auto' ? 'text-brand-800' : 'text-ink-600'
               }`}
             >
-              Enter two workload inputs and let the planner derive the target.
+              Calculate carbs from workload.
             </p>
           </button>
         </div>
@@ -437,8 +445,8 @@ export function RideForm({
             <div className="surface-note p-4 md:p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="section-kicker text-[0.68rem]">Ride Time</p>
-                  <p className="mt-2 font-sans text-[1.9rem] font-semibold uppercase leading-none text-ink-900">
+                  <p className="section-kicker text-[0.68rem]">Duration</p>
+                  <p className="mt-2 font-sans text-[1.4rem] font-semibold leading-none text-ink-900">
                     Duration
                   </p>
                 </div>
@@ -463,14 +471,14 @@ export function RideForm({
                       setDurationInput(String(durationMinutes));
                       setEditingDuration(true);
                     }}
-                    className="rounded-full border border-brand-200 bg-white px-4 py-2 font-sans text-[1.4rem] font-semibold uppercase tracking-[0.06em] text-brand-700"
+                    className="rounded-lg border border-brand-200 bg-white px-4 py-2 font-sans text-[1.1rem] font-semibold text-brand-700"
                   >
                     {formatDuration(durationMinutes)}
                   </button>
                 )}
               </div>
               <p className="mt-3 text-sm leading-6 text-ink-600">
-                Tap the value to type a custom duration, or use a common ride preset.
+                Use moving time.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {DURATION_PRESETS.map((preset) => (
@@ -478,11 +486,11 @@ export function RideForm({
                     key={preset.value}
                     type="button"
                     onClick={() => setManualDuration(preset.value)}
-                    className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold tracking-[0.03em] transition-all ${
-                      durationMinutes === preset.value
-                        ? 'border-brand-700 bg-brand-600 text-shell-50'
-                        : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                    }`}
+                      className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                        durationMinutes === preset.value
+                          ? 'border-brand-300 bg-brand-100 text-brand-800'
+                          : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                      }`}
                   >
                     {preset.label}
                   </button>
@@ -493,9 +501,9 @@ export function RideForm({
             <div className="surface-note p-4 md:p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="section-kicker text-[0.68rem]">Fuel Target</p>
-                  <p className="mt-2 font-sans text-[1.9rem] font-semibold uppercase leading-none text-ink-900">
-                    Carbs
+                  <p className="section-kicker text-[0.68rem]">Carbs / Hour</p>
+                  <p className="mt-2 font-sans text-[1.4rem] font-semibold leading-none text-ink-900">
+                    Carbs / hour
                   </p>
                 </div>
                 {editingCarbs ? (
@@ -519,14 +527,14 @@ export function RideForm({
                       setCarbTargetInput(String(carbTarget));
                       setEditingCarbs(true);
                     }}
-                    className="rounded-full border border-brand-200 bg-white px-4 py-2 font-sans text-[1.4rem] font-semibold uppercase tracking-[0.06em] text-brand-700"
+                    className="rounded-lg border border-brand-200 bg-white px-4 py-2 font-sans text-[1.1rem] font-semibold text-brand-700"
                   >
                     {carbTarget} g/h
                   </button>
                 )}
               </div>
               <p className="mt-3 text-sm leading-6 text-ink-600">
-                Use the lowest target you can follow consistently on the bike.
+                Set your intake target.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {CARB_PRESETS.map((preset) => (
@@ -534,11 +542,11 @@ export function RideForm({
                     key={preset.value}
                     type="button"
                     onClick={() => setManualCarbTarget(preset.value)}
-                    className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold tracking-[0.03em] transition-all ${
-                      carbTarget === preset.value
-                        ? 'border-brand-700 bg-brand-600 text-shell-50'
-                        : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                    }`}
+                      className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                        carbTarget === preset.value
+                          ? 'border-brand-300 bg-brand-100 text-brand-800'
+                          : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                      }`}
                   >
                     {preset.label}
                   </button>
@@ -564,7 +572,7 @@ export function RideForm({
                 ]}
               />
               <p className="mt-3 text-sm leading-6 text-ink-600">
-                Intensity nudges hydration and timing expectations even in manual mode.
+                Affects timing and fluid.
               </p>
             </div>
             <div className="surface-note p-4 md:p-5">
@@ -577,43 +585,42 @@ export function RideForm({
                 options={heatOptions}
               />
               <p className="mt-3 text-sm leading-6 text-ink-600">
-                Heat adjusts fluid and sodium needs. Pick the conditions you expect to ride in.
+                Affects fluid and sodium.
               </p>
             </div>
           </div>
         </div>
       ) : (
-        <div className="space-y-5 rounded-[1.5rem] border border-[color:var(--border-strong)] bg-[color:color-mix(in_oklch,var(--color-brand-50)_48%,white)] p-5">
+        <div className="space-y-5 rounded-[1.5rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_oklch,var(--color-brand-50)_34%,white)] p-5">
           <div className="space-y-2">
-            <p className="section-kicker text-[0.68rem]">Auto Recommendation</p>
-            <h3 className="section-title text-lg">Pick two workload inputs</h3>
+            <p className="section-kicker text-[0.68rem]">Auto</p>
+            <h3 className="section-title text-lg">Auto target</h3>
             <p className="section-copy">
-              The planner derives the third value, then recommends carbs, hydration,
-              and sodium from workload, weather, and your athlete profile.
+              Enter any two of duration, IF, and TSS.
             </p>
           </div>
 
           {!hasFtp && (
             <div className="surface-note border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800">
-              Auto mode requires FTP in your athlete profile. Set it in{' '}
+              Add FTP in{' '}
               <Link className="underline font-medium" to="/athlete?return=planner-step2">
                 Athlete
               </Link>
-              .
+              {' '}to use auto mode.
             </div>
           )}
 
           <div className="space-y-2">
-            <p className="section-kicker text-[0.68rem]">Input Pair</p>
+            <p className="section-kicker text-[0.68rem]">Inputs</p>
             <div className="grid gap-2 sm:grid-cols-3">
               {(['duration_if', 'duration_tss', 'if_tss'] as const).map((pair) => (
                 <button
                   key={pair}
                   type="button"
                   onClick={() => setAutoInputPair(pair)}
-                  className={`rounded-[1.15rem] border px-4 py-3 text-left text-sm font-semibold tracking-[0.04em] transition-colors ${
+                  className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors ${
                     autoInputPair === pair
-                      ? 'border-brand-700 bg-brand-600 text-shell-50'
+                      ? 'border-brand-300 bg-brand-100 text-brand-800'
                       : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
                   }`}
                 >
@@ -637,7 +644,7 @@ export function RideForm({
                   onChange={(event) => setAutoDurationInput(event.target.value)}
                 />
                 <p className="mt-3 text-sm leading-6 text-ink-600">
-                  Use planned moving time, not total day-out time.
+                  Moving time.
                 </p>
               </div>
             )}
@@ -655,7 +662,7 @@ export function RideForm({
                   onChange={(event) => setAutoIfInput(event.target.value)}
                 />
                 <p className="mt-3 text-sm leading-6 text-ink-600">
-                  IF compares ride intensity to FTP. Around 0.80 is steady endurance; 1.00 is one hour at FTP.
+                  Relative to FTP.
                 </p>
               </div>
             )}
@@ -672,20 +679,17 @@ export function RideForm({
                   onChange={(event) => setAutoTssInput(event.target.value)}
                 />
                 <p className="mt-3 text-sm leading-6 text-ink-600">
-                  TSS is total training load. A value near 100 equals roughly one hour at FTP.
+                  Total ride load.
                 </p>
               </div>
             )}
 
-            <div className="rounded-[1.2rem] border border-brand-700 bg-brand-600 px-4 py-4 text-shell-50 shadow-[0_20px_36px_-24px_rgb(145_66_24_/_0.72)]">
-              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-shell-50/75">
+            <div className="rounded-[1.2rem] border border-brand-300 bg-brand-100 px-4 py-4 text-brand-900">
+              <p className="text-sm font-medium text-brand-700">
                 {derivedAutoMetricLabel}
               </p>
-              <p className="mt-2 font-sans text-[1.9rem] font-semibold uppercase leading-none">
+              <p className="mt-2 font-sans text-[1.35rem] font-semibold leading-none">
                 {derivedAutoMetric}
-              </p>
-              <p className="mt-2 text-sm leading-6 text-shell-50/80">
-                This value is derived from the other two inputs and your athlete profile.
               </p>
             </div>
 
@@ -696,17 +700,17 @@ export function RideForm({
                 min={0}
                 max={120}
                 step={5}
-                label="Carb Override (g/h, optional)"
+                label="Carbs Override"
                 value={autoCarbOverrideInput}
                 onChange={(event) => setAutoCarbOverrideInput(event.target.value)}
                 placeholder={
                   autoPreview.result
                     ? `${autoPreview.result.autoMetrics.autoCarbTargetGramsPerHour}`
-                    : 'Auto recommendation'
+                    : 'Recommended value'
                 }
               />
               <p className="mt-3 text-sm leading-6 text-ink-600">
-                Use this only when you want to cap or push the auto recommendation manually.
+                Leave blank for auto target.
               </p>
             </div>
           </div>
@@ -718,8 +722,8 @@ export function RideForm({
             >
               <CollapsibleTrigger className="px-4 py-3">
                 <div>
-                  <p className="section-kicker text-[0.68rem]">Recommendation</p>
-                  <p className="mt-2 font-sans text-[1.25rem] font-semibold uppercase leading-none text-ink-900">
+                  <p className="section-kicker text-[0.68rem]">Calculated</p>
+                  <p className="mt-2 font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
                     {autoPreview.result.carbTargetGramsPerHour} g/h carbs
                   </p>
                   <p className="mt-2 text-sm leading-6 text-ink-600">
@@ -768,8 +772,7 @@ export function RideForm({
                   )}
 
                 <p className="text-xs text-gray-600">
-                  Stress drivers: IF {previewAutoMetrics.intensityFactor}, TSS/h{' '}
-                  {tssPerHour ?? '-'}.
+                  IF {previewAutoMetrics.intensityFactor} • {tssPerHour ?? '-'} TSS/h
                 </p>
               </CollapsibleContent>
             </Collapsible>
@@ -789,7 +792,7 @@ export function RideForm({
               options={heatOptions}
             />
             <p className="mt-3 text-sm leading-6 text-ink-600">
-              Heat pushes fluid and sodium higher. Adjust this before generating the plan.
+              Affects fluid and sodium.
             </p>
           </div>
         </div>
@@ -798,7 +801,7 @@ export function RideForm({
       {effectiveDurationMinutes >= 120 && (
         <div className="surface-note p-4 md:p-5">
           <Select
-            label="Bottle Refueling"
+            label="Refills"
             value={String(refuelStops)}
             onChange={(event) => setRefuelStops(Number(event.target.value))}
             options={[
@@ -808,7 +811,7 @@ export function RideForm({
             ]}
           />
           <p className="mt-3 text-sm leading-6 text-ink-600">
-            Add refill stops only when you know you can top up bottles during the ride.
+            Set this only if you can refill bottles.
           </p>
         </div>
       )}
@@ -820,7 +823,7 @@ export function RideForm({
           disabled={!canCalculate}
           onClick={handleCalculateClick}
         >
-          Calculate Fuel Plan
+          Create Plan
         </Button>
       )}
     </div>

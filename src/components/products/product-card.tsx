@@ -38,11 +38,11 @@ export function ProductCard({
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-semibold text-ink-900">{product.name}</h3>
-            <span className="rounded-full bg-shell-100 px-2.5 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-ink-600">
+            <span className="rounded-full bg-shell-100 px-2.5 py-1 text-xs font-medium text-ink-600">
               {typeLabels[product.type]}
             </span>
             {!product.isAvailable && (
-              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-amber-800">
+              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
                 Unavailable
               </span>
             )}

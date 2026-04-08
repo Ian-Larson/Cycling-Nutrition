@@ -107,19 +107,18 @@ export function HistoryPage() {
     <div className="page-shell space-y-6">
       <PageIntro
         eyebrow="History"
-        title="Reuse proven plans"
+        title="Saved plans"
         description={
           <>
-            Save strong setups, then reopen them as a starting point for the next
-            ride. Open details when you want the full pack and timing brief again.
+            Open a saved plan and reuse it.
           </>
         }
         meta={
           <div className="page-stat-grid">
             <div className="page-stat">
-              <p className="page-stat-label">Saved Plans</p>
+              <p className="page-stat-label">Plans</p>
               <p className="page-stat-value">{sortedPlans.length}</p>
-              <p className="page-stat-copy">Newest plans appear first.</p>
+              <p className="page-stat-copy">Newest first.</p>
             </div>
           </div>
         }
@@ -128,15 +127,12 @@ export function HistoryPage() {
       {sortedPlans.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
-            <p className="text-ink-600">No saved fuel plans yet.</p>
-            <p className="mt-2 text-sm leading-6 text-ink-500">
-              Create a plan on the Planner page and save it to see it here
-            </p>
-            <div className="mt-4">
-              <Button onClick={() => navigate('/')}>Go to Planner</Button>
-            </div>
-          </CardContent>
-        </Card>
+              <p className="text-ink-600">No saved plans.</p>
+              <div className="mt-4">
+                <Button onClick={() => navigate('/')}>Planner</Button>
+              </div>
+            </CardContent>
+          </Card>
       ) : (
         <div className="space-y-4">
           {sortedPlans.map((plan) => {
@@ -157,28 +153,39 @@ export function HistoryPage() {
                       <p className="section-kicker text-[0.68rem] text-ink-500">
                         {formatDate(plan.createdAt)}
                       </p>
-                      <p className="font-sans text-[1.65rem] font-semibold uppercase leading-none tracking-[0.06em] text-ink-900">
-                        {plan.title ? `${plan.title} • ` : ''}
-                        {formatDuration(plan.rideCharacteristics.durationMinutes)}{' '}
-                        {plan.rideCharacteristics.intensity} ride
-                      </p>
+                      {plan.title ? (
+                        <>
+                          <p className="font-sans text-[1.25rem] font-semibold leading-tight text-ink-900">
+                            {plan.title}
+                          </p>
+                          <p className="text-sm leading-6 capitalize text-ink-600">
+                            {formatDuration(plan.rideCharacteristics.durationMinutes)} •{' '}
+                            {plan.rideCharacteristics.intensity} ride
+                          </p>
+                        </>
+                      ) : (
+                        <p className="font-sans text-[1.25rem] font-semibold leading-tight capitalize text-ink-900">
+                          {formatDuration(plan.rideCharacteristics.durationMinutes)} •{' '}
+                          {plan.rideCharacteristics.intensity} ride
+                        </p>
+                      )}
                       <div className="grid gap-2 sm:grid-cols-3">
                         <div className="surface-note px-4 py-3">
                           <p className="page-stat-label">Carbs</p>
-                          <p className="font-sans text-[1.25rem] font-semibold uppercase leading-none text-brand-700">
+                          <p className="font-sans text-[1.05rem] font-semibold leading-none text-brand-700">
                             {plan.summary.totalCarbsPlanned}g
                           </p>
                         </div>
                         <div className="surface-note px-4 py-3">
                           <p className="page-stat-label">Hydration</p>
-                          <p className="font-sans text-[1.25rem] font-semibold uppercase leading-none text-ink-900">
+                          <p className="font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
                             {plan.summary.hydrationMl}ml
                           </p>
                         </div>
                         {plan.summary.sodiumMgPerHour !== undefined && (
                           <div className="surface-note px-4 py-3">
                             <p className="page-stat-label">Sodium / Hour</p>
-                            <p className="font-sans text-[1.25rem] font-semibold uppercase leading-none text-ink-900">
+                            <p className="font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
                               {plan.summary.sodiumMgPerHour}mg
                             </p>
                           </div>
@@ -203,7 +210,7 @@ export function HistoryPage() {
                         size="sm"
                         onClick={() => toggleExpanded(plan.id)}
                       >
-                        {isExpanded ? 'Hide details' : 'View details'}
+                        {isExpanded ? 'Hide details' : 'Details'}
                       </Button>
                       {isConfirming ? (
                         <Button

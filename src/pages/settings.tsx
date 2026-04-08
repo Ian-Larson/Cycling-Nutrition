@@ -17,11 +17,10 @@ export function SettingsPage() {
     <div className="page-shell space-y-6">
       <PageIntro
         eyebrow="Settings"
-        title="Keep preferences simple"
+        title="Settings"
         description={
           <>
-            This page is reserved for app-wide defaults. Rider-specific values live
-            on Athlete so the planner has one clear source of truth.
+            App preferences only.
           </>
         }
         meta={
@@ -31,7 +30,7 @@ export function SettingsPage() {
               <p className="page-stat-value">
                 {settings.temperatureUnit === 'celsius' ? '°C' : '°F'}
               </p>
-              <p className="page-stat-copy">Used in planner weather labels.</p>
+              <p className="page-stat-copy">Used in weather labels.</p>
             </div>
           </div>
         }
@@ -44,7 +43,7 @@ export function SettingsPage() {
         </CardHeader>
         <CardContent>
           <p className="mb-3 text-sm leading-6 text-ink-600">
-            Keep this page for app-wide settings. Athlete-specific values live on the Athlete page.
+            Athlete data is managed on Athlete.
           </p>
           <h3 className="section-kicker mb-2 text-[0.68rem]">Temperature Unit</h3>
           <div className="flex gap-2">
@@ -53,9 +52,9 @@ export function SettingsPage() {
                 key={opt.value}
                 onClick={() => updateSettings({ temperatureUnit: opt.value })}
                 className={clsx(
-                  'rounded-full border px-4 py-2 text-sm font-semibold tracking-[0.04em] transition-colors',
+                  'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
                   settings.temperatureUnit === opt.value
-                    ? 'border-brand-700 bg-brand-600 text-shell-50'
+                    ? 'border-brand-300 bg-brand-100 text-brand-800'
                     : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
                 )}
               >
@@ -76,11 +75,11 @@ export function SettingsPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm leading-6 text-ink-600">
-            Athlete metrics and fueling tolerance settings are now managed on the{' '}
+            Update rider metrics on the{' '}
             <Link to="/athlete" className="font-semibold text-brand-700 underline">
-              Athlete tab
+              Athlete page
             </Link>
-            . Return there to update FTP, body metrics, and hydration profile.
+            .
           </p>
         </CardContent>
       </Card>

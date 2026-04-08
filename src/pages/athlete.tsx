@@ -433,19 +433,18 @@ export function AthletePage() {
     <div className="page-shell space-y-5">
       <PageIntro
         eyebrow="Athlete Data"
-        title="Tune the rider profile"
+        title="Athlete"
         description={
           <>
-            These inputs power auto nutrition planning. Add the core fields once,
-            then return to the planner to see recommendations update immediately.
+            Used for auto targets.
           </>
         }
         actions={
           <Link
             to={`/${plannerReturnStep}`}
-            className="inline-flex items-center rounded-full border border-[color:var(--border-soft)] bg-white px-4 py-2 text-sm font-semibold text-ink-800 shadow-[0_14px_26px_-22px_rgb(72_36_12_/_0.45)]"
+            className="inline-flex items-center rounded-lg border border-[color:var(--border-soft)] bg-white px-4 py-2 text-sm font-medium text-ink-800"
           >
-            Return to Planner
+            Back to planner
           </Link>
         }
         meta={
@@ -455,7 +454,7 @@ export function AthletePage() {
               <p className="page-stat-value">{profileCompletionPercent}%</p>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-shell-200">
                 <div
-                  className="h-full rounded-full bg-brand-600 transition-all"
+                  className="h-full rounded-full bg-brand-400 transition-all"
                   style={{ width: `${profileCompletionPercent}%` }}
                 />
               </div>
@@ -478,7 +477,7 @@ export function AthletePage() {
         <CardHeader className="space-y-2 bg-white/55">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="section-kicker">Core Profile</p>
+              <p className="section-kicker">Profile</p>
               <h2 className="section-title text-lg">Power and body data</h2>
             </div>
             <div className="inline-flex rounded-full border border-[color:var(--border-soft)] bg-white p-1">
@@ -486,9 +485,9 @@ export function AthletePage() {
                 type="button"
                 onClick={() => handleAnthropometricsUnitChange('metric')}
                 className={clsx(
-                  'rounded-full px-4 py-2 text-sm font-semibold tracking-[0.04em] transition-colors',
+                  'rounded-full px-4 py-2 text-sm font-medium transition-colors',
                   anthropometricsUnit === 'metric'
-                    ? 'bg-brand-600 text-shell-50'
+                    ? 'bg-brand-100 text-brand-800'
                     : 'text-ink-700 hover:bg-shell-50'
                 )}
               >
@@ -498,9 +497,9 @@ export function AthletePage() {
                 type="button"
                 onClick={() => handleAnthropometricsUnitChange('imperial')}
                 className={clsx(
-                  'rounded-full px-4 py-2 text-sm font-semibold tracking-[0.04em] transition-colors',
+                  'rounded-full px-4 py-2 text-sm font-medium transition-colors',
                   anthropometricsUnit === 'imperial'
-                    ? 'bg-brand-600 text-shell-50'
+                    ? 'bg-brand-100 text-brand-800'
                     : 'text-ink-700 hover:bg-shell-50'
                 )}
               >
@@ -511,7 +510,7 @@ export function AthletePage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="section-copy">
-            Required for stronger auto planning: FTP and body metrics. Optional details improve personalization.
+            FTP and weight matter most.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Input
@@ -615,7 +614,7 @@ export function AthletePage() {
 
       <Card className="overflow-hidden">
         <CardHeader className="space-y-2 bg-white/55">
-          <p className="section-kicker">Fuel Profile</p>
+          <p className="section-kicker">Fuel</p>
           <h2 className="section-title text-lg">Fuel and hydration</h2>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -647,7 +646,7 @@ export function AthletePage() {
           </div>
 
           <div className="space-y-2">
-            <p className="section-kicker text-[0.68rem]">Common Targets</p>
+            <p className="section-kicker text-[0.68rem]">Presets</p>
             <PresetButtons
               options={GUT_TARGET_PRESETS.map((target) => ({
                 label: `${target} g/h`,
@@ -659,15 +658,14 @@ export function AthletePage() {
           </div>
 
           <p className="text-sm leading-6 text-ink-600">
-            {getGutTargetLabel(gutTrainingTargetGph)}. Auto recommendations bias
-            toward this value while staying within effort-based bounds.
+            {getGutTargetLabel(gutTrainingTargetGph)}. Auto stays near this value when effort allows.
           </p>
 
           <div className="surface-note flex items-center justify-between gap-3 p-4">
             <div>
               <p className="font-semibold text-ink-900">Heavy sweater</p>
               <p className="text-sm leading-6 text-ink-600">
-                Adds a higher sodium recommendation in auto mode.
+                Raises sodium in auto mode.
               </p>
             </div>
             <Toggle
@@ -683,14 +681,14 @@ export function AthletePage() {
 
       <Card className="overflow-hidden">
         <CardHeader className="space-y-2 bg-white/55">
-          <p className="section-kicker">Experimental</p>
+          <p className="section-kicker">Connections</p>
           <h2 className="section-title text-lg">Connections</h2>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-ink-900">Strava</span>
             <span
-              className={`rounded-full px-2.5 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em] ${
+              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
                 authStatus === 'not_configured'
                   ? 'bg-amber-100 text-amber-800'
                   : authStatus === 'pending'
@@ -714,9 +712,7 @@ export function AthletePage() {
             </span>
           </div>
 
-          <p className="text-sm leading-6 text-ink-600">
-            This integration is not required for planning and is still marked as experimental.
-          </p>
+          <p className="text-sm leading-6 text-ink-600">Optional. Not required for planning.</p>
 
           <Button
             variant="secondary"

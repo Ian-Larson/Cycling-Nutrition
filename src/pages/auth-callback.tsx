@@ -75,18 +75,17 @@ export function AuthCallbackPage() {
     <div className="page-shell max-w-3xl space-y-6">
       <PageIntro
         eyebrow="Connection"
-        title="Strava status"
+        title="Strava"
         description={
           <>
-            We&apos;re finishing the Strava handoff and then returning you to your
-            athlete profile automatically.
+            Finishing connection.
           </>
         }
       />
 
       <Card className="overflow-hidden">
         <CardHeader className="space-y-2 bg-white/55">
-          <p className="section-kicker">OAuth Callback</p>
+          <p className="section-kicker">Status</p>
           <h2 className="section-title text-lg">
             {state === 'loading'
               ? 'Connecting...'
@@ -108,11 +107,11 @@ export function AuthCallbackPage() {
 
           {state !== 'loading' && (
             <p className="text-sm leading-6 text-ink-600">
-              You will be redirected to the{' '}
+              Redirecting to{' '}
               <Link to="/athlete" className="underline font-semibold text-brand-700">
-                Athlete page
+                Athlete
               </Link>{' '}
-              in a moment.
+              now.
             </p>
           )}
         </CardContent>

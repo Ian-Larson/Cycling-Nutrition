@@ -107,8 +107,8 @@ function getRideFormSnapshotFromRide(
 
 const STEP_LABELS: Array<{ step: PlannerStep; label: string }> = [
   { step: 1, label: 'Setup' },
-  { step: 2, label: 'Ride Inputs' },
-  { step: 3, label: 'Plan Output' },
+  { step: 2, label: 'Ride' },
+  { step: 3, label: 'Plan' },
 ];
 
 export function PlannerPage() {
@@ -293,7 +293,7 @@ export function PlannerPage() {
   };
 
   const stepActionLabel =
-    step === 1 ? 'Continue to Ride Inputs' : step === 2 ? 'Generate Fuel Plan' : 'Save Plan';
+    step === 1 ? 'Next: ride data' : step === 2 ? 'Create plan' : 'Save plan';
 
   const stepActionDisabled =
     step === 1
@@ -306,13 +306,11 @@ export function PlannerPage() {
     <>
       <div className="page-shell space-y-6">
         <PageIntro
-          eyebrow="Race-Day Fuel"
-          title="Build a followable fuel plan"
+          eyebrow="Planner"
+          title="Fuel plan"
           description={
             <>
-              Move from kit check to on-bike instructions in three steps. The
-              planner uses your current bottles, available nutrition, and athlete
-              profile to generate a pack list you can actually follow.
+              Select fuel, enter ride data, and review the plan.
             </>
           }
           meta={
@@ -321,16 +319,16 @@ export function PlannerPage() {
                 <p className="page-stat-label">Profile</p>
                 <p className="page-stat-value">{readiness.profileCompletionPercent}%</p>
                 <p className="page-stat-copy">
-                  {readiness.autoReady ? 'Auto mode ready' : 'Add FTP for auto mode'}
+                  {readiness.autoReady ? 'FTP saved' : 'FTP needed'}
                 </p>
               </div>
               <div className="page-stat">
-                <p className="page-stat-label">Available Bottles</p>
+                <p className="page-stat-label">Bottles</p>
                 <p className="page-stat-value">{availableBottleCount}</p>
-                <p className="page-stat-copy">Current ride-ready bottles in inventory.</p>
+                <p className="page-stat-copy">Available now</p>
               </div>
               <div className="page-stat">
-                <p className="page-stat-label">Nutrition Options</p>
+                <p className="page-stat-label">Fuel</p>
                 <p className="page-stat-value">
                   {availableDrinkMixCount + availableSolidCount}
                 </p>
@@ -350,18 +348,18 @@ export function PlannerPage() {
               return (
                 <div
                   key={item.step}
-                  className={`rounded-[1.35rem] border px-4 py-4 ${
+                  className={`rounded-2xl border px-4 py-3 ${
                     isActive
-                      ? 'border-brand-700 bg-brand-600 text-shell-50 shadow-[0_24px_44px_-28px_rgb(145_66_24_/_0.72)]'
+                      ? 'border-brand-300 bg-brand-100 text-brand-900'
                       : isComplete
                         ? 'border-[color:var(--border-soft)] bg-white text-ink-900'
                         : 'border-[color:var(--border-soft)] bg-shell-100 text-ink-500'
                   }`}
                 >
-                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] opacity-80">
-                    {isComplete ? 'Ready' : `Step 0${item.step}`}
+                  <p className="text-xs font-medium opacity-80">
+                    Step {item.step}
                   </p>
-                  <p className="mt-2 font-sans text-[1.4rem] font-semibold uppercase leading-none tracking-[0.06em]">
+                  <p className="mt-1 font-sans text-base font-semibold leading-none">
                     {item.label}
                   </p>
                 </div>
@@ -373,11 +371,10 @@ export function PlannerPage() {
           <div className="grid gap-5 xl:grid-cols-[0.92fr_1.28fr]">
             <Card className="overflow-hidden">
               <CardHeader className="space-y-2 bg-white/55">
-                <p className="section-kicker">Setup Readiness</p>
-                <h2 className="section-title">Confirm today&apos;s kit</h2>
+                <p className="section-kicker">Setup</p>
+                <h2 className="section-title">Available today</h2>
                 <p className="section-copy">
-                  The planner defaults to what is available right now, then lets
-                  you override inventory only when you need to.
+                  Planner uses available items by default.
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -390,14 +387,14 @@ export function PlannerPage() {
                       }`}
                     >
                       {readiness.hasAvailableBottle
-                        ? `${availableBottleCount} ready to plan`
-                        : 'Add at least one bottle'}
+                        ? `${availableBottleCount} available`
+                        : 'Add a bottle'}
                     </p>
                     <Link
                       to="/inventory"
-                      className="mt-3 inline-flex rounded-full border border-[color:var(--border-soft)] bg-white px-3 py-1.5 text-sm font-semibold text-ink-700"
+                      className="mt-3 inline-flex rounded-lg border border-[color:var(--border-soft)] bg-white px-3 py-1.5 text-sm font-medium text-ink-700"
                     >
-                      Open inventory
+                      Inventory
                     </Link>
                   </div>
                   <div className="surface-note p-4">
@@ -408,13 +405,13 @@ export function PlannerPage() {
                       }`}
                     >
                       {readiness.hasAvailableDrinkMix
-                        ? `${availableDrinkMixCount} mix option${availableDrinkMixCount === 1 ? '' : 's'} available`
-                        : 'Add one drink mix to continue'}
+                        ? `${availableDrinkMixCount} available`
+                        : 'Add a drink mix'}
                     </p>
                     <p className="mt-2 text-sm leading-6 text-ink-600">
                       {selectedDrinkMix
-                        ? `Current default: ${selectedDrinkMix.name}.`
-                        : 'No drink mix selected yet.'}
+                        ? `Selected: ${selectedDrinkMix.name}.`
+                        : 'Select a mix below.'}
                     </p>
                   </div>
                   <div className="surface-note p-4">
@@ -424,33 +421,33 @@ export function PlannerPage() {
                         readiness.autoReady ? 'text-emerald-700' : 'text-amber-700'
                       }`}
                     >
-                      {readiness.autoReady ? 'FTP connected' : 'FTP missing'}
+                      {readiness.autoReady ? 'FTP saved' : 'Add FTP'}
                     </p>
                     <Link
                       to="/athlete?return=planner-step2"
-                      className="mt-3 inline-flex rounded-full border border-[color:var(--border-soft)] bg-white px-3 py-1.5 text-sm font-semibold text-ink-700"
+                      className="mt-3 inline-flex rounded-lg border border-[color:var(--border-soft)] bg-white px-3 py-1.5 text-sm font-medium text-ink-700"
                     >
-                      Open athlete
+                      Athlete
                     </Link>
                   </div>
                 </div>
 
                 {readiness.missingProfileFields.length > 0 && (
                   <p className="text-sm leading-6 text-ink-600">
-                    Missing profile fields: {readiness.missingProfileFields.join(', ')}
+                    Missing: {readiness.missingProfileFields.join(', ')}
                   </p>
                 )}
 
                 <div className="surface-note p-4">
-                  <p className="section-kicker text-[0.68rem]">Current Plan Shape</p>
+                  <p className="section-kicker text-[0.68rem]">Selected Fuel</p>
                   <p className="mt-2 text-sm leading-6 text-ink-700">
-                    Primary mix: <span className="font-semibold text-ink-900">{selectedDrinkMix?.name ?? 'Not selected'}</span>
+                    Drink mix: <span className="font-semibold text-ink-900">{selectedDrinkMix?.name ?? 'Not selected'}</span>
                   </p>
                   <p className="text-sm leading-6 text-ink-700">
-                    Solid fuel: <span className="font-semibold text-ink-900">
+                    Solids: <span className="font-semibold text-ink-900">
                       {effectiveSelectedSolidIds.length === 0
-                        ? 'Bottle-only plan'
-                        : `${effectiveSelectedSolidIds.length} option${effectiveSelectedSolidIds.length === 1 ? '' : 's'} selected`}
+                        ? 'None'
+                        : `${effectiveSelectedSolidIds.length} selected`}
                     </span>
                   </p>
                 </div>
@@ -461,11 +458,10 @@ export function PlannerPage() {
                 >
                   <CollapsibleTrigger className="px-4 py-3 md:px-5">
                     <div>
-                      <p className="section-kicker text-[0.68rem]">Advanced Scope</p>
-                      <h3 className="section-title text-lg">Use gear outside inventory</h3>
+                      <p className="section-kicker text-[0.68rem]">Overrides</p>
+                      <h3 className="section-title text-lg">Unavailable items</h3>
                       <p className="mt-2 text-sm leading-6 text-ink-600">
-                        Keep this closed for the fastest flow. Open it only when you are
-                        packing bottles or products that are not marked available.
+                        Use only if this plan needs items marked unavailable.
                       </p>
                     </div>
                   </CollapsibleTrigger>
@@ -473,9 +469,9 @@ export function PlannerPage() {
                     <div className="space-y-3">
                       <div className="flex items-center justify-between rounded-[1.1rem] border border-[color:var(--border-soft)] bg-white px-4 py-3">
                         <div>
-                          <p className="font-semibold text-ink-900">Include unavailable bottles</p>
+                          <p className="font-semibold text-ink-900">Use unavailable bottles</p>
                           <p className="text-sm leading-6 text-ink-600">
-                            Override bottle availability for this plan only.
+                            For this plan only.
                           </p>
                         </div>
                         <Toggle
@@ -486,9 +482,9 @@ export function PlannerPage() {
                       </div>
                       <div className="flex items-center justify-between rounded-[1.1rem] border border-[color:var(--border-soft)] bg-white px-4 py-3">
                         <div>
-                          <p className="font-semibold text-ink-900">Include unavailable products</p>
+                          <p className="font-semibold text-ink-900">Use unavailable products</p>
                           <p className="text-sm leading-6 text-ink-600">
-                            Useful when you are carrying fuel from outside your saved inventory.
+                            For this plan only.
                           </p>
                         </div>
                         <Toggle
@@ -517,18 +513,16 @@ export function PlannerPage() {
         {step === 2 && (
           <Card className="overflow-hidden">
             <CardHeader className="space-y-2 bg-white/55">
-              <p className="section-kicker">Ride Inputs</p>
-              <h2 className="section-title">Define the ride load</h2>
+              <p className="section-kicker">Ride</p>
+              <h2 className="section-title">Ride data</h2>
               <p className="section-copy">
-                Use manual mode when you already know the carb target. Use auto
-                mode when you want the planner to derive it from workload.
+                Manual sets carbs. Auto calculates from workload.
               </p>
             </CardHeader>
             <CardContent className="space-y-5">
               {!canCalculate && (
                 <div className="surface-note border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800">
-                  Setup is incomplete. Add at least one available bottle and drink mix
-                  in Inventory, or enable plan overrides in Step 1.
+                  Add one bottle and one drink mix, or enable unavailable items in setup.
                 </div>
               )}
               <RideForm
@@ -551,54 +545,54 @@ export function PlannerPage() {
               <>
                 <Card className="overflow-hidden">
                   <CardHeader className="space-y-2 bg-white/55">
-                    <p className="section-kicker">Plan Output</p>
-                    <h2 className="section-title">Review the ride brief</h2>
+                    <p className="section-kicker">Plan</p>
+                    <h2 className="section-title">Plan</h2>
                     <p className="section-copy">
-                      Save a short title if you want to reuse this setup later.
+                      Save a title if you want to reuse this plan.
                     </p>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <Input
                       id="plan-title"
-                      label="Plan Title"
+                      label="Name"
                       value={planTitle}
                       onChange={(event) => setPlanTitle(event.target.value)}
-                      placeholder="Optional name for history"
+                      placeholder="Optional"
                     />
 
                     <div className="grid gap-2 sm:grid-cols-3">
                       <button
                         type="button"
                         onClick={() => setResultTab('pack')}
-                        className={`rounded-full border px-4 py-2 text-sm font-semibold tracking-[0.04em] ${
+                        className={`rounded-lg border px-4 py-2 text-sm font-medium ${
                           resultTab === 'pack'
-                            ? 'border-brand-700 bg-brand-600 text-shell-50'
+                            ? 'border-brand-300 bg-brand-100 text-brand-800'
                             : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
                         }`}
                       >
-                        Pack List
+                        Pack
                       </button>
                       <button
                         type="button"
                         onClick={() => setResultTab('guide')}
-                        className={`rounded-full border px-4 py-2 text-sm font-semibold tracking-[0.04em] ${
+                        className={`rounded-lg border px-4 py-2 text-sm font-medium ${
                           resultTab === 'guide'
-                            ? 'border-brand-700 bg-brand-600 text-shell-50'
+                            ? 'border-brand-300 bg-brand-100 text-brand-800'
                             : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
                         }`}
                       >
-                        During Ride Guide
+                        Ride Guide
                       </button>
                       <button
                         type="button"
                         onClick={() => setResultTab('metrics')}
-                        className={`rounded-full border px-4 py-2 text-sm font-semibold tracking-[0.04em] ${
+                        className={`rounded-lg border px-4 py-2 text-sm font-medium ${
                           resultTab === 'metrics'
-                            ? 'border-brand-700 bg-brand-600 text-shell-50'
+                            ? 'border-brand-300 bg-brand-100 text-brand-800'
                             : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
                         }`}
                       >
-                        Metrics
+                        Stats
                       </button>
                     </div>
                   </CardContent>
@@ -626,7 +620,7 @@ export function PlannerPage() {
             ) : (
               <Card>
                 <CardContent className="py-10 text-center text-ink-500">
-                  Generate a plan in Step 2 to review it here.
+                  Create a plan in step 2.
                 </CardContent>
               </Card>
             )}
@@ -634,10 +628,10 @@ export function PlannerPage() {
         )}
       </div>
 
-      <div className="fixed bottom-16 left-0 right-0 z-40 border-t border-[color:var(--border-soft)] bg-shell-50/94 backdrop-blur-xl md:bottom-0">
-        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 md:px-6">
+      <div className="fixed bottom-16 left-0 right-0 z-40 border-t border-[color:var(--border-soft)] bg-shell-50/96 backdrop-blur md:bottom-0">
+        <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-3 md:px-6">
           <div className="hidden min-w-[10rem] lg:block">
-            <p className="section-kicker text-[0.62rem]">Current Step</p>
+            <p className="section-kicker text-[0.62rem]">Step</p>
             <p className="mt-1 text-sm leading-5 text-ink-700">{STEP_LABELS[step - 1]?.label}</p>
           </div>
           {step > 1 && (
@@ -670,7 +664,7 @@ export function PlannerPage() {
                 setRideFormInstanceKey((current) => current + 1);
               }}
             >
-              New Plan
+              Reset
             </Button>
           )}
         </div>

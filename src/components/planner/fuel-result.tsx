@@ -33,12 +33,12 @@ function TargetBar({ planned, needed }: { planned: number; needed: number }) {
     <div className="surface-note p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="section-kicker text-[0.68rem]">Target Delta</p>
+          <p className="section-kicker text-[0.68rem]">Target</p>
           <p className="mt-2 text-sm leading-6 text-ink-700">
-            {planned}g planned against {needed}g target.
+            Planned {planned}g • target {needed}g
           </p>
         </div>
-        <p className={`font-sans text-[1.55rem] font-semibold uppercase leading-none ${textColor}`}>
+        <p className={`font-sans text-[1.15rem] font-semibold leading-none ${textColor}`}>
           {sign}
           {delta}g
         </p>
@@ -90,8 +90,8 @@ export function FuelResult({
       {showMetrics && plan.warnings && plan.warnings.length > 0 && (
         <Card className="overflow-hidden border-amber-300 bg-[color:color-mix(in_oklch,white_72%,rgb(254_243_199))]">
           <CardHeader className="space-y-2 bg-white/35">
-            <p className="section-kicker text-[0.68rem] text-amber-800">Watchouts</p>
-            <h3 className="section-title text-lg text-amber-900">Before you roll out</h3>
+            <p className="section-kicker text-[0.68rem] text-amber-800">Warnings</p>
+            <h3 className="section-title text-lg text-amber-900">Warnings</h3>
           </CardHeader>
           <CardContent className="space-y-2">
             {plan.warnings.map((warning, i) => (
@@ -113,12 +113,8 @@ export function FuelResult({
       {showMetrics && (
         <Card className="overflow-hidden">
           <CardHeader className="space-y-2 bg-white/55">
-            <p className="section-kicker">Metrics</p>
-            <h3 className="section-title">Ride summary</h3>
-            <p className="section-copy">
-              Use these numbers to sanity-check the plan. The pack list and guide
-              below are the action version.
-            </p>
+            <p className="section-kicker">Stats</p>
+            <h3 className="section-title">Stats</h3>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -167,10 +163,10 @@ export function FuelResult({
       {showPack && (
         <Card className="overflow-hidden">
           <CardHeader className="space-y-2 bg-white/55">
-            <p className="section-kicker">Pack List</p>
-            <h3 className="section-title">Pack before rollout</h3>
+            <p className="section-kicker">Pack</p>
+            <h3 className="section-title">Pack list</h3>
             <p className="section-copy">
-              Pack these quantities before you leave. Bottle amounts are shown per fill.
+              Amounts are shown per fill.
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -194,7 +190,7 @@ export function FuelResult({
                       key={`${alloc.bottleId}-${i}`}
                       className="grid gap-4 rounded-[1.25rem] border border-[color:var(--border-soft)] bg-white px-4 py-4 md:grid-cols-[auto_1fr_auto] md:items-center"
                     >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-shell-100 font-sans text-[1.35rem] font-semibold uppercase text-ink-900">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900">
                         {String(i + 1).padStart(2, '0')}
                       </div>
                       <div>
@@ -214,16 +210,16 @@ export function FuelResult({
                       <div className="text-left md:text-right">
                         {alloc.isWaterOnly ? (
                           <>
-                            <p className="font-sans text-[1.3rem] font-semibold uppercase leading-none text-ink-900">
+                            <p className="font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
                               Water
                             </p>
                             <p className="mt-2 text-sm leading-6 text-ink-600">
-                              Carry plain water in this bottle.
+                              Carry plain water.
                             </p>
                           </>
                         ) : (
                           <>
-                            <p className="font-sans text-[1.55rem] font-semibold uppercase leading-none text-brand-700">
+                            <p className="font-sans text-[1.15rem] font-semibold leading-none text-brand-700">
                               {alloc.mixGrams}g mix
                             </p>
                             <p className="mt-2 text-sm leading-6 text-ink-600">
@@ -241,7 +237,7 @@ export function FuelResult({
                     <div>
                       <p className="section-kicker text-[0.68rem]">Bottle Count</p>
                       <p className="mt-2 text-sm leading-6 text-ink-700">
-                        Adjust how many available bottles this plan should use.
+                        Adjust bottle count.
                       </p>
                     </div>
                     <Stepper
@@ -258,8 +254,8 @@ export function FuelResult({
             {plan.solids.length > 0 && (
               <div className="space-y-3">
                 <div>
-                  <p className="section-kicker text-[0.68rem]">Solid Fuel</p>
-                  <h4 className="section-title text-lg">Pack these extras</h4>
+                  <p className="section-kicker text-[0.68rem]">Solids</p>
+                  <h4 className="section-title text-lg">Solids</h4>
                 </div>
                 {plan.solids.map((alloc, i) => {
                   const product = products.find((p) => p.id === alloc.productId);
@@ -268,7 +264,7 @@ export function FuelResult({
                       key={`${alloc.productId}-${i}`}
                       className="grid gap-4 rounded-[1.25rem] border border-[color:var(--border-soft)] bg-white px-4 py-4 md:grid-cols-[auto_1fr_auto] md:items-center"
                     >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-shell-100 font-sans text-[1.35rem] font-semibold uppercase text-ink-900">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900">
                         {String(i + 1).padStart(2, '0')}
                       </div>
                       <div>
@@ -289,11 +285,11 @@ export function FuelResult({
                         />
                       ) : (
                         <div className="text-left md:text-right">
-                          <p className="font-sans text-[1.55rem] font-semibold uppercase leading-none text-brand-700">
+                          <p className="font-sans text-[1.15rem] font-semibold leading-none text-brand-700">
                             x{alloc.quantity}
                           </p>
                           <p className="mt-2 text-sm leading-6 text-ink-600">
-                            Pack this quantity
+                            Quantity
                           </p>
                         </div>
                       )}
@@ -307,11 +303,10 @@ export function FuelResult({
               <div className="surface-note border-brand-200 bg-[color:color-mix(in_oklch,var(--color-brand-50)_58%,white)] p-4">
                 <p className="section-kicker text-[0.68rem]">Refills</p>
                 <p className="mt-2 font-semibold text-ink-900">
-                  Prepare {refuelStops + 1} total fill sets.
+                  Prepare {refuelStops + 1} fill set{refuelStops === 0 ? '' : 's'}.
                 </p>
                 <p className="mt-2 text-sm leading-6 text-ink-600">
-                  Quantities above are per fill. Plan to refill bottles {refuelStops}{' '}
-                  time{refuelStops > 1 ? 's' : ''} during the ride.
+                  Amounts above are per fill.
                 </p>
               </div>
             )}
@@ -322,11 +317,8 @@ export function FuelResult({
       {showGuide && plan.consumptionGuide.length > 0 && (
         <Card className="overflow-hidden">
           <CardHeader className="space-y-2 bg-white/55">
-            <p className="section-kicker">During Ride Guide</p>
-            <h3 className="section-title">Follow this sequence on the bike</h3>
-            <p className="section-copy">
-              These are the time-based actions to execute once the ride starts.
-            </p>
+            <p className="section-kicker">Ride Guide</p>
+            <h3 className="section-title">Ride guide</h3>
           </CardHeader>
           <CardContent className="space-y-3">
             {plan.consumptionGuide.map((item, i) => (
@@ -334,7 +326,7 @@ export function FuelResult({
                 key={`${item.timeOffsetMinutes}-${i}`}
                 className="grid gap-3 rounded-[1.25rem] border border-[color:var(--border-soft)] bg-white px-4 py-4 md:grid-cols-[auto_1fr_auto] md:items-start"
               >
-                <div className="rounded-full bg-brand-600 px-4 py-2 font-sans text-[1rem] font-semibold uppercase tracking-[0.08em] text-shell-50">
+                <div className="rounded-lg border border-brand-200 bg-brand-100 px-3 py-2 font-sans text-sm font-semibold text-brand-800">
                   {formatTime(item.timeOffsetMinutes)}
                 </div>
                 <p className="text-sm leading-6 text-ink-900">{item.action}</p>

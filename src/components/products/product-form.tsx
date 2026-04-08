@@ -59,11 +59,6 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-sm leading-6 text-ink-600">
-        Add the bottle mix, gels, or bars you actually keep on hand so the planner
-        can build realistic pack lists.
-      </p>
-
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
           label="Product Name"
@@ -160,7 +155,7 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button type="submit">{initialData ? 'Save Changes' : 'Add Product'}</Button>
+        <Button type="submit">{initialData ? 'Save' : 'Add product'}</Button>
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancel
         </Button>

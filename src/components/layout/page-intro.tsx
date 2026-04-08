@@ -18,13 +18,13 @@ export function PageIntro({
   return (
     <header className="page-intro">
       <div className="page-intro-grid">
-        <div className="relative z-10 space-y-4">
+        <div className="space-y-2">
           <p className="section-kicker">{eyebrow}</p>
           <h1 className="page-title">{title}</h1>
           <div className="page-summary">{description}</div>
-          {actions ? <div className="flex flex-wrap gap-3 pt-2">{actions}</div> : null}
+          {actions ? <div className="flex flex-wrap gap-2 pt-1">{actions}</div> : null}
         </div>
-        {meta ? <div className="relative z-10 space-y-3 lg:self-end">{meta}</div> : null}
+        {meta ? <div className="space-y-2 lg:justify-self-end">{meta}</div> : null}
       </div>
     </header>
   );

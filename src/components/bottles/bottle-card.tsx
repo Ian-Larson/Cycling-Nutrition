@@ -31,7 +31,7 @@ export function BottleCard({
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-semibold text-ink-900">{bottle.name}</h3>
             {!bottle.isAvailable && (
-              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-amber-800">
+              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
                 Unavailable
               </span>
             )}

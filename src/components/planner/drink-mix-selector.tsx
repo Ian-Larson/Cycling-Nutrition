@@ -49,7 +49,7 @@ export function DrinkMixSelector({
                   {mix.nutrition.carbsGrams}g carbs/serving
                 </p>
                 {!mix.isAvailable && (
-                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-amber-700">
+                  <p className="text-xs font-medium text-amber-700">
                     Unavailable in inventory
                   </p>
                 )}
@@ -57,13 +57,13 @@ export function DrinkMixSelector({
             </div>
             <div
               className={clsx(
-                'rounded-full px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em]',
+                'rounded-lg px-3 py-1 text-xs font-medium',
                 isSelected
-                  ? 'bg-brand-600 text-shell-50'
+                  ? 'bg-brand-100 text-brand-800'
                   : 'bg-shell-100 text-ink-600'
               )}
             >
-              {isSelected ? 'Primary mix' : 'Tap to use'}
+              {isSelected ? 'Selected' : 'Select'}
             </div>
           </label>
         );

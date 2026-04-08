@@ -32,19 +32,18 @@ export function FuelOptionsCard({
   return (
     <Card className="overflow-hidden">
       <CardHeader className="space-y-2 bg-white/50">
-        <p className="section-kicker">Fuel Kit</p>
-        <h2 className="section-title">Choose what you will pack</h2>
+        <p className="section-kicker">Fuel</p>
+        <h2 className="section-title">Select fuel</h2>
         <p className="section-copy">
-          Start with one primary bottle mix. Add solids only if you want extra
-          flexibility on the bike.
+          Choose one drink mix. Add solids only if you plan to carry them.
         </p>
       </CardHeader>
       <CardContent className="space-y-5">
         {drinkMixes.length > 0 && (
           <div className="space-y-3">
             <div>
-              <p className="section-kicker text-[0.68rem]">Primary Mix</p>
-              <h3 className="section-title text-lg">Bottle drink mix</h3>
+              <p className="section-kicker text-[0.68rem]">Drink Mix</p>
+              <h3 className="section-title text-lg">Drink mix</h3>
             </div>
             <DrinkMixSelector
               drinkMixes={drinkMixes}
@@ -60,12 +59,12 @@ export function FuelOptionsCard({
         >
           <CollapsibleTrigger className="px-4 py-3 md:px-5" showChevron>
             <div>
-              <p className="section-kicker text-[0.68rem]">Optional Extras</p>
-              <h3 className="section-title text-lg">Solid fuel</h3>
+              <p className="section-kicker text-[0.68rem]">Solids</p>
+              <h3 className="section-title text-lg">Solids</h3>
               <p className="mt-2 text-sm leading-6 text-ink-600">
                 {selectedSolidCount > 0
-                  ? `${selectedSolidCount} solid option${selectedSolidCount === 1 ? '' : 's'} selected for this plan.`
-                  : 'Skip this for a bottle-only plan, or add gels, chews, and bars for extra flexibility.'}
+                  ? `${selectedSolidCount} selected.`
+                  : 'None selected.'}
               </p>
             </div>
           </CollapsibleTrigger>

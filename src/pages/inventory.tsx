@@ -141,31 +141,30 @@ export function InventoryPage() {
     <div className="page-shell space-y-6">
       <PageIntro
         eyebrow="Inventory"
-        title="Keep the kit current"
+        title="Inventory"
         description={
           <>
-            Save the bottles and fuel products you actually have today. The planner
-            defaults to available items so the final pack list matches reality.
+            Bottles and fuel available today.
           </>
         }
         meta={
           <div className="page-stat-grid">
             <div className="page-stat">
-              <p className="page-stat-label">Available Bottles</p>
+              <p className="page-stat-label">Bottles</p>
               <p className="page-stat-value">{availableBottleCount}</p>
               <p className="page-stat-copy">{bottles.length} saved total.</p>
             </div>
             <div className="page-stat">
-              <p className="page-stat-label">Available Products</p>
+              <p className="page-stat-label">Products</p>
               <p className="page-stat-value">{availableProductCount}</p>
               <p className="page-stat-copy">{products.length} saved total.</p>
             </div>
             <div className="page-stat">
-              <p className="page-stat-label">Quick Adds</p>
+              <p className="page-stat-label">Quick add</p>
               <p className="page-stat-value">
                 {QUICK_BOTTLE_TEMPLATES.length + QUICK_PRODUCT_TEMPLATES.length}
               </p>
-              <p className="page-stat-copy">Fast starting points for common setups.</p>
+              <p className="page-stat-copy">Common presets.</p>
             </div>
           </div>
         }
@@ -176,10 +175,8 @@ export function InventoryPage() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="section-kicker">Bottles</p>
-            <h2 className="section-title text-lg">Ride-day bottles</h2>
-            <p className="section-copy">
-              Mark only the bottles you can actually pack today as available.
-            </p>
+            <h2 className="section-title text-lg">Bottles</h2>
+            <p className="section-copy">Set availability for today.</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -201,7 +198,7 @@ export function InventoryPage() {
                   setShowBottleForm(true);
                 }}
               >
-                Add Bottle
+                New bottle
               </Button>
             )}
           </div>
@@ -216,9 +213,9 @@ export function InventoryPage() {
               key={template.name}
               type="button"
               onClick={() => quickAddBottle(template)}
-              className="rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-semibold text-ink-700 transition-colors hover:bg-shell-50"
+              className="rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50"
             >
-              + {template.name}
+              {template.name}
             </button>
           ))}
         </div>
@@ -227,7 +224,7 @@ export function InventoryPage() {
           <Card className="mb-3">
             <CardHeader className="space-y-2 bg-white/55">
               <p className="section-kicker">New Bottle</p>
-              <h3 className="section-title text-lg">Add a bottle</h3>
+              <h3 className="section-title text-lg">New bottle</h3>
             </CardHeader>
             <CardContent>
               <BottleForm
@@ -243,7 +240,7 @@ export function InventoryPage() {
             <CardContent className="text-center py-6">
               <p className="mb-4 text-ink-600">No bottles added yet.</p>
               <Button onClick={() => setShowBottleForm(true)}>
-                Add Your First Bottle
+                New bottle
               </Button>
             </CardContent>
           </Card>
@@ -262,7 +259,7 @@ export function InventoryPage() {
                         name: bottle.name,
                         capacityMl: bottle.capacityMl,
                       }}
-                      submitLabel="Save Bottle"
+                      submitLabel="Save"
                       onSubmit={(data) => handleEditBottle(bottle.id, data)}
                       onCancel={() => setEditingBottleId(null)}
                     />
@@ -291,15 +288,13 @@ export function InventoryPage() {
       <section>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="section-kicker">Fuel Products</p>
-            <h2 className="section-title text-lg">Nutrition inventory</h2>
-            <p className="section-copy">
-              Keep availability current so the planner recommends what you can actually pack.
-            </p>
+            <p className="section-kicker">Products</p>
+            <h2 className="section-title text-lg">Products</h2>
+            <p className="section-copy">Set availability for today.</p>
           </div>
           {!showProductForm && !editingProduct && (
             <Button size="sm" onClick={() => setShowProductForm(true)}>
-              Add Product
+              New product
             </Button>
           )}
         </div>
@@ -313,9 +308,9 @@ export function InventoryPage() {
               key={template.name}
               type="button"
               onClick={() => quickAddProduct(template)}
-              className="rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-semibold text-ink-700 transition-colors hover:bg-shell-50"
+              className="rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50"
             >
-              + {template.name}
+              {template.name}
             </button>
           ))}
         </div>
@@ -324,7 +319,7 @@ export function InventoryPage() {
           <Card className="mb-3">
             <CardHeader className="space-y-2 bg-white/55">
               <p className="section-kicker">New Product</p>
-              <h3 className="section-title text-lg">Add a nutrition product</h3>
+              <h3 className="section-title text-lg">New product</h3>
             </CardHeader>
             <CardContent>
               <ProductForm
@@ -358,9 +353,9 @@ export function InventoryPage() {
                 <button
                   key={filter.value}
                   onClick={() => setFilterType(filter.value)}
-                  className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ${
+                  className={`rounded-full border px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
                     filterType === filter.value
-                      ? 'border-brand-700 bg-brand-600 text-shell-50'
+                      ? 'border-brand-300 bg-brand-100 text-brand-800'
                       : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
                   }`}
                 >
@@ -373,7 +368,7 @@ export function InventoryPage() {
                 <button
                   key={value}
                   onClick={() => setAvailabilityFilter(value)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] whitespace-nowrap transition-colors ${
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors ${
                     availabilityFilter === value
                       ? 'border-brand-300 bg-brand-100 text-brand-800'
                       : 'border-[color:var(--border-soft)] bg-white text-ink-600 hover:bg-shell-50'
