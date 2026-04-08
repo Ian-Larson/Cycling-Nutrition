@@ -629,7 +629,7 @@ export function PlannerPage() {
                     />
 
                     {fuelBreakdown && (
-                      <div className="surface-note p-4">
+                      <div className="rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_86%,white)] p-4">
                         <div className="mb-3">
                           <p className="section-kicker text-[0.68rem]">Breakdown</p>
                           <h3 className="section-title text-lg">Fuel sources</h3>
@@ -639,24 +639,24 @@ export function PlannerPage() {
                           <p className="page-stat-label text-right">Carbs</p>
                           <p className="page-stat-label text-right">Calories</p>
 
-                          <p className="text-ink-900">Drinks</p>
-                          <p className="text-right text-ink-700">
+                          <p className="rounded-lg bg-white/78 px-3 py-2 text-ink-900">Drinks</p>
+                          <p className="rounded-lg bg-white/78 px-3 py-2 text-right text-ink-700">
                             {fuelBreakdown.drinks.carbs}g
                           </p>
-                          <p className="text-right text-ink-700">
+                          <p className="rounded-lg bg-white/78 px-3 py-2 text-right text-ink-700">
                             {fuelBreakdown.drinks.calories} kcal
                           </p>
 
-                          <p className="text-ink-900">Solids</p>
-                          <p className="text-right text-ink-700">
+                          <p className="rounded-lg bg-white/78 px-3 py-2 text-ink-900">Solids</p>
+                          <p className="rounded-lg bg-white/78 px-3 py-2 text-right text-ink-700">
                             {fuelBreakdown.solids.carbs}g
                           </p>
-                          <p className="text-right text-ink-700">
+                          <p className="rounded-lg bg-white/78 px-3 py-2 text-right text-ink-700">
                             {fuelBreakdown.solids.calories} kcal
                           </p>
                         </div>
                         <div className="my-3 border-t border-[color:var(--border-soft)]" />
-                        <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 text-sm font-semibold text-ink-900">
+                        <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 rounded-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-3 py-3 text-sm font-semibold text-ink-900">
                           <p>Total</p>
                           <p className="text-right">{fuelBreakdown.total.carbs}g</p>
                           <p className="text-right">{fuelBreakdown.total.calories} kcal</p>

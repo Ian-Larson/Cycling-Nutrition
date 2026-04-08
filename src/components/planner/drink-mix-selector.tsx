@@ -18,7 +18,7 @@ export function DrinkMixSelector({
   const effectiveSelectedId = selectedId ?? drinkMixes[0].id;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {drinkMixes.map((mix) => {
         const isSelected = mix.id === effectiveSelectedId;
         return (
@@ -26,10 +26,10 @@ export function DrinkMixSelector({
             key={mix.id}
             htmlFor={`drink-mix-${mix.id}`}
             className={clsx(
-              'flex cursor-pointer items-center justify-between gap-3 rounded-[1.25rem] border p-4 transition-colors',
+              'flex cursor-pointer items-center justify-between gap-3 rounded-[1rem] border p-4 transition-colors',
               isSelected
-                ? 'border-brand-300 bg-[color:color-mix(in_oklch,var(--color-brand-50)_78%,white)] shadow-[0_16px_32px_-26px_rgb(145_66_24_/_0.35)]'
-                : 'border-[color:var(--border-soft)] bg-white hover:bg-shell-50'
+                ? 'border-brand-300 bg-[color:color-mix(in_srgb,var(--color-brand-50)_60%,var(--color-shell-100))] shadow-[0_12px_24px_-20px_rgb(72_101_129_/_0.28)]'
+                : 'border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,white_88%,var(--color-shell-100))] hover:bg-white'
             )}
           >
             <div className="flex items-center gap-3">
