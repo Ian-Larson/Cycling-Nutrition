@@ -372,7 +372,7 @@ export function PlannerPage() {
 
   return (
     <>
-      <div className="page-shell space-y-6">
+      <div className="page-shell page-shell--planner space-y-5 md:space-y-6">
         <PageIntro
           eyebrow="Planner"
           title="Fuel plan"
@@ -409,14 +409,14 @@ export function PlannerPage() {
           }
         />
 
-        <section className="grid gap-3 md:grid-cols-3">
+        <section className="grid grid-cols-3 gap-2 md:gap-3">
             {STEP_LABELS.map((item) => {
               const isActive = item.step === step;
               const isComplete = item.step < step;
               return (
                 <div
                   key={item.step}
-                  className={`rounded-2xl border px-4 py-3 ${
+                  className={`rounded-[1rem] border px-3 py-2.5 md:rounded-2xl md:px-4 md:py-3 ${
                     isActive
                       ? 'border-brand-300 bg-brand-100 text-brand-900'
                       : isComplete
@@ -424,10 +424,10 @@ export function PlannerPage() {
                         : 'border-[color:var(--border-soft)] bg-shell-100 text-ink-500'
                   }`}
                 >
-                  <p className="text-xs font-medium opacity-80">
+                  <p className="text-[0.7rem] font-medium opacity-80 md:text-xs">
                     Step {item.step}
                   </p>
-                  <p className="mt-1 font-sans text-base font-semibold leading-none">
+                  <p className="mt-1 font-sans text-sm font-semibold leading-none md:text-base">
                     {item.label}
                   </p>
                 </div>
@@ -436,36 +436,38 @@ export function PlannerPage() {
         </section>
 
         {step === 1 && (
-          <div className="grid gap-5 xl:grid-cols-[0.92fr_1.28fr]">
+          <div className="grid gap-4 xl:grid-cols-[0.92fr_1.28fr] xl:gap-5">
             <Card className="overflow-hidden">
               <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
                 <h2 className="section-title">Setup</h2>
-                <p className="section-copy">Planner uses available items by default.</p>
+                <p className="section-copy hidden md:block">Planner uses available items by default.</p>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                  <div className="surface-note p-4">
-                    <p className="section-kicker text-[0.68rem]">Bottles</p>
-                    <p
-                      className={`mt-2 font-semibold ${
-                        readiness.hasAvailableBottle ? 'text-emerald-700' : 'text-amber-700'
-                      }`}
-                    >
-                      {readiness.hasAvailableBottle
-                        ? `${availableBottleCount} available`
-                        : 'Add a bottle'}
-                    </p>
+              <CardContent className="space-y-3 md:space-y-4">
+                <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-1 xl:gap-3">
+                  <div className="surface-note flex items-center justify-between gap-3 p-3 md:block md:p-4">
+                    <div className="min-w-0">
+                      <p className="section-kicker text-[0.68rem]">Bottles</p>
+                      <p
+                        className={`mt-1.5 font-semibold md:mt-2 ${
+                          readiness.hasAvailableBottle ? 'text-emerald-700' : 'text-amber-700'
+                        }`}
+                      >
+                        {readiness.hasAvailableBottle
+                          ? `${availableBottleCount} available`
+                          : 'Add a bottle'}
+                      </p>
+                    </div>
                     <Link
                       to="/inventory"
-                      className="mt-3 inline-flex rounded-lg border border-[color:var(--border-soft)] bg-white px-3 py-1.5 text-sm font-medium text-ink-700"
+                      className="shrink-0 rounded-lg border border-[color:var(--border-soft)] bg-white px-3 py-2 text-sm font-medium text-ink-700 md:mt-3 md:inline-flex"
                     >
                       Inventory
                     </Link>
                   </div>
-                  <div className="surface-note p-4">
+                  <div className="surface-note p-3 md:p-4">
                     <p className="section-kicker text-[0.68rem]">Drink mix</p>
                     <p
-                      className={`mt-2 font-semibold ${
+                      className={`mt-1.5 font-semibold md:mt-2 ${
                         readiness.hasAvailableDrinkMix ? 'text-emerald-700' : 'text-amber-700'
                       }`}
                     >
@@ -473,24 +475,26 @@ export function PlannerPage() {
                         ? `${availableDrinkMixCount} available`
                         : 'Add a drink mix'}
                     </p>
-                    <p className="mt-2 text-sm leading-6 text-ink-600">
+                    <p className="mt-1 text-sm leading-5 text-ink-600 md:mt-2 md:leading-6">
                       {selectedDrinkMix
                         ? `Selected: ${selectedDrinkMix.name}.`
                         : 'Select a mix below.'}
                     </p>
                   </div>
-                  <div className="surface-note p-4">
-                    <p className="section-kicker text-[0.68rem]">Auto Mode</p>
-                    <p
-                      className={`mt-2 font-semibold ${
-                        readiness.autoReady ? 'text-emerald-700' : 'text-amber-700'
-                      }`}
-                    >
-                      {readiness.autoReady ? 'FTP saved' : 'Add FTP'}
-                    </p>
+                  <div className="surface-note flex items-center justify-between gap-3 p-3 md:block md:p-4">
+                    <div className="min-w-0">
+                      <p className="section-kicker text-[0.68rem]">Auto mode</p>
+                      <p
+                        className={`mt-1.5 font-semibold md:mt-2 ${
+                          readiness.autoReady ? 'text-emerald-700' : 'text-amber-700'
+                        }`}
+                      >
+                        {readiness.autoReady ? 'FTP saved' : 'Add FTP'}
+                      </p>
+                    </div>
                     <Link
                       to="/athlete?return=planner-step2"
-                      className="mt-3 inline-flex rounded-lg border border-[color:var(--border-soft)] bg-white px-3 py-1.5 text-sm font-medium text-ink-700"
+                      className="shrink-0 rounded-lg border border-[color:var(--border-soft)] bg-white px-3 py-2 text-sm font-medium text-ink-700 md:mt-3 md:inline-flex"
                     >
                       Athlete
                     </Link>
@@ -498,17 +502,17 @@ export function PlannerPage() {
                 </div>
 
                 {readiness.missingProfileFields.length > 0 && (
-                  <p className="text-sm leading-6 text-ink-600">
+                  <p className="hidden text-sm leading-6 text-ink-600 md:block">
                     Missing: {readiness.missingProfileFields.join(', ')}
                   </p>
                 )}
 
-                <div className="surface-note p-4">
+                <div className="surface-note p-3 md:p-4">
                   <p className="section-kicker text-[0.68rem]">Selected Fuel</p>
-                  <p className="mt-2 text-sm leading-6 text-ink-700">
+                  <p className="mt-1.5 text-sm leading-5 text-ink-700 md:mt-2 md:leading-6">
                     Drink mix: <span className="font-semibold text-ink-900">{selectedDrinkMix?.name ?? 'Not selected'}</span>
                   </p>
-                  <p className="text-sm leading-6 text-ink-700">
+                  <p className="text-sm leading-5 text-ink-700 md:leading-6">
                     Solids: <span className="font-semibold text-ink-900">
                       {effectiveSelectedSolidIds.length === 0
                         ? 'None'
@@ -525,17 +529,17 @@ export function PlannerPage() {
                     <div>
                       <p className="section-kicker text-[0.68rem]">Overrides</p>
                       <h3 className="section-title text-lg">Unavailable items</h3>
-                      <p className="mt-2 text-sm leading-6 text-ink-600">
+                      <p className="mt-2 hidden text-sm leading-6 text-ink-600 md:block">
                         Use only if this plan needs items marked unavailable.
                       </p>
                     </div>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="border-t border-[color:var(--border-soft)] px-4 py-4 md:px-5">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between rounded-[1.1rem] border border-[color:var(--border-soft)] bg-white px-4 py-3">
+                    <div className="space-y-2 md:space-y-3">
+                      <div className="flex items-center justify-between rounded-[1.1rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:px-4">
                         <div>
                           <p className="font-semibold text-ink-900">Use unavailable bottles</p>
-                          <p className="text-sm leading-6 text-ink-600">
+                          <p className="hidden text-sm leading-6 text-ink-600 md:block">
                             For this plan only.
                           </p>
                         </div>
@@ -545,10 +549,10 @@ export function PlannerPage() {
                           label="Include unavailable bottles"
                         />
                       </div>
-                      <div className="flex items-center justify-between rounded-[1.1rem] border border-[color:var(--border-soft)] bg-white px-4 py-3">
+                      <div className="flex items-center justify-between rounded-[1.1rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:px-4">
                         <div>
                           <p className="font-semibold text-ink-900">Use unavailable products</p>
-                          <p className="text-sm leading-6 text-ink-600">
+                          <p className="hidden text-sm leading-6 text-ink-600 md:block">
                             For this plan only.
                           </p>
                         </div>
@@ -579,11 +583,11 @@ export function PlannerPage() {
           <Card className="overflow-hidden">
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <h2 className="section-title">Ride data</h2>
-              <p className="section-copy">Manual sets carbs. Auto uses workload.</p>
+              <p className="section-copy hidden md:block">Manual sets carbs. Auto uses workload.</p>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="space-y-4 md:space-y-5">
               {!canCalculate && (
-                <div className="surface-note border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800">
+                <div className="surface-note border-amber-200 bg-amber-50 p-3.5 text-sm leading-6 text-amber-800 md:p-4">
                   Add one bottle and one drink mix, or enable unavailable items in setup.
                 </div>
               )}
@@ -608,9 +612,9 @@ export function PlannerPage() {
                 <Card className="overflow-hidden">
                   <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
                     <h2 className="section-title">Review plan</h2>
-                    <p className="section-copy">Save a title to reuse it later.</p>
+                    <p className="section-copy hidden md:block">Save a title to reuse it later.</p>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3 md:space-y-4">
                     <Input
                       id="plan-title"
                       label="Plan name"
@@ -620,33 +624,33 @@ export function PlannerPage() {
                     />
 
                     {fuelBreakdown && (
-                      <div className="rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_90%,white)] p-4">
-                        <div className="mb-3">
+                      <div className="rounded-[1rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_90%,white)] p-3 md:rounded-[1.05rem] md:p-4">
+                        <div className="mb-2.5 md:mb-3">
                           <h3 className="section-title text-lg">Fuel breakdown</h3>
                         </div>
-                        <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-2 text-sm">
+                        <div className="grid grid-cols-[1fr_auto_auto] gap-x-2 gap-y-2 text-[0.82rem] md:gap-x-4 md:text-sm">
                           <p className="page-stat-label">Source</p>
                           <p className="page-stat-label text-right">Carbs</p>
                           <p className="page-stat-label text-right">Calories</p>
 
-                          <p className="rounded-lg bg-white/78 px-3 py-2 text-ink-900">Drinks</p>
-                          <p className="rounded-lg bg-white/78 px-3 py-2 text-right text-ink-700">
+                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">Drinks</p>
+                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right text-ink-700 md:px-3">
                             {fuelBreakdown.drinks.carbs}g
                           </p>
-                          <p className="rounded-lg bg-white/78 px-3 py-2 text-right text-ink-700">
+                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right text-ink-700 md:px-3">
                             {fuelBreakdown.drinks.calories} kcal
                           </p>
 
-                          <p className="rounded-lg bg-white/78 px-3 py-2 text-ink-900">Solids</p>
-                          <p className="rounded-lg bg-white/78 px-3 py-2 text-right text-ink-700">
+                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">Solids</p>
+                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right text-ink-700 md:px-3">
                             {fuelBreakdown.solids.carbs}g
                           </p>
-                          <p className="rounded-lg bg-white/78 px-3 py-2 text-right text-ink-700">
+                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right text-ink-700 md:px-3">
                             {fuelBreakdown.solids.calories} kcal
                           </p>
                         </div>
                         <div className="my-3 border-t border-[color:var(--border-soft)]" />
-                        <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 rounded-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-3 py-3 text-sm font-semibold text-ink-900">
+                        <div className="grid grid-cols-[1fr_auto_auto] gap-x-2 rounded-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 text-[0.82rem] font-semibold text-ink-900 md:gap-x-4 md:px-3 md:py-3 md:text-sm">
                           <p>Total</p>
                           <p className="text-right">{fuelBreakdown.total.carbs}g</p>
                           <p className="text-right">{fuelBreakdown.total.calories} kcal</p>
@@ -654,11 +658,11 @@ export function PlannerPage() {
                       </div>
                     )}
 
-                    <div className="grid gap-2 sm:grid-cols-3">
+                    <div className="grid grid-cols-3 gap-1.5 md:gap-2">
                       <button
                         type="button"
                         onClick={() => setResultTab('pack')}
-                        className={`rounded-lg border px-4 py-2 text-sm font-medium ${
+                        className={`rounded-lg border px-2 py-2.5 text-[0.78rem] font-medium md:px-4 md:py-2 md:text-sm ${
                           resultTab === 'pack'
                             ? 'border-brand-300 bg-brand-100 text-brand-800'
                             : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
@@ -669,7 +673,7 @@ export function PlannerPage() {
                       <button
                         type="button"
                         onClick={() => setResultTab('guide')}
-                        className={`rounded-lg border px-4 py-2 text-sm font-medium ${
+                        className={`rounded-lg border px-2 py-2.5 text-[0.78rem] font-medium md:px-4 md:py-2 md:text-sm ${
                           resultTab === 'guide'
                             ? 'border-brand-300 bg-brand-100 text-brand-800'
                             : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
@@ -680,7 +684,7 @@ export function PlannerPage() {
                       <button
                         type="button"
                         onClick={() => setResultTab('metrics')}
-                        className={`rounded-lg border px-4 py-2 text-sm font-medium ${
+                        className={`rounded-lg border px-2 py-2.5 text-[0.78rem] font-medium md:px-4 md:py-2 md:text-sm ${
                           resultTab === 'metrics'
                             ? 'border-brand-300 bg-brand-100 text-brand-800'
                             : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
@@ -722,8 +726,8 @@ export function PlannerPage() {
         )}
       </div>
 
-      <div className="fixed bottom-16 left-0 right-0 z-40 border-t border-[color:var(--border-soft)] bg-shell-50/96 backdrop-blur md:bottom-0">
-        <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-3 md:px-6">
+      <div className="fixed left-3 right-3 z-40 rounded-[1.15rem] border border-[color:var(--border-soft)] bg-shell-50/96 shadow-[var(--shadow-soft)] backdrop-blur bottom-[var(--mobile-nav-offset)] md:bottom-0 md:left-0 md:right-0 md:rounded-none md:border-x-0 md:shadow-none">
+        <div className="mx-auto flex max-w-5xl items-center gap-2 px-3 py-3 md:px-6">
           <div className="hidden min-w-[10rem] lg:block">
             <p className="section-kicker text-[0.62rem]">Step</p>
             <p className="mt-1 text-sm leading-5 text-ink-700">{STEP_LABELS[step - 1]?.label}</p>

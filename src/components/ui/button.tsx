@@ -24,8 +24,8 @@ export function Button({
           'border-[color:var(--border-soft)] bg-white text-ink-900 hover:bg-shell-50': variant === 'secondary',
           'border-transparent bg-transparent text-ink-700 hover:bg-shell-50 hover:text-ink-900': variant === 'ghost',
           'border-rose-600 bg-rose-600 text-white hover:bg-rose-700': variant === 'danger',
-          'min-h-9 px-3 text-sm': size === 'sm',
-          'min-h-10 px-4 text-sm': size === 'md',
+          'min-h-11 px-3.5 text-sm md:min-h-9 md:px-3': size === 'sm',
+          'min-h-11 px-4 text-sm md:min-h-10': size === 'md',
           'min-h-11 px-5 text-base': size === 'lg',
         },
         className

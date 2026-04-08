@@ -14,8 +14,8 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-[color:var(--border-soft)] bg-shell-50/96 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 md:px-6">
-        <Link to="/" className="min-w-0 text-base font-semibold text-ink-900">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-2.5 md:px-6 md:py-3">
+        <Link to="/" className="min-w-0 truncate text-[0.95rem] font-semibold text-ink-900 md:text-base">
           Cycling Nutrition
         </Link>
         <nav className="hidden items-center gap-2 md:flex">

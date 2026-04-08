@@ -330,19 +330,19 @@ export function AthletePage() {
   };
 
   return (
-    <div className="page-shell space-y-5">
+    <div className="page-shell space-y-4 md:space-y-5">
       <PageIntro
         eyebrow="Athlete"
         title="Athlete"
         description={
           <>
-            Used for auto mode.
+            Auto mode inputs.
           </>
         }
         actions={
           <Link
             to={`/${plannerReturnStep}`}
-            className="inline-flex items-center rounded-lg border border-[color:var(--border-soft)] bg-white px-4 py-2 text-sm font-medium text-ink-800"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-white px-4 py-2 text-sm font-medium text-ink-800 sm:w-auto md:min-h-10"
           >
             Back to planner
           </Link>
@@ -375,16 +375,16 @@ export function AthletePage() {
 
       <Card className="overflow-hidden">
         <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <div>
               <h2 className="section-title text-lg">Profile</h2>
             </div>
-            <div className="inline-flex rounded-full border border-[color:var(--border-soft)] bg-white p-1">
+            <div className="inline-flex w-full rounded-full border border-[color:var(--border-soft)] bg-white p-1 sm:w-auto">
               <button
                 type="button"
                 onClick={() => handleAnthropometricsUnitChange('metric')}
                 className={clsx(
-                  'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  'flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors sm:flex-none',
                   anthropometricsUnit === 'metric'
                     ? 'bg-brand-100 text-brand-800'
                     : 'text-ink-700 hover:bg-shell-50'
@@ -396,7 +396,7 @@ export function AthletePage() {
                 type="button"
                 onClick={() => handleAnthropometricsUnitChange('imperial')}
                 className={clsx(
-                  'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  'flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors sm:flex-none',
                   anthropometricsUnit === 'imperial'
                     ? 'bg-brand-100 text-brand-800'
                     : 'text-ink-700 hover:bg-shell-50'
@@ -407,9 +407,9 @@ export function AthletePage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="section-copy">FTP and weight drive auto mode.</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+        <CardContent className="space-y-2.5 md:space-y-3">
+          <p className="section-copy hidden md:block">FTP and weight drive auto mode.</p>
+          <div className="grid gap-2.5 sm:grid-cols-2 md:gap-3">
             <Input
               id="athlete-name"
               label="Name"
@@ -459,7 +459,7 @@ export function AthletePage() {
               error={fieldErrors.weightKg}
             />
           </div>
-          <p className="text-sm leading-6 text-ink-600">
+          <p className="text-sm leading-5 text-ink-600 md:leading-6">
             W/kg: <span className="font-semibold text-ink-900">{wKg ?? '--'}</span>
           </p>
         </CardContent>
@@ -469,8 +469,8 @@ export function AthletePage() {
         <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
           <h2 className="section-title text-lg">Fuel and hydration</h2>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
+        <CardContent className="space-y-2.5 md:space-y-3">
+          <div className="grid gap-2.5 sm:grid-cols-2 md:gap-3">
             <Input
               id="athlete-gut-target"
               label="Gut Training Target (g/h)"
@@ -497,7 +497,7 @@ export function AthletePage() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5 md:space-y-2">
             <p className="section-kicker text-[0.68rem]">Presets</p>
             <PresetButtons
               options={GUT_TARGET_PRESETS.map((target) => ({
@@ -509,14 +509,14 @@ export function AthletePage() {
             />
           </div>
 
-          <p className="text-sm leading-6 text-ink-600">
+          <p className="hidden text-sm leading-6 text-ink-600 md:block">
             {getGutTargetLabel(gutTrainingTargetGph)}. Auto stays near this value when effort allows.
           </p>
 
-          <div className="surface-note flex items-center justify-between gap-3 p-4">
+          <div className="surface-note flex items-center justify-between gap-3 p-3 md:p-4">
             <div>
               <p className="font-semibold text-ink-900">Heavy sweater</p>
-              <p className="text-sm leading-6 text-ink-600">
+              <p className="hidden text-sm leading-6 text-ink-600 md:block">
                 Raises sodium in auto mode.
               </p>
             </div>
@@ -535,7 +535,7 @@ export function AthletePage() {
         <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
           <h2 className="section-title text-lg">Connections</h2>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2.5 md:space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-ink-900">Strava</span>
             <span
@@ -563,17 +563,22 @@ export function AthletePage() {
             </span>
           </div>
 
-          <p className="text-sm leading-6 text-ink-600">Optional. Not required for planning.</p>
+          <p className="hidden text-sm leading-6 text-ink-600 md:block">Optional. Not required for planning.</p>
 
           <Button
             variant="secondary"
+            className="w-full sm:w-auto"
             onClick={handleConnectStrava}
             disabled={authStatus === 'pending'}
           >
             Connect Strava (Experimental)
           </Button>
 
-          {authMessage && <p className="text-sm leading-6 text-ink-600">{authMessage}</p>}
+          {authMessage && (
+            <p className="text-sm leading-5 text-ink-600 md:leading-6">
+              {authMessage}
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

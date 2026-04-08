@@ -391,13 +391,13 @@ export function RideForm({
         : 'Derived Duration';
 
   return (
-    <div className="space-y-5">
-      <div className="space-y-2">
+    <div className="space-y-4 md:space-y-5">
+      <div className="space-y-1.5 md:space-y-2">
         <p className="section-kicker text-[0.68rem]">Mode</p>
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-2 gap-2 md:gap-3">
           <button
             type="button"
-            className={`rounded-[1.35rem] border p-4 text-left transition-colors ${
+            className={`rounded-[1.15rem] border p-3.5 text-left transition-colors md:rounded-[1.35rem] md:p-4 ${
               planningMode === 'manual'
                 ? 'border-brand-300 bg-brand-100'
                 : 'border-[color:var(--border-soft)] bg-white text-ink-800 hover:bg-shell-50'
@@ -412,7 +412,7 @@ export function RideForm({
               Manual
             </p>
             <p
-              className={`mt-2 text-sm leading-6 ${
+              className={`mt-1.5 text-[0.78rem] leading-5 md:mt-2 md:text-sm md:leading-6 ${
                 planningMode === 'manual' ? 'text-brand-800' : 'text-ink-600'
               }`}
             >
@@ -421,7 +421,7 @@ export function RideForm({
           </button>
           <button
             type="button"
-            className={`rounded-[1.35rem] border p-4 text-left transition-colors ${
+            className={`rounded-[1.15rem] border p-3.5 text-left transition-colors md:rounded-[1.35rem] md:p-4 ${
               planningMode === 'auto'
                 ? 'border-brand-300 bg-brand-100'
                 : 'border-[color:var(--border-soft)] bg-white text-ink-800 hover:bg-shell-50'
@@ -436,7 +436,7 @@ export function RideForm({
               Auto
             </p>
             <p
-              className={`mt-2 text-sm leading-6 ${
+              className={`mt-1.5 text-[0.78rem] leading-5 md:mt-2 md:text-sm md:leading-6 ${
                 planningMode === 'auto' ? 'text-brand-800' : 'text-ink-600'
               }`}
             >
@@ -447,9 +447,9 @@ export function RideForm({
       </div>
 
       {planningMode === 'manual' ? (
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           <div className="grid gap-4 lg:grid-cols-2">
-            <div className="surface-note p-4 md:p-5">
+            <div className="surface-note p-3.5 md:p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="section-kicker text-[0.68rem]">Duration</p>
@@ -484,16 +484,16 @@ export function RideForm({
                   </button>
                 )}
               </div>
-              <p className="mt-3 text-sm leading-6 text-ink-600">
+              <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
                 Use moving time.
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:mt-4 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
                 {DURATION_PRESETS.map((preset) => (
                   <button
                     key={preset.value}
                     type="button"
                     onClick={() => setManualDuration(preset.value)}
-                      className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                      className={`min-h-10 shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
                         durationMinutes === preset.value
                           ? 'border-brand-300 bg-brand-100 text-brand-800'
                           : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
@@ -505,7 +505,7 @@ export function RideForm({
               </div>
             </div>
 
-            <div className="surface-note p-4 md:p-5">
+            <div className="surface-note p-3.5 md:p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="section-kicker text-[0.68rem]">Carbs / Hour</p>
@@ -540,16 +540,16 @@ export function RideForm({
                   </button>
                 )}
               </div>
-              <p className="mt-3 text-sm leading-6 text-ink-600">
+              <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
                 Set your intake target.
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:mt-4 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
                 {carbPresets.map((preset) => (
                   <button
                     key={preset.value}
                     type="button"
                     onClick={() => setManualCarbTarget(preset.value)}
-                      className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                      className={`min-h-10 shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
                         carbTarget === preset.value
                           ? 'border-brand-300 bg-brand-100 text-brand-800'
                           : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
@@ -563,7 +563,7 @@ export function RideForm({
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <div className="surface-note p-4 md:p-5">
+            <div className="surface-note p-3.5 md:p-5">
               <Select
                 label="Intensity"
                 value={intensity}
@@ -578,11 +578,11 @@ export function RideForm({
                   { value: 'race', label: 'Race' },
                 ]}
               />
-              <p className="mt-3 text-sm leading-6 text-ink-600">
+              <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
                 Affects timing and fluid.
               </p>
             </div>
-            <div className="surface-note p-4 md:p-5">
+            <div className="surface-note p-3.5 md:p-5">
               <Select
                 label="Weather"
                 value={heatFactor}
@@ -591,18 +591,18 @@ export function RideForm({
                 }
                 options={heatOptions}
               />
-              <p className="mt-3 text-sm leading-6 text-ink-600">
+              <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
                 Affects fluid and sodium.
               </p>
             </div>
           </div>
         </div>
       ) : (
-        <div className="space-y-5 rounded-[1.5rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_oklch,var(--color-brand-50)_34%,white)] p-5">
+        <div className="space-y-4 rounded-[1.2rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_oklch,var(--color-brand-50)_34%,white)] p-4 md:space-y-5 md:rounded-[1.5rem] md:p-5">
           <div className="space-y-2">
             <p className="section-kicker text-[0.68rem]">Auto</p>
             <h3 className="section-title text-lg">Auto target</h3>
-            <p className="section-copy">
+            <p className="section-copy hidden md:block">
               Enter any two of duration, IF, and TSS.
             </p>
           </div>
@@ -619,13 +619,13 @@ export function RideForm({
 
           <div className="space-y-2">
             <p className="section-kicker text-[0.68rem]">Inputs</p>
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
               {(['duration_if', 'duration_tss', 'if_tss'] as const).map((pair) => (
                 <button
                   key={pair}
                   type="button"
                   onClick={() => setAutoInputPair(pair)}
-                  className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors ${
+                  className={`min-h-11 min-w-[8.5rem] rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors sm:min-w-0 ${
                     autoInputPair === pair
                       ? 'border-brand-300 bg-brand-100 text-brand-800'
                       : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
@@ -637,9 +637,9 @@ export function RideForm({
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
             {(autoInputPair === 'duration_if' || autoInputPair === 'duration_tss') && (
-              <div className="surface-note p-4">
+              <div className="surface-note p-3.5 md:p-4">
                 <Input
                   id="auto-duration"
                   type="number"
@@ -650,14 +650,14 @@ export function RideForm({
                   value={autoDurationInput}
                   onChange={(event) => setAutoDurationInput(event.target.value)}
                 />
-                <p className="mt-3 text-sm leading-6 text-ink-600">
+                <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
                   Moving time.
                 </p>
               </div>
             )}
 
             {(autoInputPair === 'duration_if' || autoInputPair === 'if_tss') && (
-              <div className="surface-note p-4">
+              <div className="surface-note p-3.5 md:p-4">
                 <Input
                   id="auto-if"
                   type="number"
@@ -668,14 +668,14 @@ export function RideForm({
                   value={autoIfInput}
                   onChange={(event) => setAutoIfInput(event.target.value)}
                 />
-                <p className="mt-3 text-sm leading-6 text-ink-600">
+                <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
                   Relative to FTP.
                 </p>
               </div>
             )}
 
             {(autoInputPair === 'duration_tss' || autoInputPair === 'if_tss') && (
-              <div className="surface-note p-4">
+              <div className="surface-note p-3.5 md:p-4">
                 <Input
                   id="auto-tss"
                   type="number"
@@ -685,13 +685,13 @@ export function RideForm({
                   value={autoTssInput}
                   onChange={(event) => setAutoTssInput(event.target.value)}
                 />
-                <p className="mt-3 text-sm leading-6 text-ink-600">
+                <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
                   Total ride load.
                 </p>
               </div>
             )}
 
-            <div className="rounded-[1.2rem] border border-brand-300 bg-brand-100 px-4 py-4 text-brand-900">
+            <div className="rounded-[1.05rem] border border-brand-300 bg-brand-100 px-3.5 py-3.5 text-brand-900 md:rounded-[1.2rem] md:px-4 md:py-4">
               <p className="text-sm font-medium text-brand-700">
                 {derivedAutoMetricLabel}
               </p>
@@ -700,7 +700,7 @@ export function RideForm({
               </p>
             </div>
 
-            <div className="surface-note p-4">
+            <div className="surface-note p-3.5 md:p-4">
               <Input
                 id="auto-carb-override"
                 type="number"
@@ -716,7 +716,7 @@ export function RideForm({
                     : 'Recommended value'
                 }
               />
-              <p className="mt-3 text-sm leading-6 text-ink-600">
+              <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
                 Leave blank for auto target.
               </p>
             </div>
@@ -733,7 +733,7 @@ export function RideForm({
                   <p className="mt-2 font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
                     {autoPreview.result.carbTargetGramsPerHour} g/h carbs
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-ink-600">
+                  <p className="mt-2 hidden text-sm leading-6 text-ink-600 md:block">
                     {autoPreview.result.carbTargetGramsPerHour}g/h carbs •{' '}
                     {previewAutoMetrics.hydrationMlPerHour}ml/h hydration •{' '}
                     {previewAutoMetrics.sodiumMgPerHour}mg/h sodium
@@ -789,7 +789,7 @@ export function RideForm({
             <p className="text-sm leading-6 text-rose-700">{autoPreview.error}</p>
           )}
 
-          <div className="surface-note p-4">
+          <div className="surface-note p-3.5 md:p-4">
             <Select
               label="Weather"
               value={heatFactor}
@@ -798,7 +798,7 @@ export function RideForm({
               }
               options={heatOptions}
             />
-            <p className="mt-3 text-sm leading-6 text-ink-600">
+            <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
               Affects fluid and sodium.
             </p>
           </div>
@@ -806,7 +806,7 @@ export function RideForm({
       )}
 
       {effectiveDurationMinutes >= 120 && (
-        <div className="surface-note p-4 md:p-5">
+        <div className="surface-note p-3.5 md:p-5">
           <Select
             label="Refills"
             value={String(refuelStops)}
@@ -817,7 +817,7 @@ export function RideForm({
               { value: '2', label: '2 refills' },
             ]}
           />
-          <p className="mt-3 text-sm leading-6 text-ink-600">
+          <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
             Set this only if you can refill bottles.
           </p>
         </div>

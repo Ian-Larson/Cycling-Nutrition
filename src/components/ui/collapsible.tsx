@@ -88,7 +88,7 @@ export function CollapsibleTrigger({
       aria-controls={contentId}
       data-state={open ? 'open' : 'closed'}
       className={clsx(
-        'flex w-full items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left',
+        'flex min-h-11 w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left md:min-h-0 md:rounded-md md:px-2 md:py-1.5',
         'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2',
         className
       )}

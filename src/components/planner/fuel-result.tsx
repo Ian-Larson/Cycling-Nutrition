@@ -30,7 +30,7 @@ function TargetBar({ planned, needed }: { planned: number; needed: number }) {
   const sign = delta >= 0 ? '+' : '';
 
   return (
-    <div className="surface-note p-4">
+    <div className="surface-note p-3.5 md:p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="section-kicker text-[0.68rem]">Target</p>
@@ -89,7 +89,7 @@ export function FuelResult({
   const showMetrics = section === 'all' || section === 'metrics';
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 md:space-y-4">
       {showMetrics && plan.warnings && plan.warnings.length > 0 && (
         <Card className="overflow-hidden border-amber-300 bg-[color:color-mix(in_oklch,white_72%,rgb(254_243_199))]">
           <CardHeader className="space-y-2 bg-white/35">
@@ -118,35 +118,35 @@ export function FuelResult({
             <h3 className="section-title">Stats</h3>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-              <div className="surface-note p-4">
+            <div className="grid grid-cols-2 gap-2 md:gap-3 xl:grid-cols-5">
+              <div className="surface-note p-3.5 md:p-4">
                 <p className="page-stat-label">Duration</p>
                 <p className="page-stat-value">{formatDuration(plan.rideCharacteristics.durationMinutes)}</p>
               </div>
-              <div className="surface-note p-4">
+              <div className="surface-note p-3.5 md:p-4">
                 <p className="page-stat-label">Hydration</p>
                 <p className="page-stat-value">{plan.summary.hydrationMl}ml</p>
               </div>
-              <div className="surface-note p-4">
+              <div className="surface-note p-3.5 md:p-4">
                 <p className="page-stat-label">Total Carbs</p>
                 <p className="page-stat-value text-brand-700">{plan.summary.totalCarbsPlanned}g</p>
               </div>
-              <div className="surface-note p-4">
+              <div className="surface-note p-3.5 md:p-4">
                 <p className="page-stat-label">Calories</p>
                 <p className="page-stat-value">{totalCaloriesPlanned} kcal</p>
               </div>
-              <div className="surface-note p-4">
+              <div className="surface-note p-3.5 md:p-4">
                 <p className="page-stat-label">Carbs / Hour</p>
                 <p className="page-stat-value">{carbsPerHour}g</p>
               </div>
               {plan.summary.sodiumMgPerHour !== undefined && (
-                <div className="surface-note p-4">
+                <div className="surface-note p-3.5 md:p-4">
                   <p className="page-stat-label">Sodium / Hour</p>
                   <p className="page-stat-value">{plan.summary.sodiumMgPerHour}mg</p>
                 </div>
               )}
               {plan.summary.sodiumMgTotal !== undefined && (
-                <div className="surface-note p-4">
+                <div className="surface-note p-3.5 md:p-4">
                   <p className="page-stat-label">Total Sodium</p>
                   <p className="page-stat-value">{plan.summary.sodiumMgTotal}mg</p>
                 </div>
@@ -169,7 +169,7 @@ export function FuelResult({
         <Card className="overflow-hidden">
           <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
             <h3 className="section-title">Pack list</h3>
-            <p className="section-copy">Amounts are shown per fill.</p>
+            <p className="section-copy hidden md:block">Amounts are shown per fill.</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <TargetBar
@@ -190,9 +190,9 @@ export function FuelResult({
                   return (
                     <div
                       key={`${alloc.bottleId}-${i}`}
-                      className="grid gap-4 rounded-[1.25rem] border border-[color:var(--border-soft)] bg-white px-4 py-4 md:grid-cols-[auto_1fr_auto] md:items-center"
+                      className="grid gap-3 rounded-[1.15rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:rounded-[1.25rem] md:px-4 md:py-4"
                     >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900 md:h-10 md:w-10">
                         {String(i + 1).padStart(2, '0')}
                       </div>
                       <div>
@@ -235,10 +235,10 @@ export function FuelResult({
                 })}
 
                 {onBottleCountChange && (
-                  <div className="surface-note flex items-center justify-between gap-3 p-4">
+                  <div className="surface-note flex flex-col items-start gap-3 p-3.5 md:flex-row md:items-center md:justify-between md:p-4">
                     <div>
                       <p className="section-kicker text-[0.68rem]">Bottle Count</p>
-                      <p className="mt-2 text-sm leading-6 text-ink-700">
+                      <p className="mt-2 hidden text-sm leading-6 text-ink-700 md:block">
                         Adjust bottle count.
                       </p>
                     </div>
@@ -263,9 +263,9 @@ export function FuelResult({
                   return (
                     <div
                       key={`${alloc.productId}-${i}`}
-                      className="grid gap-4 rounded-[1.25rem] border border-[color:var(--border-soft)] bg-white px-4 py-4 md:grid-cols-[auto_1fr_auto] md:items-center"
+                      className="grid gap-3 rounded-[1.15rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:rounded-[1.25rem] md:px-4 md:py-4"
                     >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900 md:h-10 md:w-10">
                         {String(i + 1).padStart(2, '0')}
                       </div>
                       <div>
@@ -324,7 +324,7 @@ export function FuelResult({
             {plan.consumptionGuide.map((item, i) => (
               <div
                 key={`${item.timeOffsetMinutes}-${i}`}
-                className="grid gap-3 rounded-[1.25rem] border border-[color:var(--border-soft)] bg-white px-4 py-4 md:grid-cols-[auto_1fr_auto] md:items-start"
+                className="grid gap-2.5 rounded-[1.15rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-start md:gap-3 md:rounded-[1.25rem] md:px-4 md:py-4"
               >
                 <div className="rounded-lg border border-brand-200 bg-brand-100 px-3 py-2 font-sans text-sm font-semibold text-brand-800">
                   {formatTime(item.timeOffsetMinutes)}

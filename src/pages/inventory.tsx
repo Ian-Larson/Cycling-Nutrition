@@ -138,13 +138,13 @@ export function InventoryPage() {
   };
 
   return (
-    <div className="page-shell space-y-6">
+    <div className="page-shell space-y-4 md:space-y-6">
       <PageIntro
         eyebrow="Inventory"
         title="Inventory"
         description={
           <>
-            Bottles and fuel for today.
+            Bottles and fuel.
           </>
         }
         meta={
@@ -172,14 +172,14 @@ export function InventoryPage() {
 
       {/* Bottles Section */}
       <section>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3 md:mb-4">
           <div>
             <h2 className="section-title text-lg">Bottles</h2>
             <p className="section-copy">
               {availableBottleCount}/{bottles.length || 0} available today
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:items-center">
             <button
               type="button"
               onClick={() =>
@@ -187,13 +187,14 @@ export function InventoryPage() {
                   current === 'asc' ? 'desc' : 'asc'
                 )
               }
-              className="rounded-full border border-[color:var(--border-soft)] bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:bg-shell-50"
+              className="min-h-11 rounded-full border border-[color:var(--border-soft)] bg-white px-4 py-2 text-center text-sm font-semibold text-ink-700 transition-colors hover:bg-shell-50 md:min-h-10"
             >
               Size {bottleSortDirection === 'asc' ? '↑' : '↓'}
             </button>
             {!showBottleForm && (
               <Button
                 size="sm"
+                className="w-full md:w-auto"
                 onClick={() => {
                   setEditingBottleId(null);
                   setShowBottleForm(true);
@@ -205,15 +206,15 @@ export function InventoryPage() {
           </div>
         </div>
 
-        <div className="mb-3 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-4">
+        <div className="mb-2.5 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-3 md:mb-3 md:p-4">
           <p className="mb-3 text-sm font-medium text-ink-700">Quick add</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
             {QUICK_BOTTLE_TEMPLATES.map((template) => (
               <button
                 key={template.name}
                 type="button"
                 onClick={() => quickAddBottle(template)}
-                className="rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50"
+                className="min-h-10 shrink-0 rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 md:min-h-0"
               >
                 {template.name}
               </button>
@@ -222,7 +223,7 @@ export function InventoryPage() {
         </div>
 
         {showBottleForm && (
-          <Card className="mb-3">
+          <Card className="mb-2.5 md:mb-3">
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <h3 className="section-title text-lg">New bottle</h3>
             </CardHeader>
@@ -237,9 +238,9 @@ export function InventoryPage() {
 
         {bottles.length === 0 && !showBottleForm ? (
           <Card>
-            <CardContent className="text-center py-6">
+            <CardContent className="py-5 text-center md:py-6">
               <p className="mb-4 text-ink-600">No bottles added yet.</p>
-              <Button onClick={() => setShowBottleForm(true)}>
+              <Button className="w-full sm:w-auto" onClick={() => setShowBottleForm(true)}>
                 New bottle
               </Button>
             </CardContent>
@@ -285,7 +286,7 @@ export function InventoryPage() {
 
       {/* Products Section */}
       <section>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3 md:mb-4">
           <div>
             <h2 className="section-title text-lg">Products</h2>
             <p className="section-copy">
@@ -293,21 +294,21 @@ export function InventoryPage() {
             </p>
           </div>
           {!showProductForm && !editingProduct && (
-            <Button size="sm" onClick={() => setShowProductForm(true)}>
+            <Button size="sm" className="w-full md:w-auto" onClick={() => setShowProductForm(true)}>
               New product
             </Button>
           )}
         </div>
 
-        <div className="mb-3 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-4">
+        <div className="mb-2.5 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-3 md:mb-3 md:p-4">
           <p className="mb-3 text-sm font-medium text-ink-700">Quick add</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
             {QUICK_PRODUCT_TEMPLATES.map((template) => (
               <button
                 key={template.name}
                 type="button"
                 onClick={() => quickAddProduct(template)}
-                className="rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50"
+                className="min-h-10 shrink-0 rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 md:min-h-0"
               >
                 {template.name}
               </button>
@@ -316,7 +317,7 @@ export function InventoryPage() {
         </div>
 
         {showProductForm && (
-          <Card className="mb-3">
+          <Card className="mb-2.5 md:mb-3">
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <h3 className="section-title text-lg">New product</h3>
             </CardHeader>
@@ -330,7 +331,7 @@ export function InventoryPage() {
         )}
 
         {editingProduct && (
-          <Card className="mb-3">
+          <Card className="mb-2.5 md:mb-3">
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <h3 className="section-title text-lg">{editingProduct.name}</h3>
             </CardHeader>
@@ -345,16 +346,16 @@ export function InventoryPage() {
         )}
 
         {products.length > 0 && (
-          <div className="mb-3 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-4">
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                <p className="min-w-24 text-sm font-medium text-ink-700">Type</p>
-                <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="mb-2.5 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-3 md:mb-3 md:p-4">
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <p className="section-kicker text-[0.68rem]">Type</p>
+                <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:px-0">
                   {typeFilters.map((filter) => (
                     <button
                       key={filter.value}
                       onClick={() => setFilterType(filter.value)}
-                      className={`rounded-full border px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
+                      className={`min-h-10 shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors md:min-h-0 ${
                         filterType === filter.value
                           ? 'border-brand-300 bg-brand-100 text-brand-800'
                           : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
@@ -365,14 +366,14 @@ export function InventoryPage() {
                   ))}
                 </div>
               </div>
-              <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                <p className="min-w-24 text-sm font-medium text-ink-700">Availability</p>
-                <div className="flex gap-2 overflow-x-auto pb-1">
+              <div className="space-y-1.5">
+                <p className="section-kicker text-[0.68rem]">Availability</p>
+                <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:px-0">
                   {(['all', 'available', 'unavailable'] as const).map((value) => (
                     <button
                       key={value}
                       onClick={() => setAvailabilityFilter(value)}
-                      className={`rounded-full border px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
+                      className={`min-h-10 shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors md:min-h-0 ${
                         availabilityFilter === value
                           ? 'border-brand-300 bg-brand-100 text-brand-800'
                           : 'border-[color:var(--border-soft)] bg-white text-ink-600 hover:bg-shell-50'
@@ -393,10 +394,10 @@ export function InventoryPage() {
 
         {products.length === 0 && !showProductForm ? (
           <Card>
-            <CardContent className="text-center py-6">
+            <CardContent className="py-5 text-center md:py-6">
               <p className="mb-4 text-ink-600">No products added yet.</p>
-              <Button onClick={() => setShowProductForm(true)}>
-                Add Your First Product
+              <Button className="w-full sm:w-auto" onClick={() => setShowProductForm(true)}>
+                New product
               </Button>
             </CardContent>
           </Card>

@@ -62,8 +62,8 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
   const isDrinkMix = type === 'drink_mix';
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
+    <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
         <Input
           label="Product Name"
           placeholder="e.g., Maurten 320"
@@ -86,7 +86,7 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
         onChange={(e) => setType(e.target.value as ProductType)}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
         <Input
           label="Carbs per serving (g)"
           type="number"
@@ -108,7 +108,7 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
       </div>
 
       {isDrinkMix && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
           <Input
             label="Serving size (g)"
             type="number"
@@ -129,7 +129,7 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
       )}
 
       {isDrinkMix && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
           <Input
             label="Min concentration (g/ml)"
             type="number"
@@ -153,10 +153,10 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
         </div>
       )}
 
-      <div className="surface-note flex items-center justify-between gap-3 px-4 py-3">
+      <div className="surface-note flex items-center justify-between gap-3 px-3.5 py-3 md:px-4">
         <div>
           <p className="font-semibold text-ink-900">Available now</p>
-          <p className="text-sm leading-6 text-ink-600">
+          <p className="text-sm leading-5 text-ink-600 md:leading-6">
             Use this product in planner recommendations.
           </p>
         </div>
@@ -167,9 +167,16 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
         />
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit">{initialData ? 'Save' : 'Add product'}</Button>
-        <Button type="button" variant="secondary" onClick={onCancel}>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button type="submit" className="w-full sm:w-auto">
+          {initialData ? 'Save' : 'Add product'}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={onCancel}
+          className="w-full sm:w-auto"
+        >
           Cancel
         </Button>
       </div>

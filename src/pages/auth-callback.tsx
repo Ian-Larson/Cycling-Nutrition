@@ -72,7 +72,7 @@ export function AuthCallbackPage() {
   }, [navigate, state]);
 
   return (
-    <div className="page-shell max-w-3xl space-y-6">
+    <div className="page-shell max-w-3xl space-y-4 md:space-y-6">
       <PageIntro
         eyebrow="Connection"
         title="Strava"
@@ -85,7 +85,6 @@ export function AuthCallbackPage() {
 
       <Card className="overflow-hidden">
         <CardHeader className="space-y-2 bg-white/55">
-          <p className="section-kicker">Status</p>
           <h2 className="section-title text-lg">
             {state === 'loading'
               ? 'Connecting...'
@@ -94,19 +93,19 @@ export function AuthCallbackPage() {
                 : 'Connection Failed'}
           </h2>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2.5 md:space-y-3">
           <p
             className={
               state === 'error'
-                ? 'text-sm leading-6 text-rose-700'
-                : 'text-sm leading-6 text-ink-700'
+                ? 'text-sm leading-5 text-rose-700 md:leading-6'
+                : 'text-sm leading-5 text-ink-700 md:leading-6'
             }
           >
             {message}
           </p>
 
           {state !== 'loading' && (
-            <p className="text-sm leading-6 text-ink-600">
+            <p className="text-sm leading-5 text-ink-600 md:leading-6">
               Redirecting to{' '}
               <Link to="/athlete" className="underline font-semibold text-brand-700">
                 Athlete

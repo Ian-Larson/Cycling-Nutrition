@@ -46,9 +46,16 @@ export function BottleForm({
         value={capacityMl}
         onChange={(e) => setCapacityMl(e.target.value)}
       />
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit">{submitLabel ?? 'Add bottle'}</Button>
-        <Button type="button" variant="secondary" onClick={onCancel}>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button type="submit" className="w-full sm:w-auto">
+          {submitLabel ?? 'Add bottle'}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={onCancel}
+          className="w-full sm:w-auto"
+        >
           Cancel
         </Button>
       </div>

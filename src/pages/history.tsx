@@ -104,13 +104,13 @@ export function HistoryPage() {
   };
 
   return (
-    <div className="page-shell space-y-6">
+    <div className="page-shell space-y-4 md:space-y-6">
       <PageIntro
         eyebrow="History"
         title="Saved plans"
         description={
           <>
-            Open a saved plan and reuse it.
+            Open or reuse a saved plan.
           </>
         }
         meta={
@@ -118,7 +118,7 @@ export function HistoryPage() {
             <div className="page-stat">
               <p className="page-stat-label">Plans</p>
               <p className="page-stat-value">{sortedPlans.length}</p>
-              <p className="page-stat-copy">Newest first.</p>
+              <p className="page-stat-copy">Newest first</p>
             </div>
           </div>
         }
@@ -126,15 +126,17 @@ export function HistoryPage() {
 
       {sortedPlans.length === 0 ? (
         <Card>
-          <CardContent className="text-center py-12">
-              <p className="text-ink-600">No saved plans.</p>
-              <div className="mt-4">
-                <Button onClick={() => navigate('/')}>Planner</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <CardContent className="py-8 text-center md:py-12">
+            <p className="text-ink-600">No saved plans.</p>
+            <div className="mt-4">
+              <Button className="w-full sm:w-auto" onClick={() => navigate('/')}>
+                Planner
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           {sortedPlans.map((plan) => {
             const totalCaloriesPlanned =
               plan.summary.totalCaloriesPlanned ??
@@ -150,49 +152,49 @@ export function HistoryPage() {
 
             return (
               <Card key={plan.id} className="overflow-hidden">
-                <CardContent className="space-y-4 py-5">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="space-y-3">
-                      <p className="section-kicker text-[0.68rem] text-ink-500">
+                <CardContent className="space-y-3 py-3.5 md:space-y-4 md:py-5">
+                  <div className="flex flex-col gap-2.5 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="space-y-2.5 md:space-y-3">
+                      <p className="section-kicker text-[0.66rem] text-ink-500">
                         {formatDate(plan.createdAt)}
                       </p>
                       {plan.title ? (
                         <>
-                          <p className="font-sans text-[1.25rem] font-semibold leading-tight text-ink-900">
+                          <p className="font-sans text-[1rem] font-semibold leading-tight text-ink-900 md:text-[1.25rem]">
                             {plan.title}
                           </p>
-                          <p className="text-sm leading-6 capitalize text-ink-600">
+                          <p className="text-sm leading-5 capitalize text-ink-600 md:leading-6">
                             {formatDuration(plan.rideCharacteristics.durationMinutes)} •{' '}
                             {plan.rideCharacteristics.intensity} ride
                           </p>
                         </>
                       ) : (
-                        <p className="font-sans text-[1.25rem] font-semibold leading-tight capitalize text-ink-900">
+                        <p className="font-sans text-[1rem] font-semibold leading-tight capitalize text-ink-900 md:text-[1.25rem]">
                           {formatDuration(plan.rideCharacteristics.durationMinutes)} •{' '}
                           {plan.rideCharacteristics.intensity} ride
                         </p>
                       )}
-                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                        <div className="surface-note px-4 py-3">
+                      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+                        <div className="surface-note px-3 py-2.5 md:px-4 md:py-3">
                           <p className="page-stat-label">Carbs</p>
                           <p className="font-sans text-[1.05rem] font-semibold leading-none text-brand-700">
                             {plan.summary.totalCarbsPlanned}g
                           </p>
                         </div>
-                        <div className="surface-note px-4 py-3">
+                        <div className="surface-note px-3 py-2.5 md:px-4 md:py-3">
                           <p className="page-stat-label">Calories</p>
                           <p className="font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
                             {totalCaloriesPlanned} kcal
                           </p>
                         </div>
-                        <div className="surface-note px-4 py-3">
+                        <div className="surface-note px-3 py-2.5 md:px-4 md:py-3">
                           <p className="page-stat-label">Hydration</p>
                           <p className="font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
                             {plan.summary.hydrationMl}ml
                           </p>
                         </div>
                         {plan.summary.sodiumMgPerHour !== undefined && (
-                          <div className="surface-note px-4 py-3">
+                          <div className="surface-note px-3 py-2.5 md:px-4 md:py-3">
                             <p className="page-stat-label">Sodium / Hour</p>
                             <p className="font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
                               {plan.summary.sodiumMgPerHour}mg
@@ -201,15 +203,16 @@ export function HistoryPage() {
                         )}
                       </div>
                       {bottleNames && (
-                        <p className="text-sm leading-6 text-ink-600">
+                        <p className="text-sm leading-5 text-ink-600 md:leading-6">
                           Bottles: {bottleNames}
                         </p>
                       )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                    <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center lg:justify-end">
                       <Button
                         variant="secondary"
                         size="sm"
+                        className="col-span-2 w-full md:col-span-1 md:w-auto"
                         onClick={() => handleReusePlan(plan)}
                       >
                         Reuse
@@ -217,6 +220,7 @@ export function HistoryPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="w-full md:w-auto"
                         onClick={() => toggleExpanded(plan.id)}
                       >
                         {isExpanded ? 'Hide details' : 'Details'}
@@ -226,7 +230,7 @@ export function HistoryPage() {
                           variant="danger"
                           size="sm"
                           onClick={() => handleDeletePlan(plan.id)}
-                          className="relative overflow-hidden"
+                          className="relative w-full overflow-hidden md:w-auto"
                         >
                           Confirm?
                           <span className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards]" />
@@ -235,6 +239,7 @@ export function HistoryPage() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="w-full md:w-auto"
                           onClick={() => setConfirmingDeleteId(plan.id)}
                         >
                           Delete
@@ -243,7 +248,7 @@ export function HistoryPage() {
                     </div>
                   </div>
                   {isExpanded && (
-                    <div className="border-t border-[color:var(--border-soft)] pt-4">
+                    <div className="border-t border-[color:var(--border-soft)] pt-3 md:pt-4">
                       <FuelResult
                         plan={planDetails}
                         bottles={bottles}

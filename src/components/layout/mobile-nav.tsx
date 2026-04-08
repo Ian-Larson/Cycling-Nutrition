@@ -2,36 +2,32 @@ import { Link, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 
 const navItems = [
-  { path: '/', label: 'Planner', short: 'Plan' },
-  { path: '/athlete', label: 'Athlete', short: 'Ath' },
-  { path: '/inventory', label: 'Inventory', short: 'Inv' },
-  { path: '/history', label: 'Plans', short: 'Plans' },
-  { path: '/settings', label: 'Settings', short: 'Set' },
+  { path: '/', label: 'Plan' },
+  { path: '/athlete', label: 'Athlete' },
+  { path: '/inventory', label: 'Kit' },
+  { path: '/history', label: 'Plans' },
+  { path: '/settings', label: 'Prefs' },
 ];
 
 export function MobileNav() {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-[color:var(--border-soft)] bg-shell-50/96 backdrop-blur md:hidden pb-safe">
-      <div className="mx-auto grid max-w-6xl grid-cols-5 gap-1 px-3 py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-[color:var(--border-soft)] bg-shell-50/96 backdrop-blur md:hidden">
+      <div className="mx-auto grid max-w-6xl grid-cols-5 gap-1.5 px-3 pt-1.5 [padding-bottom:calc(var(--safe-area-bottom)+0.5rem)]">
         {navItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
+            aria-current={location.pathname === item.path ? 'page' : undefined}
             className={clsx(
-              'rounded-xl px-2 py-2.5 text-center transition-colors',
+              'flex min-h-12 items-center justify-center rounded-[1rem] px-1.5 text-center text-[0.72rem] font-medium leading-none transition-colors',
               location.pathname === item.path
-                ? 'bg-brand-100 text-brand-900'
-                : 'text-ink-500'
+                ? 'bg-white text-brand-900 shadow-[var(--shadow-soft)]'
+                : 'text-ink-600'
             )}
           >
-            <span className="block text-[0.7rem] font-medium opacity-75">
-              {item.short}
-            </span>
-            <span className="mt-1 block truncate text-[0.72rem] font-medium">
-              {item.label}
-            </span>
+            <span className="block truncate">{item.label}</span>
           </Link>
         ))}
       </div>

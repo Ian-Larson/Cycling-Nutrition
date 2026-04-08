@@ -40,6 +40,14 @@
     --border-soft: color-mix(in srgb, var(--color-shell-300) 72%, var(--color-brand-100));
     --border-strong: color-mix(in srgb, var(--color-shell-300) 46%, var(--color-brand-300));
     --shadow-soft: 0 8px 24px -18px rgb(34 43 51 / 0.18);
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --mobile-nav-height: 4.5rem;
+    --mobile-nav-offset: calc(var(--mobile-nav-height) + var(--safe-area-bottom));
+    --mobile-cta-height: 4.5rem;
+    --mobile-toast-offset: calc(
+      var(--mobile-nav-offset) + var(--mobile-cta-height) + 0.75rem
+    );
   }
 
   html {
@@ -103,15 +111,22 @@
 @layer components {
   .app-shell {
     background: var(--color-shell-100);
+    padding-bottom: var(--mobile-nav-offset);
   }
 
   .page-shell {
-    @apply mx-auto max-w-5xl px-4 pt-5 pb-32 md:px-6 md:pt-6;
+    @apply mx-auto max-w-5xl px-4;
+    padding-top: 0.95rem;
+    padding-bottom: calc(var(--mobile-nav-offset) + 1rem);
+  }
+
+  .page-shell--planner {
+    padding-bottom: calc(var(--mobile-nav-offset) + var(--mobile-cta-height) + 1rem);
   }
 
   .page-intro {
     border-bottom: 1px solid var(--border-soft);
-    padding-bottom: 1rem;
+    padding-bottom: 0.75rem;
   }
 
   .page-intro-grid {
@@ -196,5 +211,86 @@
     border: 1px solid var(--border-soft);
     border-radius: 1rem;
     background: var(--surface-panel);
+  }
+
+  @media (min-width: 768px) {
+    .app-shell {
+      padding-bottom: 0;
+    }
+
+    .page-shell,
+    .page-shell--planner {
+      padding-top: 1.5rem;
+      padding-bottom: 8rem;
+      padding-inline: 1.5rem;
+    }
+
+    .page-intro {
+      padding-bottom: 1rem;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .page-intro .section-kicker {
+      display: none;
+    }
+
+    .page-intro-grid {
+      gap: 0.625rem;
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+      line-height: 1.04;
+      max-width: none;
+    }
+
+    .page-summary {
+      max-width: 34ch;
+      line-height: 1.35;
+    }
+
+    .page-stat-grid {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(8rem, 78%);
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.125rem;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .page-stat-grid::-webkit-scrollbar {
+      display: none;
+    }
+
+    .page-stat {
+      min-width: 0;
+      padding: 0.7rem 0.8rem;
+      box-shadow: none;
+      scroll-snap-align: start;
+    }
+
+    .page-stat-value {
+      font-size: 1rem;
+    }
+
+    .page-stat-copy {
+      line-height: 1.2;
+    }
+
+    .section-title {
+      font-size: 1rem;
+    }
+
+    .section-copy {
+      line-height: 1.35;
+    }
+
+    .surface-note {
+      border-radius: 0.95rem;
+    }
   }
 }
