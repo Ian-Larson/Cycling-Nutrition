@@ -34,8 +34,8 @@ export function ProductCard({
 
   return (
     <Card className={clsx('overflow-hidden', !product.isAvailable && 'opacity-70')}>
-      <CardContent className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-start md:justify-between md:px-5 md:py-5">
-        <div className="space-y-2">
+      <CardContent className="flex flex-col gap-2.5 px-4 py-3.5 md:flex-row md:items-start md:justify-between md:px-5 md:py-5">
+        <div className="space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-semibold text-ink-900">{product.name}</h3>
             <span className="rounded-full bg-shell-100 px-2.5 py-1 text-xs font-medium text-ink-600">
@@ -43,24 +43,23 @@ export function ProductCard({
             </span>
           </div>
           {product.brand && (
-            <p className="text-sm leading-6 text-ink-600">{product.brand}</p>
+            <p className="text-sm leading-5 text-ink-600 md:leading-6">
+              {product.brand}
+            </p>
           )}
-          <p className="text-sm leading-6 text-ink-700">
+          <p className="text-sm leading-5 text-ink-700 md:leading-6">
             {product.nutrition.carbsGrams}g carbs • {product.nutrition.calories} kcal
             {product.serving.servingSizeGrams &&
               ` per ${product.serving.servingSizeGrams}g serving`}
           </p>
         </div>
         <div className="flex flex-col gap-2 md:items-end">
-          <div className="flex w-full items-center justify-between gap-3 rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] px-3 py-2 md:w-auto md:justify-start">
+          <div className="flex w-full justify-end rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] px-2.5 py-1.5 md:w-auto">
             <Toggle
               checked={product.isAvailable}
               onChange={onToggleAvailable}
-              label="Set availability"
+              label={`Use ${product.name} in planning`}
             />
-            <span className="text-sm font-semibold text-ink-600">
-              {product.isAvailable ? 'Available' : 'Unavailable'}
-            </span>
           </div>
           <div className="flex w-full gap-2 md:w-auto md:justify-end">
             <Button variant="ghost" size="sm" onClick={onEdit} className="flex-1 md:flex-none">

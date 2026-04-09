@@ -26,21 +26,20 @@ export function BottleCard({
 
   return (
     <Card className={clsx('overflow-hidden', !bottle.isAvailable && 'opacity-70')}>
-      <CardContent className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-start md:justify-between md:px-5 md:py-5">
-        <div className="space-y-2">
+      <CardContent className="flex flex-col gap-2.5 px-4 py-3.5 md:flex-row md:items-start md:justify-between md:px-5 md:py-5">
+        <div className="space-y-1.5">
           <h3 className="font-semibold text-ink-900">{bottle.name}</h3>
-          <p className="text-sm leading-6 text-ink-600">{bottle.capacityMl}ml</p>
+          <p className="text-sm leading-5 text-ink-600 md:leading-6">
+            {bottle.capacityMl}ml
+          </p>
         </div>
         <div className="flex flex-col gap-2 md:items-end">
-          <div className="flex w-full items-center justify-between gap-3 rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] px-3 py-2 md:w-auto md:justify-start">
+          <div className="flex w-full justify-end rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] px-2.5 py-1.5 md:w-auto">
             <Toggle
               checked={bottle.isAvailable}
               onChange={onToggleAvailable}
-              label="Set availability"
+              label={`Use ${bottle.name} in planning`}
             />
-            <span className="text-sm font-semibold text-ink-600">
-              {bottle.isAvailable ? 'Available' : 'Unavailable'}
-            </span>
           </div>
           <div className="flex w-full gap-2 md:w-auto md:justify-end">
             <Button variant="ghost" size="sm" onClick={onEdit} className="flex-1 md:flex-none">
