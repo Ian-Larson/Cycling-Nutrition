@@ -74,26 +74,6 @@ export function AthletePage() {
   const [searchParams] = useSearchParams();
   const athleteProfile = useStore((s) => s.settings.athleteProfile);
   const updateAthleteProfile = useStore((s) => s.updateAthleteProfile);
-  const profileCompletionPercent = useMemo(() => {
-    const checks = [
-      typeof athleteProfile.ftpWatts === 'number' && athleteProfile.ftpWatts > 0,
-      typeof athleteProfile.weightKg === 'number' && athleteProfile.weightKg > 0,
-      typeof athleteProfile.age === 'number' && athleteProfile.age > 0,
-      typeof athleteProfile.sweatRateLph === 'number' && athleteProfile.sweatRateLph > 0,
-      typeof athleteProfile.gutTrainingTargetGph === 'number' &&
-        athleteProfile.gutTrainingTargetGph >= 50 &&
-        athleteProfile.gutTrainingTargetGph <= 110,
-    ];
-    const completed = checks.filter(Boolean).length;
-    return Math.round((completed / checks.length) * 100);
-  }, [
-    athleteProfile.age,
-    athleteProfile.ftpWatts,
-    athleteProfile.gutTrainingTargetGph,
-    athleteProfile.sweatRateLph,
-    athleteProfile.weightKg,
-  ]);
-
   const stravaProvider = useMemo(() => createStravaProvider(), []);
   const [authStatus, setAuthStatus] = useState<AuthStatus>(
     stravaProvider.isConfigured() ? 'disconnected' : 'not_configured'
@@ -336,7 +316,7 @@ export function AthletePage() {
         title="Athlete"
         description={
           <>
-            Auto mode inputs.
+            FTP, weight, and fuel targets.
           </>
         }
         actions={
@@ -346,30 +326,6 @@ export function AthletePage() {
           >
             Back to planner
           </Link>
-        }
-        meta={
-          <div className="page-stat-grid">
-            <div className="page-stat">
-              <p className="page-stat-label">Completion</p>
-              <p className="page-stat-value">{profileCompletionPercent}%</p>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-shell-200">
-                <div
-                  className="h-full rounded-full bg-brand-400 transition-all"
-                  style={{ width: `${profileCompletionPercent}%` }}
-                />
-              </div>
-            </div>
-            <div className="page-stat">
-              <p className="page-stat-label">W / Kg</p>
-              <p className="page-stat-value">{wKg ?? '--'}</p>
-              <p className="page-stat-copy">From FTP and weight</p>
-            </div>
-            <div className="page-stat">
-              <p className="page-stat-label">Gut Target</p>
-              <p className="page-stat-value">{gutTrainingTargetGph}g</p>
-              <p className="page-stat-copy">{getGutTargetLabel(gutTrainingTargetGph)}</p>
-            </div>
-          </div>
         }
       />
 
@@ -408,7 +364,6 @@ export function AthletePage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-2.5 md:space-y-3">
-          <p className="section-copy hidden md:block">FTP and weight drive auto mode.</p>
           <div className="grid gap-2.5 sm:grid-cols-2 md:gap-3">
             <Input
               id="athlete-name"
@@ -460,7 +415,8 @@ export function AthletePage() {
             />
           </div>
           <p className="text-sm leading-5 text-ink-600 md:leading-6">
-            W/kg: <span className="font-semibold text-ink-900">{wKg ?? '--'}</span>
+            Current W/kg:{' '}
+            <span className="font-semibold text-ink-900">{wKg ?? '--'}</span>
           </p>
         </CardContent>
       </Card>

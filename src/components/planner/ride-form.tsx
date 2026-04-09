@@ -752,13 +752,13 @@ export function RideForm({
                   <span className="capitalize">{autoPreview.result.intensity}</span>
                   <span>Carbs:</span>
                   <span>{autoPreview.result.carbTargetGramsPerHour}g/h</span>
-                  <span>Carb Baseline:</span>
+                  <span>Carb baseline:</span>
                   <span>
                     {previewAutoMetrics.baselineAutoCarbTargetGph ??
                       autoPreview.result.carbTargetGramsPerHour}
                     g/h
                   </span>
-                  <span>Gut Target:</span>
+                  <span>Gut target:</span>
                   <span>
                     {previewAutoMetrics.gutTrainingTargetGph ??
                       athleteProfile.gutTrainingTargetGph}

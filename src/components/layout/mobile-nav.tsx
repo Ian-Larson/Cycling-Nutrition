@@ -6,7 +6,7 @@ const navItems = [
   { path: '/athlete', label: 'Athlete' },
   { path: '/inventory', label: 'Inventory' },
   { path: '/history', label: 'Plans' },
-  { path: '/settings', label: 'Prefs' },
+  { path: '/settings', label: 'Settings' },
 ];
 
 export function MobileNav() {

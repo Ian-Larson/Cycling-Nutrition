@@ -166,7 +166,7 @@ function getDefaultSelectedSolidIds(
 
 const STEP_LABELS: Array<{ step: PlannerStep; label: string }> = [
   { step: 1, label: 'Setup' },
-  { step: 2, label: 'Ride' },
+  { step: 2, label: 'Ride data' },
   { step: 3, label: 'Plan' },
 ];
 

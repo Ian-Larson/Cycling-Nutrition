@@ -114,17 +114,8 @@ export function HistoryPage() {
         title="Saved plans"
         description={
           <>
-            Open or reuse a saved plan.
+            Reuse a saved plan.
           </>
-        }
-        meta={
-          <div className="page-stat-grid">
-            <div className="page-stat">
-              <p className="page-stat-label">Plans</p>
-              <p className="page-stat-value">{sortedPlans.length}</p>
-              <p className="page-stat-copy">Newest first</p>
-            </div>
-          </div>
         }
       />
 

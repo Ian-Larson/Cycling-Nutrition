@@ -7,10 +7,11 @@ interface ProductFormProps {
   onCancel: () => void;
   onDelete?: () => void;
   initialData?: Product;
+  submitLabel?: string;
 }
 
 const typeOptions = [
-  { value: 'drink_mix', label: 'Drink Mix' },
+  { value: 'drink_mix', label: 'Drink mix' },
   { value: 'gel', label: 'Gel' },
   { value: 'chews', label: 'Chews' },
   { value: 'bar', label: 'Bar' },
@@ -22,6 +23,7 @@ export function ProductForm({
   onCancel,
   onDelete,
   initialData,
+  submitLabel,
 }: ProductFormProps) {
   const [name, setName] = useState(initialData?.name ?? '');
   const [brand, setBrand] = useState(initialData?.brand ?? '');
@@ -78,7 +80,7 @@ export function ProductForm({
     <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
         <Input
-          label="Product Name"
+          label="Fuel name"
           placeholder="e.g., Maurten 320"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -168,21 +170,21 @@ export function ProductForm({
 
       <div className="surface-note flex items-center justify-between gap-3 px-3.5 py-3 md:px-4">
         <div>
-          <p className="font-semibold text-ink-900">Available now</p>
+          <p className="font-semibold text-ink-900">Available</p>
           <p className="text-sm leading-5 text-ink-600 md:leading-6">
-            Use this product in planner recommendations.
+            Use this fuel in planning.
           </p>
         </div>
         <Toggle
           checked={isAvailable}
           onChange={setIsAvailable}
-          label="Product availability"
+          label="Fuel availability"
         />
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button type="submit" className="w-full sm:w-auto">
-          {initialData ? 'Save' : 'Add product'}
+          {submitLabel ?? (initialData ? 'Save' : 'Add fuel')}
         </Button>
         <Button
           type="button"

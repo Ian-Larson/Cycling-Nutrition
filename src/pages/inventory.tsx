@@ -8,41 +8,6 @@ import { ProductCard } from '@/components/products/product-card';
 import { ProductForm } from '@/components/products/product-form';
 import type { Bottle, Product } from '@/types';
 
-const QUICK_BOTTLE_TEMPLATES: Array<{ name: string; capacityMl: number }> = [
-  { name: '550ml Small', capacityMl: 550 },
-  { name: '750ml Standard', capacityMl: 750 },
-  { name: '950ml Large', capacityMl: 950 },
-];
-
-const QUICK_PRODUCT_TEMPLATES: Array<
-  Omit<Product, 'id' | 'createdAt' | 'updatedAt'>
-> = [
-  {
-    name: 'Maurten 320',
-    brand: 'Maurten',
-    type: 'drink_mix',
-    isAvailable: true,
-    nutrition: { carbsGrams: 80, calories: 320 },
-    serving: { servingSizeGrams: 80, servingSizeMl: 500, scoopSizeGrams: 40 },
-  },
-  {
-    name: 'PF 30 Gel',
-    brand: 'Precision Fuel & Hydration',
-    type: 'gel',
-    isAvailable: true,
-    nutrition: { carbsGrams: 30, calories: 120 },
-    serving: {},
-  },
-  {
-    name: 'Clif Bloks',
-    brand: 'Clif',
-    type: 'chews',
-    isAvailable: true,
-    nutrition: { carbsGrams: 24, calories: 100 },
-    serving: {},
-  },
-];
-
 const PRODUCT_TYPE_LABELS: Record<Product['type'], string> = {
   drink_mix: 'Drink mix',
   gel: 'Gel',
@@ -130,20 +95,6 @@ export function InventoryPage() {
 
   const availableBottleCount = bottles.filter((bottle) => bottle.isAvailable).length;
   const availableProductCount = products.filter((product) => product.isAvailable).length;
-
-  const quickAddBottle = (template: { name: string; capacityMl: number }) => {
-    addBottle({ ...template, isAvailable: true });
-    setShowBottleForm(false);
-    setEditingBottleId(null);
-  };
-
-  const quickAddProduct = (
-    template: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>
-  ) => {
-    addProduct(template);
-    setShowProductForm(false);
-    setEditingProduct(null);
-  };
 
   const visibleMobileBottles = sortedBottles.filter(
     (bottle) => bottle.id !== editingBottleId
@@ -238,29 +189,8 @@ export function InventoryPage() {
         title="Inventory"
         description={
           <>
-            Bottles and fuel.
+            Manage bottles and fuel.
           </>
-        }
-        meta={
-          <div className="page-stat-grid">
-            <div className="page-stat">
-              <p className="page-stat-label">Bottles</p>
-              <p className="page-stat-value">{availableBottleCount}</p>
-              <p className="page-stat-copy">{bottles.length} saved</p>
-            </div>
-            <div className="page-stat">
-              <p className="page-stat-label">Products</p>
-              <p className="page-stat-value">{availableProductCount}</p>
-              <p className="page-stat-copy">{products.length} saved</p>
-            </div>
-            <div className="page-stat">
-              <p className="page-stat-label">Quick add</p>
-              <p className="page-stat-value">
-                {QUICK_BOTTLE_TEMPLATES.length + QUICK_PRODUCT_TEMPLATES.length}
-              </p>
-              <p className="page-stat-copy">Common items</p>
-            </div>
-          </div>
         }
       />
 
@@ -270,10 +200,8 @@ export function InventoryPage() {
           <div>
             <h2 className="section-title text-lg">Bottles</h2>
             <p className="section-copy">
-              <span className="font-semibold text-brand-700">
-                {availableBottleCount}
-              </span>
-              /{bottles.length || 0} available today
+              <span className="font-semibold text-brand-700">{availableBottleCount}</span>{' '}
+              of {bottles.length || 0} available
             </p>
           </div>
           <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:items-center">
@@ -297,32 +225,16 @@ export function InventoryPage() {
                   setShowBottleForm(true);
                 }}
               >
-                New bottle
+                Add bottle
               </Button>
             )}
-          </div>
-        </div>
-
-        <div className="mb-2.5 rounded-[1.05rem] border border-brand-100 bg-brand-50/45 p-3 md:mb-3 md:p-4">
-          <p className="mb-2 text-sm font-medium text-brand-800">Quick add</p>
-          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
-            {QUICK_BOTTLE_TEMPLATES.map((template) => (
-              <button
-                key={template.name}
-                type="button"
-                onClick={() => quickAddBottle(template)}
-                className="min-h-10 shrink-0 rounded-full border border-brand-100 bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-brand-50 md:min-h-0"
-              >
-                {template.name}
-              </button>
-            ))}
           </div>
         </div>
 
         {showBottleForm && (
           <Card className="mb-2.5 md:mb-3">
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-              <h3 className="section-title text-lg">New bottle</h3>
+              <h3 className="section-title text-lg">Add bottle</h3>
             </CardHeader>
             <CardContent>
               <BottleForm
@@ -338,7 +250,7 @@ export function InventoryPage() {
             <CardContent className="py-5 text-center md:py-6">
               <p className="mb-4 text-ink-600">No bottles added yet.</p>
               <Button className="w-full sm:w-auto" onClick={() => setShowBottleForm(true)}>
-                New bottle
+                Add bottle
               </Button>
             </CardContent>
           </Card>
@@ -401,50 +313,33 @@ export function InventoryPage() {
         )}
       </section>
 
-      {/* Products Section */}
+      {/* Fuel Section */}
       <section>
         <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3 md:mb-4">
           <div>
-            <h2 className="section-title text-lg">Products</h2>
+            <h2 className="section-title text-lg">Fuel</h2>
             <p className="section-copy">
-              <span className="font-semibold text-brand-700">
-                {availableProductCount}
-              </span>
-              /{products.length || 0} available today
+              <span className="font-semibold text-brand-700">{availableProductCount}</span>{' '}
+              of {products.length || 0} available
             </p>
           </div>
           {!showProductForm && !editingProduct && (
             <Button size="sm" className="w-full md:w-auto" onClick={() => setShowProductForm(true)}>
-              New product
+              Add fuel
             </Button>
           )}
-        </div>
-
-        <div className="mb-2.5 rounded-[1.05rem] border border-brand-100 bg-brand-50/45 p-3 md:mb-3 md:p-4">
-          <p className="mb-2 text-sm font-medium text-brand-800">Quick add</p>
-          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
-            {QUICK_PRODUCT_TEMPLATES.map((template) => (
-              <button
-                key={template.name}
-                type="button"
-                onClick={() => quickAddProduct(template)}
-                className="min-h-10 shrink-0 rounded-full border border-brand-100 bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-brand-50 md:min-h-0"
-              >
-                {template.name}
-              </button>
-            ))}
-          </div>
         </div>
 
         {showProductForm && (
           <Card className="mb-2.5 md:mb-3">
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-              <h3 className="section-title text-lg">New product</h3>
+              <h3 className="section-title text-lg">Add fuel</h3>
             </CardHeader>
             <CardContent>
               <ProductForm
                 onSubmit={handleAddProduct}
                 onCancel={() => setShowProductForm(false)}
+                submitLabel="Add fuel"
               />
             </CardContent>
           </Card>
@@ -470,10 +365,10 @@ export function InventoryPage() {
         )}
 
         {products.length > 0 && (
-          <div className="mb-2.5 rounded-[1.05rem] border border-brand-100 bg-brand-50/35 p-3 md:mb-3 md:p-4">
+          <div className="mb-2.5 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-3 md:mb-3 md:p-4">
             <div className="space-y-2.5">
               <div className="space-y-1.5">
-                <p className="section-kicker text-[0.68rem] text-brand-800">Type</p>
+                <p className="section-kicker text-[0.68rem]">Type</p>
                 <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:px-0">
                   {typeFilters.map((filter) => (
                     <button
@@ -491,9 +386,7 @@ export function InventoryPage() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <p className="section-kicker text-[0.68rem] text-brand-800">
-                  Availability
-                </p>
+                <p className="section-kicker text-[0.68rem]">Availability</p>
                 <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:px-0">
                   {(['all', 'available', 'unavailable'] as const).map((value) => (
                     <button
@@ -521,9 +414,9 @@ export function InventoryPage() {
         {products.length === 0 && !showProductForm ? (
           <Card>
             <CardContent className="py-5 text-center md:py-6">
-              <p className="mb-4 text-ink-600">No products added yet.</p>
+              <p className="mb-4 text-ink-600">No fuel added yet.</p>
               <Button className="w-full sm:w-auto" onClick={() => setShowProductForm(true)}>
-                New product
+                Add fuel
               </Button>
             </CardContent>
           </Card>
@@ -544,7 +437,7 @@ export function InventoryPage() {
               )}
               {visibleMobileProducts.length === 0 && products.length > 0 && (
                 <p className="py-5 text-center text-ink-500">
-                  No products match these filters.
+                  No fuel matches these filters.
                 </p>
               )}
             </div>
@@ -565,7 +458,7 @@ export function InventoryPage() {
               ))}
               {availabilityFilteredProducts.length === 0 && products.length > 0 && (
                 <p className="py-6 text-center text-ink-500">
-                  No products match these filters.
+                  No fuel matches these filters.
                 </p>
               )}
             </div>

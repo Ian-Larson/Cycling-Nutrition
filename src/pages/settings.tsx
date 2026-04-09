@@ -23,17 +23,6 @@ export function SettingsPage() {
             App defaults.
           </>
         }
-        meta={
-          <div className="page-stat-grid">
-            <div className="page-stat">
-              <p className="page-stat-label">Temperature</p>
-              <p className="page-stat-value">
-                {settings.temperatureUnit === 'celsius' ? '°C' : '°F'}
-              </p>
-              <p className="page-stat-copy">Used in weather labels.</p>
-            </div>
-          </div>
-        }
       />
 
       <Card className="overflow-hidden">

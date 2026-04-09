@@ -11,7 +11,7 @@ interface ProductCardProps {
 }
 
 const typeLabels: Record<Product['type'], string> = {
-  drink_mix: 'Drink Mix',
+  drink_mix: 'Drink mix',
   gel: 'Gel',
   chews: 'Chews',
   bar: 'Bar',
