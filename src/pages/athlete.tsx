@@ -310,7 +310,7 @@ export function AthletePage() {
   };
 
   return (
-    <div className="page-shell space-y-4 md:space-y-5">
+    <div className="page-shell max-w-6xl space-y-4 md:space-y-6">
       <PageIntro
         eyebrow="Athlete"
         title="Athlete"
@@ -329,214 +329,232 @@ export function AthletePage() {
         }
       />
 
-      <Card className="overflow-hidden">
-        <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-            <div>
-              <h2 className="section-title text-lg">Profile</h2>
-            </div>
-            <div className="inline-flex w-full rounded-full border border-[color:var(--border-soft)] bg-white p-1 sm:w-auto">
-              <button
-                type="button"
-                onClick={() => handleAnthropometricsUnitChange('metric')}
-                className={clsx(
-                  'flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors sm:flex-none',
-                  anthropometricsUnit === 'metric'
-                    ? 'bg-brand-100 text-brand-800'
-                    : 'text-ink-700 hover:bg-shell-50'
-                )}
+      <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1.16fr)_minmax(19rem,0.84fr)] lg:items-start lg:gap-6 lg:space-y-0">
+        <div className="space-y-4">
+          <Card className="overflow-hidden">
+            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
+              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="section-title text-lg">Profile</h2>
+                </div>
+                <div className="inline-flex w-full rounded-full border border-[color:var(--border-soft)] bg-white p-1 sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => handleAnthropometricsUnitChange('metric')}
+                    className={clsx(
+                      'flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors sm:flex-none',
+                      anthropometricsUnit === 'metric'
+                        ? 'bg-brand-100 text-brand-800'
+                        : 'text-ink-700 hover:bg-shell-50'
+                    )}
+                  >
+                    Metric
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAnthropometricsUnitChange('imperial')}
+                    className={clsx(
+                      'flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors sm:flex-none',
+                      anthropometricsUnit === 'imperial'
+                        ? 'bg-brand-100 text-brand-800'
+                        : 'text-ink-700 hover:bg-shell-50'
+                    )}
+                  >
+                    Imperial
+                  </button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3 md:space-y-4">
+              <div className="grid gap-2.5 sm:grid-cols-2 md:gap-3">
+                <Input
+                  id="athlete-name"
+                  label="Name"
+                  value={athleteProfile.name ?? ''}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    updateAthleteProfile({
+                      name: nextValue.trim().length > 0 ? nextValue : undefined,
+                    });
+                  }}
+                  placeholder="e.g., Ian"
+                />
+                <Input
+                  id="athlete-age"
+                  label="Age"
+                  type="text"
+                  inputMode="numeric"
+                  value={ageDraft}
+                  onChange={(event) => setAgeDraft(event.target.value)}
+                  onBlur={commitAgeDraft}
+                  onKeyDown={blurOnEnter}
+                  placeholder="e.g., 34"
+                  error={fieldErrors.age}
+                />
+                <Input
+                  id="athlete-ftp"
+                  label="FTP (watts)"
+                  type="text"
+                  inputMode="numeric"
+                  value={ftpDraft}
+                  onChange={(event) => setFtpDraft(event.target.value)}
+                  onBlur={commitFtpDraft}
+                  onKeyDown={blurOnEnter}
+                  placeholder="e.g., 280"
+                  error={fieldErrors.ftpWatts}
+                />
+                <Input
+                  id="athlete-weight"
+                  label={anthropometricsUnit === 'imperial' ? 'Weight (lb)' : 'Weight (kg)'}
+                  type="text"
+                  inputMode="decimal"
+                  value={weightDraft}
+                  onChange={(event) => setWeightDraft(event.target.value)}
+                  onBlur={commitWeightDraft}
+                  onKeyDown={blurOnEnter}
+                  placeholder={anthropometricsUnit === 'imperial' ? 'e.g., 160' : 'e.g., 72'}
+                  error={fieldErrors.weightKg}
+                />
+              </div>
+
+              <div className="surface-note flex flex-wrap items-center justify-between gap-3 px-3.5 py-3 md:px-4">
+                <div>
+                  <p className="page-stat-label">Current W/kg</p>
+                  <p className="mt-1 font-sans text-[1.02rem] font-semibold leading-none text-ink-900">
+                    {wKg ?? '--'}
+                  </p>
+                </div>
+                <p className="hidden text-sm leading-6 text-ink-600 sm:block">
+                  From FTP and weight
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden">
+            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
+              <h2 className="section-title text-lg">Fuel and hydration</h2>
+            </CardHeader>
+            <CardContent className="space-y-3 md:space-y-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(15rem,0.9fr)] lg:gap-4 lg:space-y-0">
+              <div className="space-y-3 md:space-y-4">
+                <div className="grid gap-2.5 sm:grid-cols-2 md:gap-3">
+                  <Input
+                    id="athlete-gut-target"
+                    label="Gut Training Target (g/h)"
+                    type="text"
+                    inputMode="numeric"
+                    value={gutTargetDraft}
+                    onChange={(event) => setGutTargetDraft(event.target.value)}
+                    onBlur={commitGutTargetDraft}
+                    onKeyDown={blurOnEnter}
+                    placeholder="e.g., 75"
+                    error={fieldErrors.gutTrainingTargetGph}
+                  />
+                  <Input
+                    id="athlete-sweat-rate"
+                    label="Sweat Rate (L/hour)"
+                    type="text"
+                    inputMode="decimal"
+                    value={sweatRateDraft}
+                    onChange={(event) => setSweatRateDraft(event.target.value)}
+                    onBlur={commitSweatRateDraft}
+                    onKeyDown={blurOnEnter}
+                    placeholder="Optional, e.g., 0.9"
+                    error={fieldErrors.sweatRateLph}
+                  />
+                </div>
+
+                <div className="surface-note flex items-center justify-between gap-3 p-3 md:p-4">
+                  <div>
+                    <p className="font-semibold text-ink-900">Heavy sweater</p>
+                    <p className="hidden text-sm leading-6 text-ink-600 md:block">
+                      Raises sodium in auto mode.
+                    </p>
+                  </div>
+                  <Toggle
+                    checked={athleteProfile.heavySweater}
+                    onChange={(checked) =>
+                      updateAthleteProfile({ heavySweater: checked })
+                    }
+                    label="Heavy sweater"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-1.5 md:space-y-2">
+                  <p className="section-kicker text-[0.68rem]">Presets</p>
+                  <PresetButtons
+                    options={GUT_TARGET_PRESETS.map((target) => ({
+                      label: `${target} g/h`,
+                      value: target,
+                    }))}
+                    value={gutTrainingTargetGph}
+                    onChange={applyGutTargetPreset}
+                  />
+                </div>
+
+                <p className="text-sm leading-5 text-ink-600 md:leading-6">
+                  {getGutTargetLabel(gutTrainingTargetGph)}. Auto stays near this value when effort allows.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="overflow-hidden lg:sticky lg:top-20">
+          <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
+            <h2 className="section-title text-lg">Connections</h2>
+          </CardHeader>
+          <CardContent className="space-y-3 md:space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-ink-900">Strava</span>
+              <span
+                className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                  authStatus === 'not_configured'
+                    ? 'bg-amber-100 text-amber-800'
+                    : authStatus === 'pending'
+                      ? 'bg-blue-100 text-blue-800'
+                      : authStatus === 'error'
+                        ? 'bg-red-100 text-red-800'
+                        : authStatus === 'connected'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-gray-100 text-gray-700'
+                }`}
               >
-                Metric
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAnthropometricsUnitChange('imperial')}
-                className={clsx(
-                  'flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors sm:flex-none',
-                  anthropometricsUnit === 'imperial'
-                    ? 'bg-brand-100 text-brand-800'
-                    : 'text-ink-700 hover:bg-shell-50'
-                )}
-              >
-                Imperial
-              </button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2.5 md:space-y-3">
-          <div className="grid gap-2.5 sm:grid-cols-2 md:gap-3">
-            <Input
-              id="athlete-name"
-              label="Name"
-              value={athleteProfile.name ?? ''}
-              onChange={(event) => {
-                const nextValue = event.target.value;
-                updateAthleteProfile({
-                  name: nextValue.trim().length > 0 ? nextValue : undefined,
-                });
-              }}
-              placeholder="e.g., Ian"
-            />
-            <Input
-              id="athlete-age"
-              label="Age"
-              type="text"
-              inputMode="numeric"
-              value={ageDraft}
-              onChange={(event) => setAgeDraft(event.target.value)}
-              onBlur={commitAgeDraft}
-              onKeyDown={blurOnEnter}
-              placeholder="e.g., 34"
-              error={fieldErrors.age}
-            />
-            <Input
-              id="athlete-ftp"
-              label="FTP (watts)"
-              type="text"
-              inputMode="numeric"
-              value={ftpDraft}
-              onChange={(event) => setFtpDraft(event.target.value)}
-              onBlur={commitFtpDraft}
-              onKeyDown={blurOnEnter}
-              placeholder="e.g., 280"
-              error={fieldErrors.ftpWatts}
-            />
-            <Input
-              id="athlete-weight"
-              label={anthropometricsUnit === 'imperial' ? 'Weight (lb)' : 'Weight (kg)'}
-              type="text"
-              inputMode="decimal"
-              value={weightDraft}
-              onChange={(event) => setWeightDraft(event.target.value)}
-              onBlur={commitWeightDraft}
-              onKeyDown={blurOnEnter}
-              placeholder={anthropometricsUnit === 'imperial' ? 'e.g., 160' : 'e.g., 72'}
-              error={fieldErrors.weightKg}
-            />
-          </div>
-          <p className="text-sm leading-5 text-ink-600 md:leading-6">
-            Current W/kg:{' '}
-            <span className="font-semibold text-ink-900">{wKg ?? '--'}</span>
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="overflow-hidden">
-        <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-          <h2 className="section-title text-lg">Fuel and hydration</h2>
-        </CardHeader>
-        <CardContent className="space-y-2.5 md:space-y-3">
-          <div className="grid gap-2.5 sm:grid-cols-2 md:gap-3">
-            <Input
-              id="athlete-gut-target"
-              label="Gut Training Target (g/h)"
-              type="text"
-              inputMode="numeric"
-              value={gutTargetDraft}
-              onChange={(event) => setGutTargetDraft(event.target.value)}
-              onBlur={commitGutTargetDraft}
-              onKeyDown={blurOnEnter}
-              placeholder="e.g., 75"
-              error={fieldErrors.gutTrainingTargetGph}
-            />
-            <Input
-              id="athlete-sweat-rate"
-              label="Sweat Rate (L/hour)"
-              type="text"
-              inputMode="decimal"
-              value={sweatRateDraft}
-              onChange={(event) => setSweatRateDraft(event.target.value)}
-              onBlur={commitSweatRateDraft}
-              onKeyDown={blurOnEnter}
-              placeholder="Optional, e.g., 0.9"
-              error={fieldErrors.sweatRateLph}
-            />
-          </div>
-
-          <div className="space-y-1.5 md:space-y-2">
-            <p className="section-kicker text-[0.68rem]">Presets</p>
-            <PresetButtons
-              options={GUT_TARGET_PRESETS.map((target) => ({
-                label: `${target} g/h`,
-                value: target,
-              }))}
-              value={gutTrainingTargetGph}
-              onChange={applyGutTargetPreset}
-            />
-          </div>
-
-          <p className="hidden text-sm leading-6 text-ink-600 md:block">
-            {getGutTargetLabel(gutTrainingTargetGph)}. Auto stays near this value when effort allows.
-          </p>
-
-          <div className="surface-note flex items-center justify-between gap-3 p-3 md:p-4">
-            <div>
-              <p className="font-semibold text-ink-900">Heavy sweater</p>
-              <p className="hidden text-sm leading-6 text-ink-600 md:block">
-                Raises sodium in auto mode.
-              </p>
-            </div>
-            <Toggle
-              checked={athleteProfile.heavySweater}
-              onChange={(checked) =>
-                updateAthleteProfile({ heavySweater: checked })
-              }
-              label="Heavy sweater"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="overflow-hidden">
-        <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-          <h2 className="section-title text-lg">Connections</h2>
-        </CardHeader>
-        <CardContent className="space-y-2.5 md:space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-ink-900">Strava</span>
-            <span
-              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                authStatus === 'not_configured'
-                  ? 'bg-amber-100 text-amber-800'
+                {authStatus === 'not_configured'
+                  ? 'Not configured'
                   : authStatus === 'pending'
-                    ? 'bg-blue-100 text-blue-800'
+                    ? 'Connecting'
                     : authStatus === 'error'
-                      ? 'bg-red-100 text-red-800'
+                      ? 'Error'
                       : authStatus === 'connected'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-gray-100 text-gray-700'
-              }`}
-            >
-              {authStatus === 'not_configured'
-                ? 'Not configured'
-                : authStatus === 'pending'
-                  ? 'Connecting'
-                  : authStatus === 'error'
-                    ? 'Error'
-                    : authStatus === 'connected'
-                      ? 'Connected'
-                      : 'Ready'}
-            </span>
-          </div>
+                        ? 'Connected'
+                        : 'Ready'}
+              </span>
+            </div>
 
-          <p className="hidden text-sm leading-6 text-ink-600 md:block">Optional. Not required for planning.</p>
-
-          <Button
-            variant="secondary"
-            className="w-full sm:w-auto"
-            onClick={handleConnectStrava}
-            disabled={authStatus === 'pending'}
-          >
-            Connect Strava (Experimental)
-          </Button>
-
-          {authMessage && (
             <p className="text-sm leading-5 text-ink-600 md:leading-6">
-              {authMessage}
+              Optional. Not required for planning.
             </p>
-          )}
-        </CardContent>
-      </Card>
+
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={handleConnectStrava}
+              disabled={authStatus === 'pending'}
+            >
+              Connect Strava (Experimental)
+            </Button>
+
+            {authMessage && (
+              <p className="text-sm leading-5 text-ink-600 md:leading-6">
+                {authMessage}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

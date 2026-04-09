@@ -108,7 +108,7 @@ export function HistoryPage() {
   };
 
   return (
-    <div className="page-shell space-y-4 md:space-y-6">
+    <div className="page-shell max-w-6xl space-y-4 md:space-y-6">
       <PageIntro
         eyebrow="History"
         title="Saved plans"
@@ -125,13 +125,13 @@ export function HistoryPage() {
             <p className="text-ink-600">No saved plans.</p>
             <div className="mt-4">
               <Button className="w-full sm:w-auto" onClick={() => navigate('/')}>
-                Planner
+                New plan
               </Button>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3 md:space-y-4">
+        <div className="space-y-3 md:space-y-3.5">
           {sortedPlans.map((plan) => {
             const totalCaloriesPlanned =
               plan.summary.totalCaloriesPlanned ??
@@ -147,67 +147,98 @@ export function HistoryPage() {
 
             return (
               <Card key={plan.id} className="overflow-hidden">
-                <CardContent className="space-y-3 py-3.5 md:space-y-4 md:py-5">
-                  <div className="flex flex-col gap-2.5 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="space-y-2.5 md:space-y-3">
+                <CardContent className="space-y-3 py-3.5 md:px-4 md:py-4 lg:px-5">
+                  <div className="space-y-3 md:grid md:grid-cols-[minmax(0,1fr)_11rem] md:items-start md:gap-4 md:space-y-0">
+                    <div className="space-y-2 md:space-y-2.5">
                       <p className="section-kicker text-[0.66rem] text-ink-500">
                         {formatDate(plan.createdAt)}
                       </p>
-                      {plan.title ? (
-                        <>
-                          <p className="font-sans text-[1rem] font-semibold leading-tight text-ink-900 md:text-[1.25rem]">
+                      <div className="space-y-1.5">
+                        {plan.title ? (
+                          <p className="font-sans text-[1rem] font-semibold leading-tight text-ink-900 md:text-[1.12rem]">
                             {plan.title}
                           </p>
-                          <p className="text-sm leading-5 capitalize text-ink-600 md:leading-6">
-                            {formatDuration(plan.rideCharacteristics.durationMinutes)} •{' '}
+                        ) : null}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-5 text-ink-600 md:leading-6">
+                          <span className="font-medium capitalize text-ink-900">
+                            {formatDuration(plan.rideCharacteristics.durationMinutes)}
+                          </span>
+                          <span aria-hidden>•</span>
+                          <span className="capitalize">
                             {plan.rideCharacteristics.intensity} ride
-                          </p>
-                        </>
-                      ) : (
-                        <p className="font-sans text-[1rem] font-semibold leading-tight capitalize text-ink-900 md:text-[1.25rem]">
-                          {formatDuration(plan.rideCharacteristics.durationMinutes)} •{' '}
-                          {plan.rideCharacteristics.intensity} ride
-                        </p>
-                      )}
-                      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-                        <div className="surface-note px-3 py-2.5 md:px-4 md:py-3">
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 md:hidden">
+                        <div className="surface-note px-3 py-2.5">
                           <p className="page-stat-label">Carbs</p>
-                          <p className="font-sans text-[1.05rem] font-semibold leading-none text-brand-700">
+                          <p className="font-sans text-[1.02rem] font-semibold leading-none text-brand-700">
                             {plan.summary.totalCarbsPlanned}g
                           </p>
                         </div>
-                        <div className="surface-note px-3 py-2.5 md:px-4 md:py-3">
+                        <div className="surface-note px-3 py-2.5">
                           <p className="page-stat-label">Calories</p>
-                          <p className="font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
+                          <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900">
                             {totalCaloriesPlanned} kcal
                           </p>
                         </div>
-                        <div className="surface-note px-3 py-2.5 md:px-4 md:py-3">
+                        <div className="surface-note px-3 py-2.5">
                           <p className="page-stat-label">Hydration</p>
-                          <p className="font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
+                          <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900">
                             {plan.summary.hydrationMl}ml
                           </p>
                         </div>
                         {plan.summary.sodiumMgPerHour !== undefined && (
-                          <div className="surface-note px-3 py-2.5 md:px-4 md:py-3">
+                          <div className="surface-note px-3 py-2.5">
                             <p className="page-stat-label">Sodium / Hour</p>
-                            <p className="font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
+                            <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900">
                               {plan.summary.sodiumMgPerHour}mg
                             </p>
                           </div>
                         )}
                       </div>
+
+                      <div className="hidden md:flex md:flex-wrap md:gap-2">
+                        <div className="surface-note min-w-[7.25rem] px-3 py-2">
+                          <p className="page-stat-label">Carbs</p>
+                          <p className="font-sans text-[0.98rem] font-semibold leading-none text-brand-700">
+                            {plan.summary.totalCarbsPlanned}g
+                          </p>
+                        </div>
+                        <div className="surface-note min-w-[7.75rem] px-3 py-2">
+                          <p className="page-stat-label">Calories</p>
+                          <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900">
+                            {totalCaloriesPlanned} kcal
+                          </p>
+                        </div>
+                        <div className="surface-note min-w-[7.75rem] px-3 py-2">
+                          <p className="page-stat-label">Hydration</p>
+                          <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900">
+                            {plan.summary.hydrationMl}ml
+                          </p>
+                        </div>
+                        {plan.summary.sodiumMgPerHour !== undefined && (
+                          <div className="surface-note min-w-[8.25rem] px-3 py-2">
+                            <p className="page-stat-label">Sodium / Hour</p>
+                            <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900">
+                              {plan.summary.sodiumMgPerHour}mg
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
                       {bottleNames && (
-                        <p className="text-sm leading-5 text-ink-600 md:leading-6">
+                        <p className="hidden text-sm leading-5 text-ink-600 md:block">
                           Bottles: {bottleNames}
                         </p>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center lg:justify-end">
+
+                    <div className="grid grid-cols-2 gap-2 md:hidden">
                       <Button
-                        variant="secondary"
                         size="sm"
-                        className="col-span-2 w-full md:col-span-1 md:w-auto"
+                        className="col-span-2 w-full"
                         onClick={() => handleReusePlan(plan)}
                       >
                         Reuse
@@ -215,7 +246,7 @@ export function HistoryPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="w-full md:w-auto"
+                        className="w-full"
                         onClick={() => toggleExpanded(plan.id)}
                       >
                         {isExpanded ? 'Hide details' : 'Details'}
@@ -225,7 +256,7 @@ export function HistoryPage() {
                           variant="danger"
                           size="sm"
                           onClick={() => handleDeletePlan(plan.id)}
-                          className="relative w-full overflow-hidden md:w-auto"
+                          className="relative w-full overflow-hidden"
                         >
                           Confirm?
                           <span className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards]" />
@@ -234,12 +265,53 @@ export function HistoryPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="w-full md:w-auto"
+                          className="w-full"
                           onClick={() => setConfirmingDeleteId(plan.id)}
                         >
                           Delete
                         </Button>
                       )}
+                    </div>
+
+                    <div className="hidden md:flex md:flex-col md:items-stretch md:gap-2">
+                      <Button
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handleReusePlan(plan)}
+                      >
+                        Reuse
+                      </Button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => toggleExpanded(plan.id)}
+                          aria-expanded={isExpanded}
+                        >
+                          {isExpanded ? 'Hide' : 'Details'}
+                        </Button>
+                        {isConfirming ? (
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDeletePlan(plan.id)}
+                            className="relative w-full overflow-hidden"
+                          >
+                            Confirm?
+                            <span className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards]" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => setConfirmingDeleteId(plan.id)}
+                          >
+                            Delete
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                   {isExpanded && (
