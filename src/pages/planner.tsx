@@ -437,12 +437,12 @@ export function PlannerPage() {
               return (
                 <div
                   key={item.step}
-                  className={`rounded-[1rem] border px-3 py-2.5 md:rounded-2xl md:px-4 md:py-3 ${
+                  className={`rounded-[0.95rem] border px-3 py-2 md:rounded-[1.15rem] md:px-4 md:py-2.5 ${
                     isActive
                       ? 'border-brand-300 bg-brand-100 text-brand-900'
-                      : isComplete
-                        ? 'border-[color:var(--border-soft)] bg-white text-ink-900'
-                        : 'border-[color:var(--border-soft)] bg-shell-100 text-ink-500'
+                    : isComplete
+                        ? 'border-brand-100 bg-white/75 text-ink-900'
+                        : 'border-[color:var(--border-soft)] bg-transparent text-ink-500'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -491,29 +491,29 @@ export function PlannerPage() {
         )}
 
         {step === 2 && (
-          <Card className="overflow-hidden">
-            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
+          <section className="space-y-4 md:space-y-5">
+            <div className="space-y-2 border-b border-[color:var(--border-soft)] pb-4 md:pb-5">
               <h2 className="section-title">Ride data</h2>
-              <p className="section-copy hidden md:block">Manual sets carbs. Auto uses workload.</p>
-            </CardHeader>
-            <CardContent className="space-y-4 md:space-y-5">
-              {!canCalculate && (
-                <div className="surface-note border-amber-200 bg-amber-50 p-3.5 text-sm leading-6 text-amber-800 md:p-4">
-                  Select at least one bottle and one mix in setup.
-                </div>
-              )}
-              <RideForm
-                key={rideFormInstanceKey}
-                initialSnapshot={rideFormInitialSnapshot}
-                onCalculate={handleCalculate}
-                onSnapshotChange={setRideFormSnapshot}
-                onCanCalculateChange={setRideFormCanCalculate}
-                showCalculateButton={false}
-                submitTrigger={rideFormSubmitTrigger}
-                disabled={!canCalculate}
-              />
-            </CardContent>
-          </Card>
+              <p className="section-copy hidden md:block">
+                Manual sets carbs. Auto uses workload.
+              </p>
+            </div>
+            {!canCalculate && (
+              <div className="rounded-[1rem] border border-amber-200 bg-amber-50 px-4 py-3.5 text-sm leading-6 text-amber-800 md:rounded-[1.15rem] md:px-5 md:py-4">
+                Select at least one bottle and one mix in setup.
+              </div>
+            )}
+            <RideForm
+              key={rideFormInstanceKey}
+              initialSnapshot={rideFormInitialSnapshot}
+              onCalculate={handleCalculate}
+              onSnapshotChange={setRideFormSnapshot}
+              onCanCalculateChange={setRideFormCanCalculate}
+              showCalculateButton={false}
+              submitTrigger={rideFormSubmitTrigger}
+              disabled={!canCalculate}
+            />
+          </section>
         )}
 
         {step === 3 && (

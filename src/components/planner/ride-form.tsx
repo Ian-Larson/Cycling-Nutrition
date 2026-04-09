@@ -391,70 +391,51 @@ export function RideForm({
         : 'Derived Duration';
 
   return (
-    <div className="space-y-4 md:space-y-5">
-      <div className="space-y-1.5 md:space-y-2">
-        <p className="section-kicker text-[0.68rem]">Mode</p>
-        <div className="grid grid-cols-2 gap-2 md:gap-3">
-          <button
-            type="button"
-            className={`rounded-[1.15rem] border p-3.5 text-left transition-colors md:rounded-[1.35rem] md:p-4 ${
-              planningMode === 'manual'
-                ? 'border-brand-300 bg-brand-100'
-                : 'border-[color:var(--border-soft)] bg-white text-ink-800 hover:bg-shell-50'
-            }`}
-            onClick={() => setPlanningMode('manual')}
-          >
-            <p
-              className={`font-sans text-[1.05rem] font-semibold ${
-                planningMode === 'manual' ? 'text-brand-900' : 'text-ink-900'
+    <div className="space-y-5 md:space-y-6">
+      <div className="space-y-2 md:flex md:items-center md:justify-between md:gap-6">
+        <div className="space-y-1.5">
+          <p className="section-kicker text-[0.68rem]">Method</p>
+          <div className="inline-flex w-full rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-1 sm:w-auto">
+            <button
+              type="button"
+              className={`min-h-10 flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors sm:min-w-[7rem] ${
+                planningMode === 'manual'
+                  ? 'bg-white text-brand-900 shadow-[var(--shadow-soft)]'
+                  : 'text-ink-600 hover:text-ink-900'
               }`}
+              onClick={() => setPlanningMode('manual')}
             >
               Manual
-            </p>
-            <p
-              className={`mt-1.5 text-[0.78rem] leading-5 md:mt-2 md:text-sm md:leading-6 ${
-                planningMode === 'manual' ? 'text-brand-800' : 'text-ink-600'
+            </button>
+            <button
+              type="button"
+              className={`min-h-10 flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors sm:min-w-[7rem] ${
+                planningMode === 'auto'
+                  ? 'bg-white text-brand-900 shadow-[var(--shadow-soft)]'
+                  : 'text-ink-600 hover:text-ink-900'
               }`}
-            >
-              Set carbs per hour yourself.
-            </p>
-          </button>
-          <button
-            type="button"
-            className={`rounded-[1.15rem] border p-3.5 text-left transition-colors md:rounded-[1.35rem] md:p-4 ${
-              planningMode === 'auto'
-                ? 'border-brand-300 bg-brand-100'
-                : 'border-[color:var(--border-soft)] bg-white text-ink-800 hover:bg-shell-50'
-            }`}
-            onClick={() => setPlanningMode('auto')}
-          >
-            <p
-              className={`font-sans text-[1.05rem] font-semibold ${
-                planningMode === 'auto' ? 'text-brand-900' : 'text-ink-900'
-              }`}
+              onClick={() => setPlanningMode('auto')}
             >
               Auto
-            </p>
-            <p
-              className={`mt-1.5 text-[0.78rem] leading-5 md:mt-2 md:text-sm md:leading-6 ${
-                planningMode === 'auto' ? 'text-brand-800' : 'text-ink-600'
-              }`}
-            >
-              Calculate carbs from workload.
-            </p>
-          </button>
+            </button>
+          </div>
         </div>
+        <p className="text-sm leading-6 text-ink-600 md:max-w-[20rem] md:text-right">
+          {planningMode === 'manual'
+            ? 'Set carbs per hour yourself.'
+            : 'Calculate carbs from workload.'}
+        </p>
       </div>
 
       {planningMode === 'manual' ? (
-        <div className="space-y-3 md:space-y-4">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="surface-note p-3.5 md:p-5">
-              <div className="flex items-center justify-between gap-3">
+        <div className="space-y-5 md:space-y-6">
+          <div className="grid gap-5 lg:grid-cols-2 lg:gap-8">
+            <section className="space-y-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="section-kicker text-[0.68rem]">Duration</p>
-                  <p className="mt-2 font-sans text-[1.4rem] font-semibold leading-none text-ink-900">
-                    Duration
+                  <p className="mt-1 text-sm leading-6 text-ink-600">
+                    Use moving time.
                   </p>
                 </div>
                 {editingDuration ? (
@@ -478,39 +459,36 @@ export function RideForm({
                       setDurationInput(String(durationMinutes));
                       setEditingDuration(true);
                     }}
-                    className="rounded-lg border border-brand-200 bg-white px-4 py-2 font-sans text-[1.1rem] font-semibold text-brand-700"
+                    className="rounded-full border border-brand-200 bg-white px-4 py-2 font-sans text-[1rem] font-semibold text-brand-700"
                   >
                     {formatDuration(durationMinutes)}
                   </button>
                 )}
               </div>
-              <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
-                Use moving time.
-              </p>
-              <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:mt-4 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
+              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
                 {DURATION_PRESETS.map((preset) => (
                   <button
                     key={preset.value}
                     type="button"
                     onClick={() => setManualDuration(preset.value)}
-                      className={`min-h-10 shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-                        durationMinutes === preset.value
-                          ? 'border-brand-300 bg-brand-100 text-brand-800'
-                          : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                      }`}
+                    className={`min-h-10 shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                      durationMinutes === preset.value
+                        ? 'border-brand-300 bg-brand-100 text-brand-800'
+                        : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                    }`}
                   >
                     {preset.label}
                   </button>
                 ))}
               </div>
-            </div>
+            </section>
 
-            <div className="surface-note p-3.5 md:p-5">
-              <div className="flex items-center justify-between gap-3">
+            <section className="space-y-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="section-kicker text-[0.68rem]">Carbs / Hour</p>
-                  <p className="mt-2 font-sans text-[1.4rem] font-semibold leading-none text-ink-900">
-                    Carbs / hour
+                  <p className="section-kicker text-[0.68rem]">Carbs / hour</p>
+                  <p className="mt-1 text-sm leading-6 text-ink-600">
+                    Set your intake target.
                   </p>
                 </div>
                 {editingCarbs ? (
@@ -534,36 +512,33 @@ export function RideForm({
                       setCarbTargetInput(String(carbTarget));
                       setEditingCarbs(true);
                     }}
-                    className="rounded-lg border border-brand-200 bg-white px-4 py-2 font-sans text-[1.1rem] font-semibold text-brand-700"
+                    className="rounded-full border border-brand-200 bg-white px-4 py-2 font-sans text-[1rem] font-semibold text-brand-700"
                   >
                     {carbTarget} g/h
                   </button>
                 )}
               </div>
-              <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
-                Set your intake target.
-              </p>
-              <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:mt-4 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
+              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
                 {carbPresets.map((preset) => (
                   <button
                     key={preset.value}
                     type="button"
                     onClick={() => setManualCarbTarget(preset.value)}
-                      className={`min-h-10 shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-                        carbTarget === preset.value
-                          ? 'border-brand-300 bg-brand-100 text-brand-800'
-                          : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                      }`}
+                    className={`min-h-10 shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                      carbTarget === preset.value
+                        ? 'border-brand-300 bg-brand-100 text-brand-800'
+                        : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                    }`}
                   >
                     {preset.label}
                   </button>
                 ))}
               </div>
-            </div>
+            </section>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="surface-note p-3.5 md:p-5">
+          <div className="grid gap-4 border-t border-[color:var(--border-soft)] pt-5 lg:grid-cols-2 lg:gap-6">
+            <div className="space-y-2.5">
               <Select
                 label="Intensity"
                 value={intensity}
@@ -578,11 +553,11 @@ export function RideForm({
                   { value: 'race', label: 'Race' },
                 ]}
               />
-              <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
+              <p className="text-sm leading-6 text-ink-600">
                 Affects timing and fluid.
               </p>
             </div>
-            <div className="surface-note p-3.5 md:p-5">
+            <div className="space-y-2.5">
               <Select
                 label="Weather"
                 value={heatFactor}
@@ -591,222 +566,228 @@ export function RideForm({
                 }
                 options={heatOptions}
               />
-              <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
+              <p className="text-sm leading-6 text-ink-600">
                 Affects fluid and sodium.
               </p>
             </div>
           </div>
         </div>
       ) : (
-        <div className="space-y-4 rounded-[1.2rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_oklch,var(--color-brand-50)_34%,white)] p-4 md:space-y-5 md:rounded-[1.5rem] md:p-5">
-          <div className="space-y-2">
-            <p className="section-kicker text-[0.68rem]">Auto</p>
-            <h3 className="section-title text-lg">Auto target</h3>
-            <p className="section-copy hidden md:block">
-              Enter any two of duration, IF, and TSS.
-            </p>
-          </div>
-
-          {!hasFtp && (
-            <div className="surface-note border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800">
-              Add FTP in{' '}
-              <Link className="underline font-medium" to="/athlete?return=planner-step2">
-                Athlete
-              </Link>
-              {' '}to use auto mode.
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <p className="section-kicker text-[0.68rem]">Inputs</p>
-            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
-              {(['duration_if', 'duration_tss', 'if_tss'] as const).map((pair) => (
-                <button
-                  key={pair}
-                  type="button"
-                  onClick={() => setAutoInputPair(pair)}
-                  className={`min-h-11 min-w-[8.5rem] rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors sm:min-w-0 ${
-                    autoInputPair === pair
-                      ? 'border-brand-300 bg-brand-100 text-brand-800'
-                      : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                  }`}
-                >
-                  {getAutoPairLabel(pair)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
-            {(autoInputPair === 'duration_if' || autoInputPair === 'duration_tss') && (
-              <div className="surface-note p-3.5 md:p-4">
-                <Input
-                  id="auto-duration"
-                  type="number"
-                  min={30}
-                  max={300}
-                  step={1}
-                  label="Duration (minutes)"
-                  value={autoDurationInput}
-                  onChange={(event) => setAutoDurationInput(event.target.value)}
-                />
-                <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
-                  Moving time.
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.92fr)] lg:gap-8">
+          <div className="space-y-5">
+            <div className="space-y-2.5">
+              <div className="space-y-1">
+                <p className="section-kicker text-[0.68rem]">Known values</p>
+                <p className="text-sm leading-6 text-ink-600">
+                  Enter any two of duration, IF, and TSS.
                 </p>
               </div>
-            )}
-
-            {(autoInputPair === 'duration_if' || autoInputPair === 'if_tss') && (
-              <div className="surface-note p-3.5 md:p-4">
-                <Input
-                  id="auto-if"
-                  type="number"
-                  min={0.4}
-                  max={1.3}
-                  step={0.01}
-                  label="Intensity Factor (IF)"
-                  value={autoIfInput}
-                  onChange={(event) => setAutoIfInput(event.target.value)}
-                />
-                <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
-                  Relative to FTP.
-                </p>
+              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
+                {(['duration_if', 'duration_tss', 'if_tss'] as const).map((pair) => (
+                  <button
+                    key={pair}
+                    type="button"
+                    onClick={() => setAutoInputPair(pair)}
+                    className={`min-h-11 min-w-[8.5rem] rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors sm:min-w-0 ${
+                      autoInputPair === pair
+                        ? 'border-brand-300 bg-brand-100 text-brand-800'
+                        : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                    }`}
+                  >
+                    {getAutoPairLabel(pair)}
+                  </button>
+                ))}
               </div>
-            )}
-
-            {(autoInputPair === 'duration_tss' || autoInputPair === 'if_tss') && (
-              <div className="surface-note p-3.5 md:p-4">
-                <Input
-                  id="auto-tss"
-                  type="number"
-                  min={1}
-                  step={1}
-                  label="TSS"
-                  value={autoTssInput}
-                  onChange={(event) => setAutoTssInput(event.target.value)}
-                />
-                <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
-                  Total ride load.
-                </p>
-              </div>
-            )}
-
-            <div className="rounded-[1.05rem] border border-brand-300 bg-brand-100 px-3.5 py-3.5 text-brand-900 md:rounded-[1.2rem] md:px-4 md:py-4">
-              <p className="text-sm font-medium text-brand-700">
-                {derivedAutoMetricLabel}
-              </p>
-              <p className="mt-2 font-sans text-[1.35rem] font-semibold leading-none">
-                {derivedAutoMetric}
-              </p>
             </div>
 
-            <div className="surface-note p-3.5 md:p-4">
-              <Input
-                id="auto-carb-override"
-                type="number"
-                min={0}
-                max={120}
-                step={5}
-                label="Carbs Override"
-                value={autoCarbOverrideInput}
-                onChange={(event) => setAutoCarbOverrideInput(event.target.value)}
-                placeholder={
-                  autoPreview.result
-                    ? `${autoPreview.result.autoMetrics.autoCarbTargetGramsPerHour}`
-                    : 'Recommended value'
-                }
-              />
-              <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
-                Leave blank for auto target.
-              </p>
-            </div>
-          </div>
-
-          {autoPreview.result && previewAutoMetrics && (
-            <Collapsible
-              defaultOpen={false}
-              className="rounded-[1.2rem] border border-[color:var(--border-soft)] bg-white"
-            >
-              <CollapsibleTrigger className="px-4 py-3">
-                <div>
-                  <p className="section-kicker text-[0.68rem]">Calculated</p>
-                  <p className="mt-2 font-sans text-[1.05rem] font-semibold leading-none text-ink-900">
-                    {autoPreview.result.carbTargetGramsPerHour} g/h carbs
-                  </p>
-                  <p className="mt-2 hidden text-sm leading-6 text-ink-600 md:block">
-                    {autoPreview.result.carbTargetGramsPerHour}g/h carbs •{' '}
-                    {previewAutoMetrics.hydrationMlPerHour}ml/h hydration •{' '}
-                    {previewAutoMetrics.sodiumMgPerHour}mg/h sodium
-                  </p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:gap-5">
+              {(autoInputPair === 'duration_if' || autoInputPair === 'duration_tss') && (
+                <div className="space-y-2.5">
+                  <Input
+                    id="auto-duration"
+                    type="number"
+                    min={30}
+                    max={300}
+                    step={1}
+                    label="Duration (minutes)"
+                    value={autoDurationInput}
+                    onChange={(event) => setAutoDurationInput(event.target.value)}
+                  />
+                  <p className="text-sm leading-6 text-ink-600">Moving time.</p>
                 </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 border-t border-[color:var(--border-soft)] p-4 text-sm">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-ink-800">
-                  <span>Duration:</span>
-                  <span>{formatDuration(autoPreview.result.durationMinutes)}</span>
-                  <span>IF:</span>
-                  <span>{previewAutoMetrics.intensityFactor}</span>
-                  <span>TSS:</span>
-                  <span>{previewAutoMetrics.tss}</span>
-                  <span>Intensity:</span>
-                  <span className="capitalize">{autoPreview.result.intensity}</span>
-                  <span>Carbs:</span>
-                  <span>{autoPreview.result.carbTargetGramsPerHour}g/h</span>
-                  <span>Carb baseline:</span>
-                  <span>
-                    {previewAutoMetrics.baselineAutoCarbTargetGph ??
-                      autoPreview.result.carbTargetGramsPerHour}
-                    g/h
-                  </span>
-                  <span>Gut target:</span>
-                  <span>
-                    {previewAutoMetrics.gutTrainingTargetGph ??
-                      athleteProfile.gutTrainingTargetGph}
-                    g/h
-                  </span>
-                  <span>Hydration:</span>
-                  <span>{previewAutoMetrics.hydrationMlPerHour}ml/h</span>
-                  <span>Sodium:</span>
-                  <span>{previewAutoMetrics.sodiumMgPerHour}mg/h</span>
+              )}
+
+              {(autoInputPair === 'duration_if' || autoInputPair === 'if_tss') && (
+                <div className="space-y-2.5">
+                  <Input
+                    id="auto-if"
+                    type="number"
+                    min={0.4}
+                    max={1.3}
+                    step={0.01}
+                    label="Intensity Factor (IF)"
+                    value={autoIfInput}
+                    onChange={(event) => setAutoIfInput(event.target.value)}
+                  />
+                  <p className="text-sm leading-6 text-ink-600">Relative to FTP.</p>
+                </div>
+              )}
+
+              {(autoInputPair === 'duration_tss' || autoInputPair === 'if_tss') && (
+                <div className="space-y-2.5">
+                  <Input
+                    id="auto-tss"
+                    type="number"
+                    min={1}
+                    step={1}
+                    label="TSS"
+                    value={autoTssInput}
+                    onChange={(event) => setAutoTssInput(event.target.value)}
+                  />
+                  <p className="text-sm leading-6 text-ink-600">Total ride load.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="grid gap-4 border-t border-[color:var(--border-soft)] pt-5 sm:grid-cols-2 lg:gap-5">
+              <div className="space-y-2.5">
+                <Select
+                  label="Weather"
+                  value={heatFactor}
+                  onChange={(event) =>
+                    setHeatFactor(event.target.value as RideCharacteristics['heatFactor'])
+                  }
+                  options={heatOptions}
+                />
+                <p className="text-sm leading-6 text-ink-600">
+                  Affects fluid and sodium.
+                </p>
+              </div>
+              <div className="space-y-2.5">
+                <Input
+                  id="auto-carb-override"
+                  type="number"
+                  min={0}
+                  max={120}
+                  step={5}
+                  label="Carb override"
+                  value={autoCarbOverrideInput}
+                  onChange={(event) => setAutoCarbOverrideInput(event.target.value)}
+                  placeholder={
+                    autoPreview.result
+                      ? `${autoPreview.result.autoMetrics.autoCarbTargetGramsPerHour}`
+                      : 'Recommended value'
+                  }
+                />
+                <p className="text-sm leading-6 text-ink-600">
+                  Leave blank to use the auto target.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:pt-1">
+            {!hasFtp ? (
+              <div className="rounded-[1.2rem] border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800 md:rounded-[1.35rem] md:p-5">
+                Add FTP in{' '}
+                <Link className="font-medium underline" to="/athlete?return=planner-step2">
+                  Athlete
+                </Link>{' '}
+                to use auto mode.
+              </div>
+            ) : autoPreview.result && previewAutoMetrics ? (
+              <div className="rounded-[1.2rem] border border-brand-300 bg-[color:color-mix(in_oklch,var(--color-brand-100)_72%,white)] p-4 text-brand-900 md:rounded-[1.35rem] md:p-5">
+                <p className="section-kicker text-[0.68rem] text-brand-700">
+                  Recommended
+                </p>
+                <p className="mt-2 font-sans text-[1.85rem] font-semibold leading-none">
+                  {autoPreview.result.carbTargetGramsPerHour} g/h
+                </p>
+                <p className="mt-3 text-sm leading-6 text-brand-800">
+                  {derivedAutoMetricLabel}: {derivedAutoMetric}
+                </p>
+
+                <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-brand-200/80 pt-4 text-sm">
+                  <div>
+                    <p className="page-stat-label text-brand-700">Hydration</p>
+                    <p className="mt-1 font-medium text-ink-900">
+                      {previewAutoMetrics.hydrationMlPerHour} ml/h
+                    </p>
+                  </div>
+                  <div>
+                    <p className="page-stat-label text-brand-700">Sodium</p>
+                    <p className="mt-1 font-medium text-ink-900">
+                      {previewAutoMetrics.sodiumMgPerHour} mg/h
+                    </p>
+                  </div>
+                  <div>
+                    <p className="page-stat-label text-brand-700">Duration</p>
+                    <p className="mt-1 font-medium text-ink-900">
+                      {formatDuration(autoPreview.result.durationMinutes)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="page-stat-label text-brand-700">Intensity</p>
+                    <p className="mt-1 font-medium capitalize text-ink-900">
+                      {autoPreview.result.intensity}
+                    </p>
+                  </div>
                 </div>
 
                 {previewAutoMetrics.needsScore !== undefined &&
                   previewAutoMetrics.needsLevel && (
-                    <NeedsIntensityBar
-                      score={previewAutoMetrics.needsScore}
-                      level={previewAutoMetrics.needsLevel}
-                    />
+                    <div className="mt-4 border-t border-brand-200/80 pt-4">
+                      <NeedsIntensityBar
+                        score={previewAutoMetrics.needsScore}
+                        level={previewAutoMetrics.needsLevel}
+                        compact
+                      />
+                    </div>
                   )}
 
-                <p className="text-xs text-gray-600">
-                  IF {previewAutoMetrics.intensityFactor} • {tssPerHour ?? '-'} TSS/h
+                <Collapsible defaultOpen={false} className="mt-4 border-t border-brand-200/80 pt-3">
+                  <CollapsibleTrigger className="min-h-0 rounded-lg bg-white/55 px-3 py-2.5 text-sm text-ink-800 md:px-3.5">
+                    <div>
+                      <p className="font-medium text-ink-900">Calculation details</p>
+                      <p className="mt-1 text-sm leading-5 text-ink-600">
+                        IF {previewAutoMetrics.intensityFactor} • {tssPerHour ?? '-'} TSS/h
+                      </p>
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="grid grid-cols-2 gap-x-4 gap-y-2 pt-3 text-sm text-ink-800">
+                    <span>IF:</span>
+                    <span>{previewAutoMetrics.intensityFactor}</span>
+                    <span>TSS:</span>
+                    <span>{previewAutoMetrics.tss}</span>
+                    <span>Carb baseline:</span>
+                    <span>
+                      {previewAutoMetrics.baselineAutoCarbTargetGph ??
+                        autoPreview.result.carbTargetGramsPerHour}
+                      g/h
+                    </span>
+                    <span>Gut target:</span>
+                    <span>
+                      {previewAutoMetrics.gutTrainingTargetGph ??
+                        athleteProfile.gutTrainingTargetGph}
+                      g/h
+                    </span>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+            ) : (
+              <div className="rounded-[1.2rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-4 md:rounded-[1.35rem] md:p-5">
+                <p className="section-kicker text-[0.68rem]">Auto result</p>
+                <p className="mt-2 text-sm leading-6 text-ink-700">
+                  {autoPreview.error ?? 'Enter both selected inputs.'}
                 </p>
-              </CollapsibleContent>
-            </Collapsible>
-          )}
-
-          {autoPreview.error && hasFtp && (
-            <p className="text-sm leading-6 text-rose-700">{autoPreview.error}</p>
-          )}
-
-          <div className="surface-note p-3.5 md:p-4">
-            <Select
-              label="Weather"
-              value={heatFactor}
-              onChange={(event) =>
-                setHeatFactor(event.target.value as RideCharacteristics['heatFactor'])
-              }
-              options={heatOptions}
-            />
-            <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
-              Affects fluid and sodium.
-            </p>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {effectiveDurationMinutes >= 120 && (
-        <div className="surface-note p-3.5 md:p-5">
+        <div className="max-w-sm space-y-2.5 border-t border-[color:var(--border-soft)] pt-5">
           <Select
             label="Refills"
             value={String(refuelStops)}
@@ -817,7 +798,7 @@ export function RideForm({
               { value: '2', label: '2 refills' },
             ]}
           />
-          <p className="mt-3 hidden text-sm leading-6 text-ink-600 md:block">
+          <p className="text-sm leading-6 text-ink-600">
             Set this only if you can refill bottles.
           </p>
         </div>
