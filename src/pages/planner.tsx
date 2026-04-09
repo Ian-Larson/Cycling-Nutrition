@@ -525,26 +525,30 @@ export function PlannerPage() {
                           <p className="page-stat-label text-right">Calories</p>
 
                           <p className="rounded-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">Drinks</p>
-                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right text-ink-700 md:px-3">
-                            {fuelBreakdown.drinks.carbs}g
+                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
+                            {fuelBreakdown.drinks.carbs} g
                           </p>
-                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right text-ink-700 md:px-3">
+                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
                             {fuelBreakdown.drinks.calories} kcal
                           </p>
 
                           <p className="rounded-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">Solids</p>
-                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right text-ink-700 md:px-3">
-                            {fuelBreakdown.solids.carbs}g
+                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
+                            {fuelBreakdown.solids.carbs} g
                           </p>
-                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right text-ink-700 md:px-3">
+                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
                             {fuelBreakdown.solids.calories} kcal
                           </p>
                         </div>
                         <div className="my-3 border-t border-[color:var(--border-soft)]" />
-                        <div className="grid grid-cols-[1fr_auto_auto] gap-x-2 rounded-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 text-[0.82rem] font-semibold text-ink-900 md:gap-x-4 md:px-3 md:py-3 md:text-sm">
-                          <p>Total</p>
-                          <p className="text-right">{fuelBreakdown.total.carbs}g</p>
-                          <p className="text-right">{fuelBreakdown.total.calories} kcal</p>
+                        <div className="grid grid-cols-[1fr_auto_auto] items-center gap-x-2 rounded-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] text-[0.82rem] font-semibold text-ink-900 md:gap-x-4 md:text-sm">
+                          <p className="px-2.5 py-2.5 md:px-3 md:py-3">Total</p>
+                          <p className="px-2.5 py-2.5 text-right tabular-nums md:px-3 md:py-3">
+                            {fuelBreakdown.total.carbs} g
+                          </p>
+                          <p className="px-2.5 py-2.5 text-right tabular-nums md:px-3 md:py-3">
+                            {fuelBreakdown.total.calories} kcal
+                          </p>
                         </div>
                       </div>
                     )}
