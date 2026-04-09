@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Input, Select } from '@/components/ui';
 
 interface BottleFormProps {
   onSubmit: (data: { name: string; capacityMl: number }) => void;
   onCancel: () => void;
+  onDelete?: () => void;
   initialData?: { name: string; capacityMl: number };
   submitLabel?: string;
 }
@@ -17,6 +18,7 @@ const capacityOptions = [
 export function BottleForm({
   onSubmit,
   onCancel,
+  onDelete,
   initialData,
   submitLabel,
 }: BottleFormProps) {
@@ -24,6 +26,13 @@ export function BottleForm({
   const [capacityMl, setCapacityMl] = useState(
     String(initialData?.capacityMl ?? 750)
   );
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  useEffect(() => {
+    if (!confirmingDelete) return;
+    const timer = setTimeout(() => setConfirmingDelete(false), 4000);
+    return () => clearTimeout(timer);
+  }, [confirmingDelete]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +67,27 @@ export function BottleForm({
         >
           Cancel
         </Button>
+        {onDelete &&
+          (confirmingDelete ? (
+            <Button
+              type="button"
+              variant="danger"
+              onClick={onDelete}
+              className="relative w-full overflow-hidden sm:w-auto"
+            >
+              Confirm?
+              <span className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards]" />
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => setConfirmingDelete(true)}
+              className="w-full sm:w-auto"
+            >
+              Delete
+            </Button>
+          ))}
       </div>
     </form>
   );

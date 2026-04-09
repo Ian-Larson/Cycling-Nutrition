@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Input, Select, Toggle } from '@/components/ui';
 import type { Product, ProductType, ConcentrationRange } from '@/types';
 
 interface ProductFormProps {
   onSubmit: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => void;
   onCancel: () => void;
+  onDelete?: () => void;
   initialData?: Product;
 }
 
@@ -16,7 +17,12 @@ const typeOptions = [
   { value: 'other', label: 'Other' },
 ];
 
-export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProps) {
+export function ProductForm({
+  onSubmit,
+  onCancel,
+  onDelete,
+  initialData,
+}: ProductFormProps) {
   const [name, setName] = useState(initialData?.name ?? '');
   const [brand, setBrand] = useState(initialData?.brand ?? '');
   const [type, setType] = useState<ProductType>(initialData?.type ?? 'drink_mix');
@@ -29,6 +35,13 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
   const [concMin, setConcMin] = useState(initialData?.concentration?.minGPerMl ? String(initialData.concentration.minGPerMl) : '');
   const [concMax, setConcMax] = useState(initialData?.concentration?.maxGPerMl ? String(initialData.concentration.maxGPerMl) : '');
   const [isAvailable, setIsAvailable] = useState(initialData?.isAvailable ?? true);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  useEffect(() => {
+    if (!confirmingDelete) return;
+    const timer = setTimeout(() => setConfirmingDelete(false), 4000);
+    return () => clearTimeout(timer);
+  }, [confirmingDelete]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,6 +192,27 @@ export function ProductForm({ onSubmit, onCancel, initialData }: ProductFormProp
         >
           Cancel
         </Button>
+        {onDelete &&
+          (confirmingDelete ? (
+            <Button
+              type="button"
+              variant="danger"
+              onClick={onDelete}
+              className="relative w-full overflow-hidden sm:w-auto"
+            >
+              Confirm?
+              <span className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards]" />
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => setConfirmingDelete(true)}
+              className="w-full sm:w-auto"
+            >
+              Delete
+            </Button>
+          ))}
       </div>
     </form>
   );

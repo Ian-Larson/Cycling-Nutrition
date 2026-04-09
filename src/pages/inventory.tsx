@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useStore } from '@/store';
 import { Button, Card, CardContent, CardHeader, Toggle } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
@@ -54,17 +54,11 @@ const PRODUCT_TYPE_LABELS: Record<Product['type'], string> = {
 export function InventoryPage() {
   const [showBottleForm, setShowBottleForm] = useState(false);
   const [editingBottleId, setEditingBottleId] = useState<string | null>(null);
-  const [confirmingBottleDeleteId, setConfirmingBottleDeleteId] = useState<string | null>(
-    null
-  );
   const [bottleSortDirection, setBottleSortDirection] = useState<'asc' | 'desc'>(
     'asc'
   );
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [confirmingProductDeleteId, setConfirmingProductDeleteId] = useState<
-    string | null
-  >(null);
   const [filterType, setFilterType] = useState<Product['type'] | 'all'>('all');
   const [availabilityFilter, setAvailabilityFilter] = useState<
     'all' | 'available' | 'unavailable'
@@ -79,18 +73,6 @@ export function InventoryPage() {
   const addProduct = useStore((s) => s.addProduct);
   const updateProduct = useStore((s) => s.updateProduct);
   const deleteProduct = useStore((s) => s.deleteProduct);
-
-  useEffect(() => {
-    if (!confirmingBottleDeleteId) return;
-    const timer = setTimeout(() => setConfirmingBottleDeleteId(null), 4000);
-    return () => clearTimeout(timer);
-  }, [confirmingBottleDeleteId]);
-
-  useEffect(() => {
-    if (!confirmingProductDeleteId) return;
-    const timer = setTimeout(() => setConfirmingProductDeleteId(null), 4000);
-    return () => clearTimeout(timer);
-  }, [confirmingProductDeleteId]);
 
   const handleAddBottle = (data: { name: string; capacityMl: number }) => {
     addBottle({ ...data, isAvailable: true });
@@ -182,50 +164,25 @@ export function InventoryPage() {
           <p className="truncate font-semibold text-ink-900">{bottle.name}</p>
           <p className="text-sm leading-5 text-ink-600">{bottle.capacityMl}ml</p>
         </div>
-        <Toggle
-          checked={bottle.isAvailable}
-          onChange={() =>
-            updateBottle(bottle.id, { isAvailable: !bottle.isAvailable })
-          }
-          label={`Use ${bottle.name} in planning`}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full"
-          onClick={() => {
-            setShowBottleForm(false);
-            setEditingBottleId(bottle.id);
-            setConfirmingBottleDeleteId(null);
-          }}
-        >
-          Edit
-        </Button>
-        {confirmingBottleDeleteId === bottle.id ? (
-          <Button
-            variant="danger"
-            size="sm"
-            className="relative w-full overflow-hidden"
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <Toggle
+            checked={bottle.isAvailable}
+            onChange={() =>
+              updateBottle(bottle.id, { isAvailable: !bottle.isAvailable })
+            }
+            label={`Use ${bottle.name} in planning`}
+          />
+          <button
+            type="button"
             onClick={() => {
-              deleteBottle(bottle.id);
-              setConfirmingBottleDeleteId(null);
+              setShowBottleForm(false);
+              setEditingBottleId(bottle.id);
             }}
+            className="inline-flex min-h-8 items-center rounded-lg px-1 text-[0.82rem] font-medium text-brand-700 transition-colors hover:text-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100"
           >
-            Confirm?
-            <span className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards]" />
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full"
-            onClick={() => setConfirmingBottleDeleteId(bottle.id)}
-          >
-            Delete
-          </Button>
-        )}
+            Edit
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -240,7 +197,7 @@ export function InventoryPage() {
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1 space-y-1">
           <p className="truncate font-semibold text-ink-900">{product.name}</p>
-          <p className="text-sm leading-5 text-ink-600">
+          <p className="text-sm leading-5 text-brand-700">
             {PRODUCT_TYPE_LABELS[product.type]}
             {product.brand ? ` • ${product.brand}` : ''}
           </p>
@@ -251,50 +208,25 @@ export function InventoryPage() {
               : ''}
           </p>
         </div>
-        <Toggle
-          checked={product.isAvailable}
-          onChange={() =>
-            updateProduct(product.id, { isAvailable: !product.isAvailable })
-          }
-          label={`Use ${product.name} in planning`}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full"
-          onClick={() => {
-            setShowProductForm(false);
-            setEditingProduct(product);
-            setConfirmingProductDeleteId(null);
-          }}
-        >
-          Edit
-        </Button>
-        {confirmingProductDeleteId === product.id ? (
-          <Button
-            variant="danger"
-            size="sm"
-            className="relative w-full overflow-hidden"
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <Toggle
+            checked={product.isAvailable}
+            onChange={() =>
+              updateProduct(product.id, { isAvailable: !product.isAvailable })
+            }
+            label={`Use ${product.name} in planning`}
+          />
+          <button
+            type="button"
             onClick={() => {
-              deleteProduct(product.id);
-              setConfirmingProductDeleteId(null);
+              setShowProductForm(false);
+              setEditingProduct(product);
             }}
+            className="inline-flex min-h-8 items-center rounded-lg px-1 text-[0.82rem] font-medium text-brand-700 transition-colors hover:text-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100"
           >
-            Confirm?
-            <span className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards]" />
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full"
-            onClick={() => setConfirmingProductDeleteId(product.id)}
-          >
-            Delete
-          </Button>
-        )}
+            Edit
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -338,7 +270,10 @@ export function InventoryPage() {
           <div>
             <h2 className="section-title text-lg">Bottles</h2>
             <p className="section-copy">
-              {availableBottleCount}/{bottles.length || 0} available today
+              <span className="font-semibold text-brand-700">
+                {availableBottleCount}
+              </span>
+              /{bottles.length || 0} available today
             </p>
           </div>
           <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:items-center">
@@ -368,15 +303,15 @@ export function InventoryPage() {
           </div>
         </div>
 
-        <div className="mb-2.5 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-3 md:mb-3 md:p-4">
-          <p className="mb-3 text-sm font-medium text-ink-700">Quick add</p>
+        <div className="mb-2.5 rounded-[1.05rem] border border-brand-100 bg-brand-50/45 p-3 md:mb-3 md:p-4">
+          <p className="mb-2 text-sm font-medium text-brand-800">Quick add</p>
           <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
             {QUICK_BOTTLE_TEMPLATES.map((template) => (
               <button
                 key={template.name}
                 type="button"
                 onClick={() => quickAddBottle(template)}
-                className="min-h-10 shrink-0 rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 md:min-h-0"
+                className="min-h-10 shrink-0 rounded-full border border-brand-100 bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-brand-50 md:min-h-0"
               >
                 {template.name}
               </button>
@@ -435,13 +370,17 @@ export function InventoryPage() {
                         initialData={{
                           name: bottle.name,
                           capacityMl: bottle.capacityMl,
-                        }}
-                        submitLabel="Save"
-                        onSubmit={(data) => handleEditBottle(bottle.id, data)}
-                        onCancel={() => setEditingBottleId(null)}
-                      />
-                    </CardContent>
-                  </Card>
+                      }}
+                      submitLabel="Save"
+                      onSubmit={(data) => handleEditBottle(bottle.id, data)}
+                      onCancel={() => setEditingBottleId(null)}
+                      onDelete={() => {
+                        deleteBottle(bottle.id);
+                        setEditingBottleId(null);
+                      }}
+                    />
+                  </CardContent>
+                </Card>
                 ) : (
                   <BottleCard
                     key={bottle.id}
@@ -468,7 +407,10 @@ export function InventoryPage() {
           <div>
             <h2 className="section-title text-lg">Products</h2>
             <p className="section-copy">
-              {availableProductCount}/{products.length || 0} available today
+              <span className="font-semibold text-brand-700">
+                {availableProductCount}
+              </span>
+              /{products.length || 0} available today
             </p>
           </div>
           {!showProductForm && !editingProduct && (
@@ -478,15 +420,15 @@ export function InventoryPage() {
           )}
         </div>
 
-        <div className="mb-2.5 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-3 md:mb-3 md:p-4">
-          <p className="mb-3 text-sm font-medium text-ink-700">Quick add</p>
+        <div className="mb-2.5 rounded-[1.05rem] border border-brand-100 bg-brand-50/45 p-3 md:mb-3 md:p-4">
+          <p className="mb-2 text-sm font-medium text-brand-800">Quick add</p>
           <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
             {QUICK_PRODUCT_TEMPLATES.map((template) => (
               <button
                 key={template.name}
                 type="button"
                 onClick={() => quickAddProduct(template)}
-                className="min-h-10 shrink-0 rounded-full border border-[color:var(--border-soft)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 md:min-h-0"
+                className="min-h-10 shrink-0 rounded-full border border-brand-100 bg-white px-3.5 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-brand-50 md:min-h-0"
               >
                 {template.name}
               </button>
@@ -518,16 +460,20 @@ export function InventoryPage() {
                 initialData={editingProduct}
                 onSubmit={handleEditProduct}
                 onCancel={() => setEditingProduct(null)}
+                onDelete={() => {
+                  deleteProduct(editingProduct.id);
+                  setEditingProduct(null);
+                }}
               />
             </CardContent>
           </Card>
         )}
 
         {products.length > 0 && (
-          <div className="mb-2.5 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-3 md:mb-3 md:p-4">
-            <div className="space-y-3">
+          <div className="mb-2.5 rounded-[1.05rem] border border-brand-100 bg-brand-50/35 p-3 md:mb-3 md:p-4">
+            <div className="space-y-2.5">
               <div className="space-y-1.5">
-                <p className="section-kicker text-[0.68rem]">Type</p>
+                <p className="section-kicker text-[0.68rem] text-brand-800">Type</p>
                 <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:px-0">
                   {typeFilters.map((filter) => (
                     <button
@@ -545,7 +491,9 @@ export function InventoryPage() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <p className="section-kicker text-[0.68rem]">Availability</p>
+                <p className="section-kicker text-[0.68rem] text-brand-800">
+                  Availability
+                </p>
                 <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:px-0">
                   {(['all', 'available', 'unavailable'] as const).map((value) => (
                     <button
