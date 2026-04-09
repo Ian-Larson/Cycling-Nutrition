@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { useStore } from '@/store';
 import { Button, Card, CardContent, CardHeader, Toggle } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
-import { BottleCard } from '@/components/bottles/bottle-card';
 import { BottleForm } from '@/components/bottles/bottle-form';
-import { ProductCard } from '@/components/products/product-card';
 import { ProductForm } from '@/components/products/product-form';
 import type { Bottle, Product } from '@/types';
 
@@ -95,6 +93,8 @@ export function InventoryPage() {
 
   const availableBottleCount = bottles.filter((bottle) => bottle.isAvailable).length;
   const availableProductCount = products.filter((product) => product.isAvailable).length;
+  const editingBottle =
+    bottles.find((bottle) => bottle.id === editingBottleId) ?? null;
 
   const visibleMobileBottles = sortedBottles.filter(
     (bottle) => bottle.id !== editingBottleId
@@ -182,8 +182,87 @@ export function InventoryPage() {
     </div>
   );
 
+  const renderDesktopBottleRow = (bottle: Bottle, isLast: boolean) => (
+    <div
+      key={bottle.id}
+      className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-4 px-4 py-3.5 lg:px-5 ${
+        isLast ? '' : 'border-b border-[color:var(--border-soft)]'
+      } ${bottle.isAvailable ? '' : 'opacity-60'}`}
+    >
+      <div className="min-w-0">
+        <p className="truncate font-semibold text-ink-900">{bottle.name}</p>
+        <p className="mt-1 text-sm leading-5 text-ink-600">{bottle.capacityMl}ml</p>
+      </div>
+      <button
+        type="button"
+        onClick={() => {
+          setShowBottleForm(false);
+          setEditingBottleId(bottle.id);
+        }}
+        className="inline-flex min-h-9 items-center justify-self-end rounded-lg px-2 text-sm font-medium text-brand-700 transition-colors hover:text-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100"
+      >
+        Edit
+      </button>
+      <div className="justify-self-end rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] px-2.5 py-1.5">
+        <Toggle
+          checked={bottle.isAvailable}
+          onChange={() =>
+            updateBottle(bottle.id, { isAvailable: !bottle.isAvailable })
+          }
+          label={`Use ${bottle.name} in planning`}
+        />
+      </div>
+    </div>
+  );
+
+  const renderDesktopProductRow = (product: Product, isLast: boolean) => (
+    <div
+      key={product.id}
+      className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-4 px-4 py-3.5 lg:px-5 ${
+        isLast ? '' : 'border-b border-[color:var(--border-soft)]'
+      } ${product.isAvailable ? '' : 'opacity-60'}`}
+    >
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="truncate font-semibold text-ink-900">{product.name}</p>
+          <span className="rounded-full bg-shell-100 px-2.5 py-1 text-xs font-medium text-ink-600">
+            {PRODUCT_TYPE_LABELS[product.type]}
+          </span>
+          {product.brand ? (
+            <span className="text-sm leading-5 text-ink-600">{product.brand}</span>
+          ) : null}
+        </div>
+        <p className="mt-1 text-sm leading-5 text-ink-700">
+          {product.nutrition.carbsGrams}g carbs • {product.nutrition.calories} kcal
+          {product.serving.servingSizeGrams
+            ? ` / ${product.serving.servingSizeGrams}g`
+            : ''}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={() => {
+          setShowProductForm(false);
+          setEditingProduct(product);
+        }}
+        className="inline-flex min-h-9 items-center justify-self-end rounded-lg px-2 text-sm font-medium text-brand-700 transition-colors hover:text-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100"
+      >
+        Edit
+      </button>
+      <div className="justify-self-end rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] px-2.5 py-1.5">
+        <Toggle
+          checked={product.isAvailable}
+          onChange={() =>
+            updateProduct(product.id, { isAvailable: !product.isAvailable })
+          }
+          label={`Use ${product.name} in planning`}
+        />
+      </div>
+    </div>
+  );
+
   return (
-    <div className="page-shell space-y-4 md:space-y-6">
+    <div className="page-shell max-w-6xl space-y-4 md:space-y-6">
       <PageIntro
         eyebrow="Inventory"
         title="Inventory"
@@ -194,8 +273,9 @@ export function InventoryPage() {
         }
       />
 
+      <div className="space-y-6 xl:grid xl:grid-cols-[minmax(18rem,0.78fr)_minmax(0,1.22fr)] xl:items-start xl:gap-6 xl:space-y-0">
       {/* Bottles Section */}
-      <section>
+      <section className="space-y-3 md:space-y-4">
         <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3 md:mb-4">
           <div>
             <h2 className="section-title text-lg">Bottles</h2>
@@ -245,7 +325,30 @@ export function InventoryPage() {
           </Card>
         )}
 
-        {bottles.length === 0 && !showBottleForm ? (
+        {editingBottle && (
+          <Card className={`mb-2.5 md:mb-3 ${!editingBottle.isAvailable ? 'opacity-60' : ''}`}>
+            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
+              <h3 className="section-title text-lg">{editingBottle.name}</h3>
+            </CardHeader>
+            <CardContent>
+              <BottleForm
+                initialData={{
+                  name: editingBottle.name,
+                  capacityMl: editingBottle.capacityMl,
+                }}
+                submitLabel="Save"
+                onSubmit={(data) => handleEditBottle(editingBottle.id, data)}
+                onCancel={() => setEditingBottleId(null)}
+                onDelete={() => {
+                  deleteBottle(editingBottle.id);
+                  setEditingBottleId(null);
+                }}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {bottles.length === 0 && !showBottleForm && !editingBottle ? (
           <Card>
             <CardContent className="py-5 text-center md:py-6">
               <p className="mb-4 text-ink-600">No bottles added yet.</p>
@@ -270,43 +373,18 @@ export function InventoryPage() {
                 </Card>
               )}
             </div>
-            <div className="hidden space-y-2 md:block">
-              {sortedBottles.map((bottle) =>
-                editingBottleId === bottle.id ? (
-                  <Card key={bottle.id} className={!bottle.isAvailable ? 'opacity-60' : ''}>
-                    <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-                      <h3 className="section-title text-lg">{bottle.name}</h3>
-                    </CardHeader>
-                    <CardContent>
-                      <BottleForm
-                        initialData={{
-                          name: bottle.name,
-                          capacityMl: bottle.capacityMl,
-                      }}
-                      submitLabel="Save"
-                      onSubmit={(data) => handleEditBottle(bottle.id, data)}
-                      onCancel={() => setEditingBottleId(null)}
-                      onDelete={() => {
-                        deleteBottle(bottle.id);
-                        setEditingBottleId(null);
-                      }}
-                    />
+            <div className="hidden md:block">
+              {visibleMobileBottles.length > 0 && (
+                <Card className="overflow-hidden">
+                  <CardContent className="p-0">
+                    {visibleMobileBottles.map((bottle, index) =>
+                      renderDesktopBottleRow(
+                        bottle,
+                        index === visibleMobileBottles.length - 1
+                      )
+                    )}
                   </CardContent>
                 </Card>
-                ) : (
-                  <BottleCard
-                    key={bottle.id}
-                    bottle={bottle}
-                    onToggleAvailable={() =>
-                      updateBottle(bottle.id, { isAvailable: !bottle.isAvailable })
-                    }
-                    onEdit={() => {
-                      setShowBottleForm(false);
-                      setEditingBottleId(bottle.id);
-                    }}
-                    onDelete={() => deleteBottle(bottle.id)}
-                  />
-                )
               )}
             </div>
           </>
@@ -314,7 +392,7 @@ export function InventoryPage() {
       </section>
 
       {/* Fuel Section */}
-      <section>
+      <section className="space-y-3 md:space-y-4">
         <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3 md:mb-4">
           <div>
             <h2 className="section-title text-lg">Fuel</h2>
@@ -366,7 +444,7 @@ export function InventoryPage() {
 
         {products.length > 0 && (
           <div className="mb-2.5 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-3 md:mb-3 md:p-4">
-            <div className="space-y-2.5">
+            <div className="space-y-2.5 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
               <div className="space-y-1.5">
                 <p className="section-kicker text-[0.68rem]">Type</p>
                 <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:px-0">
@@ -441,21 +519,19 @@ export function InventoryPage() {
                 </p>
               )}
             </div>
-            <div className="hidden space-y-2 md:block">
-              {availabilityFilteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onToggleAvailable={() =>
-                    updateProduct(product.id, { isAvailable: !product.isAvailable })
-                  }
-                  onEdit={() => {
-                    setShowProductForm(false);
-                    setEditingProduct(product);
-                  }}
-                  onDelete={() => deleteProduct(product.id)}
-                />
-              ))}
+            <div className="hidden md:block">
+              {visibleMobileProducts.length > 0 && (
+                <Card className="overflow-hidden">
+                  <CardContent className="p-0">
+                    {visibleMobileProducts.map((product, index) =>
+                      renderDesktopProductRow(
+                        product,
+                        index === visibleMobileProducts.length - 1
+                      )
+                    )}
+                  </CardContent>
+                </Card>
+              )}
               {availabilityFilteredProducts.length === 0 && products.length > 0 && (
                 <p className="py-6 text-center text-ink-500">
                   No fuel matches these filters.
@@ -465,6 +541,7 @@ export function InventoryPage() {
           </>
         )}
       </section>
+      </div>
     </div>
   );
 }
