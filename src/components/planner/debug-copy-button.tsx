@@ -7,6 +7,7 @@ interface DebugCopyButtonProps {
   plan: Omit<FuelPlan, 'id' | 'createdAt'>;
   bottles: Bottle[];
   products: Product[];
+  selectedBottleIds: string[];
   selectedDrinkMixId: string | null;
   selectedSolidIds: string[];
 }
@@ -21,6 +22,7 @@ function buildDebugText(
   plan: Omit<FuelPlan, 'id' | 'createdAt'>,
   bottles: Bottle[],
   products: Product[],
+  selectedBottleIds: string[],
   selectedDrinkMixId: string | null,
   selectedSolidIds: string[]
 ): string {
@@ -109,9 +111,9 @@ function buildDebugText(
   );
   lines.push('');
 
-  // Available Bottles
-  lines.push('--- Available Bottles ---');
-  const availableBottles = bottles.filter((b) => b.isAvailable);
+  // Selected Bottles
+  lines.push('--- Selected Bottles ---');
+  const availableBottles = bottles.filter((b) => selectedBottleIds.includes(b.id));
   if (availableBottles.length === 0) {
     lines.push('  (none)');
   } else {
@@ -188,6 +190,7 @@ export function DebugCopyButton({
   plan,
   bottles,
   products,
+  selectedBottleIds,
   selectedDrinkMixId,
   selectedSolidIds,
 }: DebugCopyButtonProps) {
@@ -196,7 +199,14 @@ export function DebugCopyButton({
   const [copyFailed, setCopyFailed] = useState(false);
 
   const handleCopy = async () => {
-    const text = buildDebugText(plan, bottles, products, selectedDrinkMixId, selectedSolidIds);
+    const text = buildDebugText(
+      plan,
+      bottles,
+      products,
+      selectedBottleIds,
+      selectedDrinkMixId,
+      selectedSolidIds
+    );
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);

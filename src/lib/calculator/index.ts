@@ -157,7 +157,7 @@ export function calculateFuelPlan(
     if (input.availableSolids.length === 0) {
       warnings.push({
         type: 'concentration_limit',
-        message: `Planned carbs are ${deficit}g short. Toggle some solid fuel products (gels/chews) on the Inventory page to make up the difference.`,
+        message: `Planned carbs are ${deficit}g short. Select some solid fuel in setup to make up the difference.`,
       });
     } else {
       warnings.push({

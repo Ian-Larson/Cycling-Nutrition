@@ -1,25 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import {
   Button,
   Card,
   CardContent,
   CardHeader,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
   Input,
   Toast,
-  Toggle,
 } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
 import { DebugCopyButton } from '@/components/planner/debug-copy-button';
-import { FuelOptionsCard } from '@/components/planner/fuel-options-card';
 import { FuelResult } from '@/components/planner/fuel-result';
 import { RideForm, type RideFormSnapshot } from '@/components/planner/ride-form';
+import { SetupCard } from '@/components/planner/setup-card';
 import { calculateFuelPlan, recalculatePlan, type CalculatorInput } from '@/lib/calculator';
-import { getReadinessFromState, useStore } from '@/store';
-import type { FuelPlan, RideCharacteristics } from '@/types';
+import { useStore } from '@/store';
+import type { Bottle, FuelPlan, Product, RideCharacteristics } from '@/types';
 import type { PlannerDraft } from '@/store';
 
 type PlannerStep = 1 | 2 | 3;
@@ -125,6 +121,49 @@ function getRideFormSnapshotFromRide(
   };
 }
 
+function getDefaultSelectedBottleIds(
+  bottles: Bottle[],
+  draft: PlannerDraft | null
+): string[] {
+  if (draft?.selectedBottleIds) {
+    return draft.selectedBottleIds.filter((id) =>
+      bottles.some((bottle) => bottle.id === id)
+    );
+  }
+
+  return bottles.filter((bottle) => bottle.isAvailable).map((bottle) => bottle.id);
+}
+
+function getDefaultSelectedDrinkMixId(
+  products: Product[],
+  draft: PlannerDraft | null
+): string | null {
+  if (draft?.selectedDrinkMixId !== undefined) {
+    return draft.selectedDrinkMixId;
+  }
+
+  return (
+    products.find(
+      (product) => product.type === 'drink_mix' && product.isAvailable
+    )?.id ?? null
+  );
+}
+
+function getDefaultSelectedSolidIds(
+  products: Product[],
+  draft: PlannerDraft | null
+): string[] {
+  if (draft?.selectedSolidIds) {
+    return draft.selectedSolidIds.filter((id) =>
+      products.some((product) => product.id === id && product.type !== 'drink_mix')
+    );
+  }
+
+  return products
+    .filter((product) => product.type !== 'drink_mix' && product.isAvailable)
+    .map((product) => product.id);
+}
+
 const STEP_LABELS: Array<{ step: PlannerStep; label: string }> = [
   { step: 1, label: 'Setup' },
   { step: 2, label: 'Ride' },
@@ -135,7 +174,6 @@ export function PlannerPage() {
   const [searchParams] = useSearchParams();
   const bottles = useStore((s) => s.bottles);
   const products = useStore((s) => s.products);
-  const settings = useStore((s) => s.settings);
   const saveFuelPlan = useStore((s) => s.saveFuelPlan);
   const plannerDraft = useStore((s) => s.plannerDraft);
   const setPlannerDraft = useStore((s) => s.setPlannerDraft);
@@ -156,15 +194,14 @@ export function PlannerPage() {
   const [rideFormSubmitTrigger, setRideFormSubmitTrigger] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const [includeUnavailableBottles, setIncludeUnavailableBottles] =
-    useState(initialDraft?.includeUnavailableBottles ?? false);
-  const [includeUnavailableProducts, setIncludeUnavailableProducts] =
-    useState(initialDraft?.includeUnavailableProducts ?? false);
+  const [selectedBottleIds, setSelectedBottleIds] = useState<string[]>(
+    getDefaultSelectedBottleIds(bottles, initialDraft)
+  );
   const [selectedDrinkMixId, setSelectedDrinkMixId] = useState<string | null>(
-    initialDraft?.selectedDrinkMixId ?? null
+    getDefaultSelectedDrinkMixId(products, initialDraft)
   );
   const [selectedSolidIds, setSelectedSolidIds] = useState<string[]>(
-    initialDraft?.selectedSolidIds ?? []
+    getDefaultSelectedSolidIds(products, initialDraft)
   );
 
   const [rideFormInitialSnapshot, setRideFormInitialSnapshot] = useState<
@@ -173,10 +210,6 @@ export function PlannerPage() {
   const [rideFormInstanceKey, setRideFormInstanceKey] = useState(0);
 
   const lastInputRef = useRef<CalculatorInput | null>(null);
-  const readiness = useMemo(
-    () => getReadinessFromState({ bottles, products, settings }),
-    [bottles, products, settings]
-  );
 
   useEffect(() => {
     if (plannerDraft) {
@@ -184,52 +217,66 @@ export function PlannerPage() {
     }
   }, [plannerDraft, setPlannerDraft]);
 
-  const bottlePool = useMemo(
+  const bottleOptions = useMemo(
     () =>
-      includeUnavailableBottles
-        ? bottles
-        : bottles.filter((bottle) => bottle.isAvailable),
-    [bottles, includeUnavailableBottles]
+      [...bottles].sort(
+        (a, b) =>
+          Number(b.isAvailable) - Number(a.isAvailable) ||
+          a.capacityMl - b.capacityMl ||
+          a.name.localeCompare(b.name)
+      ),
+    [bottles]
   );
 
-  const drinkMixPool = useMemo(
+  const drinkMixOptions = useMemo(
     () =>
-      products.filter(
-        (product) =>
-          product.type === 'drink_mix' &&
-          (includeUnavailableProducts || product.isAvailable)
+      [...products.filter((product) => product.type === 'drink_mix')].sort(
+        (a, b) =>
+          Number(b.isAvailable) - Number(a.isAvailable) ||
+          a.name.localeCompare(b.name)
       ),
-    [products, includeUnavailableProducts]
+    [products]
   );
 
-  const solidPool = useMemo(
+  const solidOptions = useMemo(
     () =>
-      products.filter(
-        (product) =>
-          product.type !== 'drink_mix' &&
-          (includeUnavailableProducts || product.isAvailable)
+      [...products.filter((product) => product.type !== 'drink_mix')].sort(
+        (a, b) =>
+          Number(b.isAvailable) - Number(a.isAvailable) ||
+          a.name.localeCompare(b.name)
       ),
-    [products, includeUnavailableProducts]
+    [products]
+  );
+
+  const selectedBottlePool = useMemo(
+    () =>
+      bottleOptions.filter((bottle) => selectedBottleIds.includes(bottle.id)),
+    [bottleOptions, selectedBottleIds]
+  );
+
+  const effectiveSelectedBottleIds = useMemo(
+    () => selectedBottlePool.map((bottle) => bottle.id),
+    [selectedBottlePool]
   );
 
   const effectiveSelectedSolidIds = useMemo(
     () =>
       selectedSolidIds.filter((id) =>
-        solidPool.some((product) => product.id === id)
+        solidOptions.some((product) => product.id === id)
       ),
-    [selectedSolidIds, solidPool]
+    [selectedSolidIds, solidOptions]
   );
 
-  const canCalculate = bottlePool.length > 0 && drinkMixPool.length > 0;
+  const effectiveSelectedDrinkMixId = useMemo(() => {
+    if (selectedDrinkMixId === null) return null;
+    return drinkMixOptions.some((mix) => mix.id === selectedDrinkMixId)
+      ? selectedDrinkMixId
+      : null;
+  }, [drinkMixOptions, selectedDrinkMixId]);
+
   const selectedDrinkMix =
-    drinkMixPool.find((mix) => mix.id === selectedDrinkMixId) ?? drinkMixPool[0];
-  const availableBottleCount = bottles.filter((bottle) => bottle.isAvailable).length;
-  const availableDrinkMixCount = products.filter(
-    (product) => product.type === 'drink_mix' && product.isAvailable
-  ).length;
-  const availableSolidCount = products.filter(
-    (product) => product.type !== 'drink_mix' && product.isAvailable
-  ).length;
+    drinkMixOptions.find((mix) => mix.id === effectiveSelectedDrinkMixId) ?? null;
+  const canCalculate = selectedBottlePool.length > 0 && Boolean(selectedDrinkMix);
   const fuelBreakdown = useMemo(() => {
     if (!plan) return null;
 
@@ -282,13 +329,13 @@ export function PlannerPage() {
   const handleCalculate = (ride: RideCharacteristics) => {
     if (!canCalculate || !selectedDrinkMix) return;
 
-    const availableSolids = solidPool.filter((product) =>
+    const availableSolids = solidOptions.filter((product) =>
       effectiveSelectedSolidIds.includes(product.id)
     );
 
     const input: CalculatorInput = {
       ride,
-      availableBottles: bottlePool,
+      availableBottles: selectedBottlePool,
       drinkMix: selectedDrinkMix,
       availableSolids,
     };
@@ -378,34 +425,8 @@ export function PlannerPage() {
           title="Fuel plan"
           description={
             <>
-              Select fuel and enter ride data.
+              Choose bottles and fuel, then enter ride data.
             </>
-          }
-          meta={
-            <div className="page-stat-grid">
-              <div className="page-stat">
-                <p className="page-stat-label">Profile</p>
-                <p className="page-stat-value">{readiness.profileCompletionPercent}%</p>
-                <p className="page-stat-copy">
-                  {readiness.autoReady ? 'FTP saved' : 'FTP needed'}
-                </p>
-              </div>
-              <div className="page-stat">
-                <p className="page-stat-label">Bottles</p>
-                <p className="page-stat-value">{availableBottleCount}</p>
-                <p className="page-stat-copy">Available</p>
-              </div>
-              <div className="page-stat">
-                <p className="page-stat-label">Fuel</p>
-                <p className="page-stat-value">
-                  {availableDrinkMixCount + availableSolidCount}
-                </p>
-                <p className="page-stat-copy">
-                  {availableDrinkMixCount} mix{availableDrinkMixCount === 1 ? '' : 'es'}
-                  {' '}• {availableSolidCount} solid{availableSolidCount === 1 ? '' : 's'}
-                </p>
-              </div>
-            </div>
           }
         />
 
@@ -436,147 +457,17 @@ export function PlannerPage() {
         </section>
 
         {step === 1 && (
-          <div className="grid gap-4 xl:grid-cols-[0.92fr_1.28fr] xl:gap-5">
-            <Card className="overflow-hidden">
-              <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-                <h2 className="section-title">Setup</h2>
-                <p className="section-copy hidden md:block">Planner uses available items by default.</p>
-              </CardHeader>
-              <CardContent className="space-y-3 md:space-y-4">
-                <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-1 xl:gap-3">
-                  <div className="surface-note flex items-center justify-between gap-3 p-3 md:block md:p-4">
-                    <div className="min-w-0">
-                      <p className="section-kicker text-[0.68rem]">Bottles</p>
-                      <p
-                        className={`mt-1.5 font-semibold md:mt-2 ${
-                          readiness.hasAvailableBottle ? 'text-emerald-700' : 'text-amber-700'
-                        }`}
-                      >
-                        {readiness.hasAvailableBottle
-                          ? `${availableBottleCount} available`
-                          : 'Add a bottle'}
-                      </p>
-                    </div>
-                    <Link
-                      to="/inventory"
-                      className="shrink-0 rounded-lg border border-[color:var(--border-soft)] bg-white px-3 py-2 text-sm font-medium text-ink-700 md:mt-3 md:inline-flex"
-                    >
-                      Inventory
-                    </Link>
-                  </div>
-                  <div className="surface-note p-3 md:p-4">
-                    <p className="section-kicker text-[0.68rem]">Drink mix</p>
-                    <p
-                      className={`mt-1.5 font-semibold md:mt-2 ${
-                        readiness.hasAvailableDrinkMix ? 'text-emerald-700' : 'text-amber-700'
-                      }`}
-                    >
-                      {readiness.hasAvailableDrinkMix
-                        ? `${availableDrinkMixCount} available`
-                        : 'Add a drink mix'}
-                    </p>
-                    <p className="mt-1 text-sm leading-5 text-ink-600 md:mt-2 md:leading-6">
-                      {selectedDrinkMix
-                        ? `Selected: ${selectedDrinkMix.name}.`
-                        : 'Select a mix below.'}
-                    </p>
-                  </div>
-                  <div className="surface-note flex items-center justify-between gap-3 p-3 md:block md:p-4">
-                    <div className="min-w-0">
-                      <p className="section-kicker text-[0.68rem]">Auto mode</p>
-                      <p
-                        className={`mt-1.5 font-semibold md:mt-2 ${
-                          readiness.autoReady ? 'text-emerald-700' : 'text-amber-700'
-                        }`}
-                      >
-                        {readiness.autoReady ? 'FTP saved' : 'Add FTP'}
-                      </p>
-                    </div>
-                    <Link
-                      to="/athlete?return=planner-step2"
-                      className="shrink-0 rounded-lg border border-[color:var(--border-soft)] bg-white px-3 py-2 text-sm font-medium text-ink-700 md:mt-3 md:inline-flex"
-                    >
-                      Athlete
-                    </Link>
-                  </div>
-                </div>
-
-                {readiness.missingProfileFields.length > 0 && (
-                  <p className="hidden text-sm leading-6 text-ink-600 md:block">
-                    Missing: {readiness.missingProfileFields.join(', ')}
-                  </p>
-                )}
-
-                <div className="surface-note p-3 md:p-4">
-                  <p className="section-kicker text-[0.68rem]">Selected Fuel</p>
-                  <p className="mt-1.5 text-sm leading-5 text-ink-700 md:mt-2 md:leading-6">
-                    Drink mix: <span className="font-semibold text-ink-900">{selectedDrinkMix?.name ?? 'Not selected'}</span>
-                  </p>
-                  <p className="text-sm leading-5 text-ink-700 md:leading-6">
-                    Solids: <span className="font-semibold text-ink-900">
-                      {effectiveSelectedSolidIds.length === 0
-                        ? 'None'
-                        : `${effectiveSelectedSolidIds.length} selected`}
-                    </span>
-                  </p>
-                </div>
-
-                <Collapsible
-                  defaultOpen={includeUnavailableBottles || includeUnavailableProducts}
-                  className="surface-note overflow-hidden"
-                >
-                  <CollapsibleTrigger className="px-4 py-3 md:px-5">
-                    <div>
-                      <p className="section-kicker text-[0.68rem]">Overrides</p>
-                      <h3 className="section-title text-lg">Unavailable items</h3>
-                      <p className="mt-2 hidden text-sm leading-6 text-ink-600 md:block">
-                        Use only if this plan needs items marked unavailable.
-                      </p>
-                    </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="border-t border-[color:var(--border-soft)] px-4 py-4 md:px-5">
-                    <div className="space-y-2 md:space-y-3">
-                      <div className="flex items-center justify-between rounded-[1.1rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:px-4">
-                        <div>
-                          <p className="font-semibold text-ink-900">Use unavailable bottles</p>
-                          <p className="hidden text-sm leading-6 text-ink-600 md:block">
-                            For this plan only.
-                          </p>
-                        </div>
-                        <Toggle
-                          checked={includeUnavailableBottles}
-                          onChange={setIncludeUnavailableBottles}
-                          label="Include unavailable bottles"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between rounded-[1.1rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:px-4">
-                        <div>
-                          <p className="font-semibold text-ink-900">Use unavailable products</p>
-                          <p className="hidden text-sm leading-6 text-ink-600 md:block">
-                            For this plan only.
-                          </p>
-                        </div>
-                        <Toggle
-                          checked={includeUnavailableProducts}
-                          onChange={setIncludeUnavailableProducts}
-                          label="Include unavailable products"
-                        />
-                      </div>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </CardContent>
-            </Card>
-
-            <FuelOptionsCard
-              drinkMixes={drinkMixPool}
-              solidProducts={solidPool}
-              selectedDrinkMixId={selectedDrinkMix?.id ?? null}
-              selectedSolidIds={effectiveSelectedSolidIds}
-              onDrinkMixChange={setSelectedDrinkMixId}
-              onSolidChange={setSelectedSolidIds}
-            />
-          </div>
+          <SetupCard
+            bottles={bottleOptions}
+            drinkMixes={drinkMixOptions}
+            solidProducts={solidOptions}
+            selectedBottleIds={effectiveSelectedBottleIds}
+            selectedDrinkMixId={effectiveSelectedDrinkMixId}
+            selectedSolidIds={effectiveSelectedSolidIds}
+            onBottleIdsChange={setSelectedBottleIds}
+            onDrinkMixChange={setSelectedDrinkMixId}
+            onSolidChange={setSelectedSolidIds}
+          />
         )}
 
         {step === 2 && (
@@ -588,7 +479,7 @@ export function PlannerPage() {
             <CardContent className="space-y-4 md:space-y-5">
               {!canCalculate && (
                 <div className="surface-note border-amber-200 bg-amber-50 p-3.5 text-sm leading-6 text-amber-800 md:p-4">
-                  Add one bottle and one drink mix, or enable unavailable items in setup.
+                  Select at least one bottle and one mix in setup.
                 </div>
               )}
               <RideForm
@@ -710,7 +601,8 @@ export function PlannerPage() {
                     plan={plan}
                     bottles={bottles}
                     products={products}
-                    selectedDrinkMixId={selectedDrinkMix?.id ?? null}
+                    selectedBottleIds={effectiveSelectedBottleIds}
+                    selectedDrinkMixId={effectiveSelectedDrinkMixId}
                     selectedSolidIds={effectiveSelectedSolidIds}
                   />
                 )}

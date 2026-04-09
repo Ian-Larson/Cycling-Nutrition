@@ -73,6 +73,9 @@ export function HistoryPage() {
   };
 
   const handleReusePlan = (plan: FuelPlan) => {
+    const selectedBottleIds = Array.from(
+      new Set(plan.bottles.map((allocation) => allocation.bottleId))
+    );
     const selectedDrinkMixId =
       plan.bottles.find((allocation) => !allocation.isWaterOnly)?.productId ?? null;
     const selectedSolidIds = plan.solids.map((solid) => solid.productId);
@@ -93,6 +96,7 @@ export function HistoryPage() {
 
     setPlannerDraft({
       ride: plan.rideCharacteristics,
+      selectedBottleIds,
       selectedDrinkMixId,
       selectedSolidIds,
       includeUnavailableBottles,

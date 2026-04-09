@@ -34,6 +34,7 @@ type SettingsUpdate = Partial<Omit<Settings, 'athleteProfile'>> & {
 
 export interface PlannerDraft {
   ride: RideCharacteristics;
+  selectedBottleIds?: string[];
   selectedDrinkMixId?: string | null;
   selectedSolidIds?: string[];
   includeUnavailableBottles?: boolean;
@@ -282,6 +283,9 @@ function normalizePlannerDraft(value: unknown): PlannerDraft | null {
   return {
     ...draft,
     ride: ride as RideCharacteristics,
+    selectedBottleIds: Array.isArray(draft.selectedBottleIds)
+      ? draft.selectedBottleIds.filter((id): id is string => typeof id === 'string')
+      : [],
     selectedDrinkMixId:
       typeof draft.selectedDrinkMixId === 'string' || draft.selectedDrinkMixId === null
         ? draft.selectedDrinkMixId
