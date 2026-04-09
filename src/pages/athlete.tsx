@@ -22,7 +22,7 @@ import {
   createStravaProvider,
 } from '@/lib/auth/strava-provider';
 import type { AuthStatus } from '@/lib/auth/types';
-import { useStore, type AthleteProfile } from '@/store';
+import { useStore, type AthleteProfile, type TemperatureUnit } from '@/store';
 
 type OptionalNumericAthleteField =
   | 'ftpWatts'
@@ -35,6 +35,10 @@ type AthleteFieldErrorKey =
   | 'gutTrainingTargetGph';
 
 const GUT_TARGET_PRESETS = [60, 65, 75, 85, 95] as const;
+const TEMPERATURE_OPTIONS: { value: TemperatureUnit; label: string }[] = [
+  { value: 'celsius', label: '°C' },
+  { value: 'fahrenheit', label: '°F' },
+];
 
 function roundTo(value: number, decimals: number): number {
   const multiplier = 10 ** decimals;
@@ -73,7 +77,9 @@ function getWeightDraftFromProfile(
 export function AthletePage() {
   const [searchParams] = useSearchParams();
   const athleteProfile = useStore((s) => s.settings.athleteProfile);
+  const temperatureUnit = useStore((s) => s.settings.temperatureUnit);
   const updateAthleteProfile = useStore((s) => s.updateAthleteProfile);
+  const updateSettings = useStore((s) => s.updateSettings);
   const stravaProvider = useMemo(() => createStravaProvider(), []);
   const [authStatus, setAuthStatus] = useState<AuthStatus>(
     stravaProvider.isConfigured() ? 'disconnected' : 'not_configured'
@@ -316,7 +322,7 @@ export function AthletePage() {
         title="Athlete"
         description={
           <>
-            FTP, weight, and fuel targets.
+            Profile and planning defaults.
           </>
         }
         actions={
@@ -324,7 +330,7 @@ export function AthletePage() {
             to={`/${plannerReturnStep}`}
             className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-white px-4 py-2 text-sm font-medium text-ink-800 sm:w-auto md:min-h-10"
           >
-            Back to planner
+            Back to plan
           </Link>
         }
       />
@@ -433,14 +439,14 @@ export function AthletePage() {
 
           <Card className="overflow-hidden">
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-              <h2 className="section-title text-lg">Fuel and hydration</h2>
+              <h2 className="section-title text-lg">Fuel targets</h2>
             </CardHeader>
             <CardContent className="space-y-3 md:space-y-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(15rem,0.9fr)] lg:gap-4 lg:space-y-0">
               <div className="space-y-3 md:space-y-4">
                 <div className="grid gap-2.5 sm:grid-cols-2 md:gap-3">
                   <Input
                     id="athlete-gut-target"
-                    label="Gut Training Target (g/h)"
+                    label="Gut target (g/h)"
                     type="text"
                     inputMode="numeric"
                     value={gutTargetDraft}
@@ -452,7 +458,7 @@ export function AthletePage() {
                   />
                   <Input
                     id="athlete-sweat-rate"
-                    label="Sweat Rate (L/hour)"
+                    label="Sweat rate (L/h)"
                     type="text"
                     inputMode="decimal"
                     value={sweatRateDraft}
@@ -468,7 +474,7 @@ export function AthletePage() {
                   <div>
                     <p className="font-semibold text-ink-900">Heavy sweater</p>
                     <p className="hidden text-sm leading-6 text-ink-600 md:block">
-                      Raises sodium in auto mode.
+                      Use higher sodium in auto mode.
                     </p>
                   </div>
                   <Toggle
@@ -483,7 +489,7 @@ export function AthletePage() {
 
               <div className="space-y-3">
                 <div className="space-y-1.5 md:space-y-2">
-                  <p className="section-kicker text-[0.68rem]">Presets</p>
+                  <p className="section-kicker text-[0.68rem]">Target presets</p>
                   <PresetButtons
                     options={GUT_TARGET_PRESETS.map((target) => ({
                       label: `${target} g/h`,
@@ -495,65 +501,98 @@ export function AthletePage() {
                 </div>
 
                 <p className="text-sm leading-5 text-ink-600 md:leading-6">
-                  {getGutTargetLabel(gutTrainingTargetGph)}. Auto stays near this value when effort allows.
+                  {getGutTargetLabel(gutTrainingTargetGph)}. Auto stays near this value when workload allows.
                 </p>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="overflow-hidden lg:sticky lg:top-20">
-          <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-            <h2 className="section-title text-lg">Connections</h2>
-          </CardHeader>
-          <CardContent className="space-y-3 md:space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-ink-900">Strava</span>
-              <span
-                className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                  authStatus === 'not_configured'
-                    ? 'bg-amber-100 text-amber-800'
+        <div className="space-y-4 lg:sticky lg:top-20">
+          <Card id="preferences" className="scroll-mt-24 overflow-hidden">
+            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
+              <h2 className="section-title text-lg">Preferences</h2>
+            </CardHeader>
+            <CardContent className="space-y-3 md:space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-ink-900">Temperature</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {TEMPERATURE_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => updateSettings({ temperatureUnit: option.value })}
+                      className={clsx(
+                        'min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors md:min-h-10',
+                        temperatureUnit === option.value
+                          ? 'border-brand-300 bg-brand-100 text-brand-800'
+                          : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-sm leading-5 text-ink-600 md:leading-6">
+                  Used in ride data weather fields.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden">
+            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
+              <h2 className="section-title text-lg">Connections</h2>
+            </CardHeader>
+            <CardContent className="space-y-3 md:space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-ink-900">Strava</span>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                    authStatus === 'not_configured'
+                      ? 'bg-amber-100 text-amber-800'
+                      : authStatus === 'pending'
+                        ? 'bg-blue-100 text-blue-800'
+                        : authStatus === 'error'
+                          ? 'bg-red-100 text-red-800'
+                          : authStatus === 'connected'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {authStatus === 'not_configured'
+                    ? 'Not configured'
                     : authStatus === 'pending'
-                      ? 'bg-blue-100 text-blue-800'
+                      ? 'Connecting'
                       : authStatus === 'error'
-                        ? 'bg-red-100 text-red-800'
+                        ? 'Error'
                         : authStatus === 'connected'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-gray-100 text-gray-700'
-                }`}
-              >
-                {authStatus === 'not_configured'
-                  ? 'Not configured'
-                  : authStatus === 'pending'
-                    ? 'Connecting'
-                    : authStatus === 'error'
-                      ? 'Error'
-                      : authStatus === 'connected'
-                        ? 'Connected'
-                        : 'Ready'}
-              </span>
-            </div>
+                          ? 'Connected'
+                          : 'Ready'}
+                </span>
+              </div>
 
-            <p className="text-sm leading-5 text-ink-600 md:leading-6">
-              Optional. Not required for planning.
-            </p>
-
-            <Button
-              variant="secondary"
-              className="w-full"
-              onClick={handleConnectStrava}
-              disabled={authStatus === 'pending'}
-            >
-              Connect Strava (Experimental)
-            </Button>
-
-            {authMessage && (
               <p className="text-sm leading-5 text-ink-600 md:leading-6">
-                {authMessage}
+                Optional. Not used for planning.
               </p>
-            )}
-          </CardContent>
-        </Card>
+
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={handleConnectStrava}
+                disabled={authStatus === 'pending'}
+              >
+                Connect Strava
+              </Button>
+
+              {authMessage && (
+                <p className="text-sm leading-5 text-ink-600 md:leading-6">
+                  {authMessage}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

@@ -6,7 +6,6 @@ import { PlannerPage } from '@/pages/planner';
 import { AthletePage } from '@/pages/athlete';
 import { InventoryPage } from '@/pages/inventory';
 import { HistoryPage } from '@/pages/history';
-import { SettingsPage } from '@/pages/settings';
 import { AuthCallbackPage } from '@/pages/auth-callback';
 import { useStore } from '@/store';
 
@@ -30,7 +29,15 @@ function App() {
             <Route path="/bottles" element={<Navigate to="/inventory" replace />} />
             <Route path="/products" element={<Navigate to="/inventory" replace />} />
             <Route path="/history" element={<HistoryPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
+            <Route
+              path="/settings"
+              element={
+                <Navigate
+                  to={{ pathname: '/athlete', hash: '#preferences' }}
+                  replace
+                />
+              }
+            />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
           </Routes>
         </main>

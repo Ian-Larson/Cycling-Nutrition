@@ -2,11 +2,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 
 const navItems = [
-  { path: '/', label: 'Planner' },
+  { path: '/', label: 'Plan' },
   { path: '/athlete', label: 'Athlete' },
   { path: '/inventory', label: 'Inventory' },
   { path: '/history', label: 'Plans' },
-  { path: '/settings', label: 'Settings' },
 ];
 
 export function Header() {

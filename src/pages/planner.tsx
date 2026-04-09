@@ -594,7 +594,7 @@ export function PlannerPage() {
                             : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
                         }`}
                       >
-                        Ride Guide
+                        Ride guide
                       </button>
                       <button
                         type="button"

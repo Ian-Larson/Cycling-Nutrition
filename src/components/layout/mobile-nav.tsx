@@ -6,7 +6,6 @@ const navItems = [
   { path: '/athlete', label: 'Athlete' },
   { path: '/inventory', label: 'Inventory' },
   { path: '/history', label: 'Plans' },
-  { path: '/settings', label: 'Settings' },
 ];
 
 export function MobileNav() {
@@ -14,7 +13,7 @@ export function MobileNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-[color:var(--border-soft)] bg-shell-50/96 backdrop-blur md:hidden">
-      <div className="mx-auto grid max-w-6xl grid-cols-5 gap-1 px-2.5 pt-1.5 [padding-bottom:calc(var(--safe-area-bottom)+0.5rem)]">
+      <div className="mx-auto grid max-w-6xl grid-cols-4 gap-1 px-2.5 pt-1.5 [padding-bottom:calc(var(--safe-area-bottom)+0.5rem)]">
         {navItems.map((item) => (
           <Link
             key={item.path}

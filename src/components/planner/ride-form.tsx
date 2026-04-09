@@ -162,7 +162,7 @@ export function RideForm({
   const autoPreview = useMemo(() => {
     if (!hasFtp) {
       return {
-        error: 'Set your FTP in Athlete Profile to enable auto mode.',
+        error: 'Set FTP in Athlete to use auto mode.',
       };
     }
 

@@ -110,8 +110,8 @@ export function HistoryPage() {
   return (
     <div className="page-shell max-w-6xl space-y-4 md:space-y-6">
       <PageIntro
-        eyebrow="History"
-        title="Saved plans"
+        eyebrow="Plans"
+        title="Plans"
         description={
           <>
             Reuse a saved plan.
@@ -122,10 +122,10 @@ export function HistoryPage() {
       {sortedPlans.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center md:py-12">
-            <p className="text-ink-600">No saved plans.</p>
+            <p className="text-ink-600">No plans saved yet.</p>
             <div className="mt-4">
               <Button className="w-full sm:w-auto" onClick={() => navigate('/')}>
-                New plan
+                Create plan
               </Button>
             </div>
           </CardContent>
