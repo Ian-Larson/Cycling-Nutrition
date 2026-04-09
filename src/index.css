@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "IBM Plex Sans", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, sans-serif;
+  --font-display: "IBM Plex Serif", Georgia, serif;
 
   --color-brand-50: #f4f6f8;
   --color-brand-100: #e7edf2;
@@ -58,6 +59,7 @@
     @apply font-body text-ink-900 bg-shell-50 antialiased;
     font-kerning: normal;
     font-variant-numeric: proportional-nums;
+    font-feature-settings: "kern" 1, "liga" 1;
     margin: 0;
     min-height: 100vh;
   }
@@ -143,21 +145,34 @@
 
   .section-kicker {
     @apply text-brand-700;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     line-height: 1.4;
+    letter-spacing: 0.02em;
+  }
+
+  .app-brand {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    line-height: 1.05;
   }
 
   .page-title {
-    @apply font-sans text-ink-900;
-    font-size: clamp(1.85rem, 1.55rem + 0.9vw, 2.45rem);
+    color: var(--color-ink-900);
+    font-family: var(--font-display);
+    font-size: clamp(1.95rem, 1.62rem + 0.95vw, 2.55rem);
     font-weight: 600;
-    line-height: 1.08;
+    letter-spacing: -0.018em;
+    line-height: 1.02;
     max-width: 18ch;
+    text-wrap: balance;
   }
 
   .page-summary {
-    @apply text-sm leading-6 text-ink-700;
+    color: var(--color-ink-700);
+    font-size: 0.98rem;
+    line-height: 1.5;
     max-width: 64ch;
   }
 
@@ -181,13 +196,15 @@
     font-size: 1.1rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.015em;
     line-height: 1.2;
   }
 
   .page-stat-label {
     @apply text-ink-600;
     font-size: 0.74rem;
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     line-height: 1.35;
   }
 
@@ -197,13 +214,16 @@
 
   .section-title {
     @apply font-sans text-ink-900;
-    font-size: 1.1rem;
+    font-size: 1.08rem;
     font-weight: 600;
+    letter-spacing: -0.012em;
     line-height: 1.2;
   }
 
   .section-copy {
-    @apply text-sm leading-6 text-ink-600;
+    @apply text-ink-600;
+    font-size: 0.94rem;
+    line-height: 1.5;
     max-width: 62ch;
   }
 
@@ -240,14 +260,15 @@
     }
 
     .page-title {
-      font-size: 1.75rem;
-      line-height: 1.04;
+      font-size: 1.82rem;
+      line-height: 1.01;
       max-width: none;
     }
 
     .page-summary {
       max-width: 34ch;
-      line-height: 1.35;
+      font-size: 0.95rem;
+      line-height: 1.42;
     }
 
     .page-stat-grid {
@@ -282,11 +303,12 @@
     }
 
     .section-title {
-      font-size: 1rem;
+      font-size: 1.02rem;
     }
 
     .section-copy {
-      line-height: 1.35;
+      font-size: 0.92rem;
+      line-height: 1.38;
     }
 
     .surface-note {
