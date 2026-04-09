@@ -445,9 +445,29 @@ export function PlannerPage() {
                         : 'border-[color:var(--border-soft)] bg-shell-100 text-ink-500'
                   }`}
                 >
-                  <p className="text-[0.7rem] font-medium opacity-80 md:text-xs">
-                    Step {item.step}
-                  </p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[0.7rem] font-medium opacity-80 md:text-xs">
+                      Step {item.step}
+                    </p>
+                    {isComplete ? (
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-700">
+                        <svg
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          className="h-3.5 w-3.5"
+                          aria-hidden
+                        >
+                          <path
+                            d="M5.5 10.5 8.5 13.5 14.5 6.5"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </span>
+                    ) : null}
+                  </div>
                   <p className="mt-1 font-sans text-sm font-semibold leading-none md:text-base">
                     {item.label}
                   </p>
