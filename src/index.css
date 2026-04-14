@@ -1,21 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "IBM Plex Sans", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, sans-serif;
-  --font-display: "IBM Plex Serif", Georgia, serif;
+  --font-display: "IBM Plex Sans", system-ui, sans-serif;
 
-  --color-brand-50: #f4f6f8;
-  --color-brand-100: #e7edf2;
-  --color-brand-200: #d7e0e8;
-  --color-brand-300: #b7c7d5;
-  --color-brand-400: #88a0b7;
-  --color-brand-500: #547597;
-  --color-brand-600: #486581;
-  --color-brand-700: #3f586f;
-  --color-brand-800: #334757;
-  --color-brand-900: #273744;
+  --color-brand-50: #fff4ed;
+  --color-brand-100: #ffe4d2;
+  --color-brand-200: #ffc29d;
+  --color-brand-300: #ff9561;
+  --color-brand-400: #ff6a31;
+  --color-brand-500: #ff4f14;
+  --color-brand-600: #d93f0d;
+  --color-brand-700: #ad3109;
+  --color-brand-800: #84290d;
+  --color-brand-900: #5c1e0c;
+
+  --color-info-50: #f4f6f8;
+  --color-info-100: #e7edf2;
+  --color-info-200: #d7e0e8;
+  --color-info-300: #b7c7d5;
+  --color-info-400: #88a0b7;
+  --color-info-500: #547597;
+  --color-info-600: #486581;
+  --color-info-700: #3f586f;
+  --color-info-800: #334757;
+  --color-info-900: #273744;
 
   --color-shell-50: #f7f6f6;
   --color-shell-100: #ebebeb;
@@ -38,13 +49,17 @@
     --surface-panel: color-mix(in srgb, white 88%, var(--color-shell-100));
     --surface-panel-strong: color-mix(in srgb, white 78%, var(--color-shell-100));
     --surface-soft: color-mix(in srgb, white 72%, var(--color-shell-100));
-    --border-soft: color-mix(in srgb, var(--color-shell-300) 72%, var(--color-brand-100));
-    --border-strong: color-mix(in srgb, var(--color-shell-300) 46%, var(--color-brand-300));
+    --border-soft: color-mix(in srgb, var(--color-shell-300) 78%, white);
+    --border-strong: color-mix(in srgb, var(--color-shell-300) 70%, var(--color-brand-200));
     --shadow-soft: 0 8px 24px -18px rgb(34 43 51 / 0.18);
+    --shadow-float: 0 18px 48px -28px rgb(34 43 51 / 0.34);
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-    --mobile-nav-height: 4.5rem;
-    --mobile-nav-offset: calc(var(--mobile-nav-height) + var(--safe-area-bottom));
+    --mobile-nav-height: 4rem;
+    --mobile-nav-gap: 0.75rem;
+    --mobile-nav-offset: calc(
+      var(--mobile-nav-height) + var(--safe-area-bottom) + var(--mobile-nav-gap) + var(--mobile-nav-gap)
+    );
     --mobile-cta-height: 4.5rem;
     --mobile-toast-offset: calc(
       var(--mobile-nav-offset) + var(--mobile-cta-height) + 0.75rem
@@ -66,8 +81,8 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-sans text-ink-900;
-    font-weight: 600;
-    letter-spacing: 0;
+    font-weight: 700;
+    letter-spacing: -0.018em;
     line-height: 1.1;
   }
 
@@ -81,8 +96,15 @@
   }
 
   ::selection {
-    background: color-mix(in srgb, var(--color-brand-200) 68%, white);
+    background: color-mix(in srgb, var(--color-brand-200) 72%, white);
     color: var(--color-ink-900);
+  }
+
+  .tabular-nums,
+  input[type="number"],
+  input[inputmode="numeric"],
+  input[inputmode="decimal"] {
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -144,7 +166,7 @@
   }
 
   .section-kicker {
-    @apply text-brand-700;
+    @apply text-ink-600;
     font-size: 0.78rem;
     font-weight: 600;
     line-height: 1.4;
@@ -153,18 +175,18 @@
 
   .app-brand {
     font-family: var(--font-display);
-    font-weight: 600;
-    letter-spacing: -0.012em;
-    line-height: 1.05;
+    font-weight: 700;
+    letter-spacing: -0.026em;
+    line-height: 1;
   }
 
   .page-title {
     color: var(--color-ink-900);
     font-family: var(--font-display);
-    font-size: clamp(1.95rem, 1.62rem + 0.95vw, 2.55rem);
-    font-weight: 600;
-    letter-spacing: -0.018em;
-    line-height: 1.02;
+    font-size: clamp(2rem, 1.72rem + 0.78vw, 2.58rem);
+    font-weight: 700;
+    letter-spacing: -0.042em;
+    line-height: 0.98;
     max-width: 18ch;
     text-wrap: balance;
   }
@@ -194,9 +216,9 @@
   .page-stat-value {
     @apply font-sans text-ink-900;
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.025em;
     line-height: 1.2;
   }
 
@@ -215,8 +237,8 @@
   .section-title {
     @apply font-sans text-ink-900;
     font-size: 1.08rem;
-    font-weight: 600;
-    letter-spacing: -0.012em;
+    font-weight: 700;
+    letter-spacing: -0.024em;
     line-height: 1.2;
   }
 
@@ -260,8 +282,8 @@
     }
 
     .page-title {
-      font-size: 1.82rem;
-      line-height: 1.01;
+      font-size: 2rem;
+      line-height: 0.98;
       max-width: none;
     }
 
