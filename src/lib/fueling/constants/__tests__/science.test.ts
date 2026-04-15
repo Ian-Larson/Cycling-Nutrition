@@ -10,9 +10,9 @@ describe('science constants', () => {
   });
 
   it('recovery window thresholds match Alghannam/Arent consensus', () => {
-    expect(S.RAPID_RECOVERY_MAX_HOURS).toBe(8);
-    expect(S.RAPID_RECOVERY_CHO_G_PER_KG_PER_HOUR.min).toBe(1.0);
-    expect(S.RAPID_RECOVERY_CHO_G_PER_KG_PER_HOUR.max).toBe(1.2);
+    expect(S.RAPID_RECOVERY.maxHours).toBe(8);
+    expect(S.RAPID_RECOVERY.choGPerKgPerHour.min).toBe(1.0);
+    expect(S.RAPID_RECOVERY.choGPerKgPerHour.max).toBe(1.2);
   });
 
   it('caffeine dosing matches Jeukendrup/Baar', () => {
