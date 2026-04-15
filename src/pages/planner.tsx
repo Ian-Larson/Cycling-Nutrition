@@ -421,7 +421,6 @@ export function PlannerPage() {
     <>
       <div className="page-shell page-shell--planner space-y-5 md:space-y-6">
         <PageIntro
-          eyebrow="Planner"
           title="Fuel plan"
           description={
             <>

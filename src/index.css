@@ -173,13 +173,6 @@
     letter-spacing: 0.02em;
   }
 
-  .app-brand {
-    font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: -0.026em;
-    line-height: 1;
-  }
-
   .page-title {
     color: var(--color-ink-900);
     font-family: var(--font-display);
@@ -273,10 +266,6 @@
   }
 
   @media (max-width: 767px) {
-    .page-intro .section-kicker {
-      display: none;
-    }
-
     .page-intro-grid {
       gap: 0.625rem;
     }

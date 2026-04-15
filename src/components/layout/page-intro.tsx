@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 
 interface PageIntroProps {
-  eyebrow: string;
   title: ReactNode;
   description: ReactNode;
   actions?: ReactNode;
@@ -9,7 +8,6 @@ interface PageIntroProps {
 }
 
 export function PageIntro({
-  eyebrow,
   title,
   description,
   actions,
@@ -19,7 +17,6 @@ export function PageIntro({
     <header className="page-intro">
       <div className="page-intro-grid">
         <div className="space-y-1.5 md:space-y-2">
-          <p className="section-kicker hidden md:block">{eyebrow}</p>
           <h1 className="page-title">{title}</h1>
           <div className="page-summary">{description}</div>
           {actions ? <div className="flex flex-wrap gap-2 pt-0.5 md:pt-1">{actions}</div> : null}

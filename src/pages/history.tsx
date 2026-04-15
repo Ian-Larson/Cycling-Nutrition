@@ -110,7 +110,6 @@ export function HistoryPage() {
   return (
     <div className="page-shell max-w-6xl space-y-4 md:space-y-6">
       <PageIntro
-        eyebrow="Plans"
         title="Plans"
         description={
           <>
