@@ -6,16 +6,16 @@
   --font-body: "IBM Plex Sans", system-ui, sans-serif;
   --font-display: "IBM Plex Sans", system-ui, sans-serif;
 
-  --color-brand-50: #fff4ed;
-  --color-brand-100: #ffe4d2;
-  --color-brand-200: #ffc29d;
-  --color-brand-300: #ff9561;
-  --color-brand-400: #ff6a31;
-  --color-brand-500: #ff4f14;
-  --color-brand-600: #d93f0d;
-  --color-brand-700: #ad3109;
-  --color-brand-800: #84290d;
-  --color-brand-900: #5c1e0c;
+  --color-brand-50: #fff5f1;
+  --color-brand-100: #ffe4d9;
+  --color-brand-200: #ffc5b1;
+  --color-brand-300: #ff9c78;
+  --color-brand-400: #fb784d;
+  --color-brand-500: #f8622e;
+  --color-brand-600: #d94c20;
+  --color-brand-700: #a93a17;
+  --color-brand-800: #7a2c14;
+  --color-brand-900: #4f1d0f;
 
   --color-info-50: #f4f6f8;
   --color-info-100: #e7edf2;
@@ -28,10 +28,10 @@
   --color-info-800: #334757;
   --color-info-900: #273744;
 
-  --color-shell-50: #f7f6f6;
-  --color-shell-100: #ebebeb;
-  --color-shell-200: #dddcdc;
-  --color-shell-300: #c9c6c5;
+  --color-shell-50: #ffffff;
+  --color-shell-100: #ffffff;
+  --color-shell-200: #f1f1f1;
+  --color-shell-300: #d8d8d8;
   --color-ink-50: #fafbfb;
   --color-ink-100: #eceff1;
   --color-ink-200: #d8dde2;
@@ -46,10 +46,10 @@
 
 @layer base {
   :root {
-    --surface-panel: color-mix(in srgb, white 88%, var(--color-shell-100));
-    --surface-panel-strong: color-mix(in srgb, white 78%, var(--color-shell-100));
-    --surface-soft: color-mix(in srgb, white 72%, var(--color-shell-100));
-    --border-soft: color-mix(in srgb, var(--color-shell-300) 78%, white);
+    --surface-panel: #ffffff;
+    --surface-panel-strong: #ffffff;
+    --surface-soft: #ffffff;
+    --border-soft: color-mix(in srgb, var(--color-shell-300) 72%, white);
     --border-strong: color-mix(in srgb, var(--color-shell-300) 70%, var(--color-brand-200));
     --shadow-soft: 0 8px 24px -18px rgb(34 43 51 / 0.18);
     --shadow-float: 0 18px 48px -28px rgb(34 43 51 / 0.34);
