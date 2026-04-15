@@ -115,14 +115,7 @@ export function InventoryPage() {
           <p className="truncate font-semibold text-ink-900">{bottle.name}</p>
           <p className="text-sm leading-5 text-ink-600">{bottle.capacityMl}ml</p>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <Toggle
-            checked={bottle.isAvailable}
-            onChange={() =>
-              updateBottle(bottle.id, { isAvailable: !bottle.isAvailable })
-            }
-            label={`Use ${bottle.name} in planning`}
-          />
+        <div className="flex shrink-0 items-center gap-3">
           <button
             type="button"
             onClick={() => {
@@ -133,6 +126,13 @@ export function InventoryPage() {
           >
             Edit
           </button>
+          <Toggle
+            checked={bottle.isAvailable}
+            onChange={() =>
+              updateBottle(bottle.id, { isAvailable: !bottle.isAvailable })
+            }
+            label={`Use ${bottle.name} in planning`}
+          />
         </div>
       </div>
     </div>
@@ -159,14 +159,7 @@ export function InventoryPage() {
               : ''}
           </p>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <Toggle
-            checked={product.isAvailable}
-            onChange={() =>
-              updateProduct(product.id, { isAvailable: !product.isAvailable })
-            }
-            label={`Use ${product.name} in planning`}
-          />
+        <div className="flex shrink-0 items-center gap-3">
           <button
             type="button"
             onClick={() => {
@@ -177,6 +170,13 @@ export function InventoryPage() {
           >
             Edit
           </button>
+          <Toggle
+            checked={product.isAvailable}
+            onChange={() =>
+              updateProduct(product.id, { isAvailable: !product.isAvailable })
+            }
+            label={`Use ${product.name} in planning`}
+          />
         </div>
       </div>
     </div>
@@ -185,7 +185,7 @@ export function InventoryPage() {
   const renderDesktopBottleRow = (bottle: Bottle, isLast: boolean) => (
     <div
       key={bottle.id}
-      className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-4 px-4 py-3.5 lg:px-5 ${
+      className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3.5 lg:px-5 ${
         isLast ? '' : 'border-b border-[color:var(--border-soft)]'
       } ${bottle.isAvailable ? '' : 'opacity-60'}`}
     >
@@ -193,17 +193,17 @@ export function InventoryPage() {
         <p className="truncate font-semibold text-ink-900">{bottle.name}</p>
         <p className="mt-1 text-sm leading-5 text-ink-600">{bottle.capacityMl}ml</p>
       </div>
-      <button
-        type="button"
-        onClick={() => {
-          setShowBottleForm(false);
-          setEditingBottleId(bottle.id);
-        }}
-        className="inline-flex min-h-9 items-center justify-self-end rounded-lg px-2 text-sm font-medium text-brand-700 transition-colors hover:text-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100"
-      >
-        Edit
-      </button>
-      <div className="justify-self-end rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] px-2.5 py-1.5">
+      <div className="flex items-center justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            setShowBottleForm(false);
+            setEditingBottleId(bottle.id);
+          }}
+          className="inline-flex min-h-9 items-center rounded-lg px-2 text-sm font-medium text-brand-700 transition-colors hover:text-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100"
+        >
+          Edit
+        </button>
         <Toggle
           checked={bottle.isAvailable}
           onChange={() =>
@@ -218,7 +218,7 @@ export function InventoryPage() {
   const renderDesktopProductRow = (product: Product, isLast: boolean) => (
     <div
       key={product.id}
-      className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-4 px-4 py-3.5 lg:px-5 ${
+      className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3.5 lg:px-5 ${
         isLast ? '' : 'border-b border-[color:var(--border-soft)]'
       } ${product.isAvailable ? '' : 'opacity-60'}`}
     >
@@ -239,17 +239,17 @@ export function InventoryPage() {
             : ''}
         </p>
       </div>
-      <button
-        type="button"
-        onClick={() => {
-          setShowProductForm(false);
-          setEditingProduct(product);
-        }}
-        className="inline-flex min-h-9 items-center justify-self-end rounded-lg px-2 text-sm font-medium text-brand-700 transition-colors hover:text-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100"
-      >
-        Edit
-      </button>
-      <div className="justify-self-end rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] px-2.5 py-1.5">
+      <div className="flex items-center justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            setShowProductForm(false);
+            setEditingProduct(product);
+          }}
+          className="inline-flex min-h-9 items-center rounded-lg px-2 text-sm font-medium text-brand-700 transition-colors hover:text-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100"
+        >
+          Edit
+        </button>
         <Toggle
           checked={product.isAvailable}
           onChange={() =>

@@ -392,7 +392,7 @@ export function RideForm({
 
   return (
     <div className="space-y-5 md:space-y-6">
-      <div className="space-y-2 md:flex md:items-center md:justify-between md:gap-6">
+      <div className="space-y-2 md:flex md:items-end md:justify-start md:gap-5">
         <div className="space-y-1.5">
           <p className="section-kicker text-[0.68rem]">Method</p>
           <div className="inline-flex w-full rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-1 sm:w-auto">
@@ -420,7 +420,7 @@ export function RideForm({
             </button>
           </div>
         </div>
-        <p className="text-sm leading-6 text-ink-600 md:max-w-[20rem] md:text-right">
+        <p className="text-sm leading-6 text-ink-600 md:pb-2 md:text-left">
           {planningMode === 'manual'
             ? 'Set carbs per hour yourself.'
             : 'Calculate carbs from workload.'}
@@ -429,41 +429,43 @@ export function RideForm({
 
       {planningMode === 'manual' ? (
         <div className="space-y-5 md:space-y-6">
-          <div className="grid gap-5 lg:grid-cols-2 lg:gap-8">
+          <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
             <section className="space-y-3">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-3">
                   <p className="section-kicker text-[0.68rem]">Duration</p>
+                  {editingDuration ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoFocus
+                        value={durationInput}
+                        onChange={(event) => setDurationInput(event.target.value)}
+                        onBlur={commitDurationInput}
+                        onKeyDown={blurOnEnter}
+                        className="min-h-9 w-16 rounded-lg border border-brand-300 bg-white px-2 text-center text-sm font-semibold text-ink-900 focus:border-brand-500 focus:ring-2 focus:ring-brand-300 focus:outline-none"
+                      />
+                      <span className="text-sm text-ink-500">min</span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDurationInput(String(durationMinutes));
+                        setEditingDuration(true);
+                      }}
+                      className="min-h-9 min-w-[6.75rem] rounded-lg border border-brand-200 bg-white px-3 py-1.5 font-sans text-sm font-semibold text-brand-700"
+                    >
+                      {formatDuration(durationMinutes)}
+                    </button>
+                  )}
+                </div>
+                <div>
                   <p className="mt-1 text-sm leading-6 text-ink-600">
                     Use moving time.
                   </p>
                 </div>
-                {editingDuration ? (
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      autoFocus
-                      value={durationInput}
-                      onChange={(event) => setDurationInput(event.target.value)}
-                      onBlur={commitDurationInput}
-                      onKeyDown={blurOnEnter}
-                      className="w-20 rounded-[0.9rem] border border-brand-300 bg-white px-3 py-2 text-center text-sm font-semibold text-ink-900 focus:border-brand-500 focus:ring-2 focus:ring-brand-300 focus:outline-none"
-                    />
-                    <span className="text-sm text-ink-500">min</span>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDurationInput(String(durationMinutes));
-                      setEditingDuration(true);
-                    }}
-                    className="rounded-full border border-brand-200 bg-white px-4 py-2 font-sans text-[1rem] font-semibold text-brand-700"
-                  >
-                    {formatDuration(durationMinutes)}
-                  </button>
-                )}
               </div>
               <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
                 {DURATION_PRESETS.map((preset) => (
@@ -484,39 +486,41 @@ export function RideForm({
             </section>
 
             <section className="space-y-3">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-3">
                   <p className="section-kicker text-[0.68rem]">Carbs / hour</p>
+                  {editingCarbs ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoFocus
+                        value={carbTargetInput}
+                        onChange={(event) => setCarbTargetInput(event.target.value)}
+                        onBlur={commitCarbTargetInput}
+                        onKeyDown={blurOnEnter}
+                        className="min-h-9 w-16 rounded-lg border border-brand-300 bg-white px-2 text-center text-sm font-semibold text-ink-900 focus:border-brand-500 focus:ring-2 focus:ring-brand-300 focus:outline-none"
+                      />
+                      <span className="text-sm text-ink-500">g/h</span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCarbTargetInput(String(carbTarget));
+                        setEditingCarbs(true);
+                      }}
+                      className="min-h-9 min-w-[6.75rem] rounded-lg border border-brand-200 bg-white px-3 py-1.5 font-sans text-sm font-semibold text-brand-700"
+                    >
+                      {carbTarget} g/h
+                    </button>
+                  )}
+                </div>
+                <div>
                   <p className="mt-1 text-sm leading-6 text-ink-600">
                     Set your intake target.
                   </p>
                 </div>
-                {editingCarbs ? (
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      autoFocus
-                      value={carbTargetInput}
-                      onChange={(event) => setCarbTargetInput(event.target.value)}
-                      onBlur={commitCarbTargetInput}
-                      onKeyDown={blurOnEnter}
-                      className="w-20 rounded-[0.9rem] border border-brand-300 bg-white px-3 py-2 text-center text-sm font-semibold text-ink-900 focus:border-brand-500 focus:ring-2 focus:ring-brand-300 focus:outline-none"
-                    />
-                    <span className="text-sm text-ink-500">g/h</span>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCarbTargetInput(String(carbTarget));
-                      setEditingCarbs(true);
-                    }}
-                    className="rounded-full border border-brand-200 bg-white px-4 py-2 font-sans text-[1rem] font-semibold text-brand-700"
-                  >
-                    {carbTarget} g/h
-                  </button>
-                )}
               </div>
               <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
                 {carbPresets.map((preset) => (
