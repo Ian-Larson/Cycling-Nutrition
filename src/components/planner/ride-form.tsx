@@ -392,15 +392,26 @@ export function RideForm({
 
   return (
     <div className="space-y-5 md:space-y-6">
-      <div className="space-y-2 md:flex md:items-end md:justify-start md:gap-5">
+      <div className="space-y-1.5">
         <div className="space-y-1.5">
           <p className="section-kicker text-[0.68rem]">Method</p>
-          <div className="inline-flex w-full rounded-full border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-1 sm:w-auto">
+          <div
+            className="relative grid min-h-12 w-full grid-cols-2 rounded-full border border-[color:var(--border-soft)] bg-white p-1 shadow-[inset_0_0_0_1px_rgba(34,43,51,0.02)] sm:w-[16rem]"
+            role="group"
+            aria-label="Planning method"
+          >
+            <span
+              aria-hidden
+              className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-brand-500 shadow-[0_10px_22px_-16px_rgba(248,98,46,0.72)] transition-transform duration-200 ease-out ${
+                planningMode === 'auto' ? 'translate-x-full' : 'translate-x-0'
+              }`}
+            />
             <button
               type="button"
-              className={`min-h-10 flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors sm:min-w-[7rem] ${
+              aria-pressed={planningMode === 'manual'}
+              className={`relative z-10 min-h-10 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                 planningMode === 'manual'
-                  ? 'bg-white text-brand-900 shadow-[var(--shadow-soft)]'
+                  ? 'text-white'
                   : 'text-ink-600 hover:text-ink-900'
               }`}
               onClick={() => setPlanningMode('manual')}
@@ -409,9 +420,10 @@ export function RideForm({
             </button>
             <button
               type="button"
-              className={`min-h-10 flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors sm:min-w-[7rem] ${
+              aria-pressed={planningMode === 'auto'}
+              className={`relative z-10 min-h-10 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                 planningMode === 'auto'
-                  ? 'bg-white text-brand-900 shadow-[var(--shadow-soft)]'
+                  ? 'text-white'
                   : 'text-ink-600 hover:text-ink-900'
               }`}
               onClick={() => setPlanningMode('auto')}
@@ -420,11 +432,6 @@ export function RideForm({
             </button>
           </div>
         </div>
-        <p className="text-sm leading-6 text-ink-600 md:pb-2 md:text-left">
-          {planningMode === 'manual'
-            ? 'Set carbs per hour yourself.'
-            : 'Calculate carbs from workload.'}
-        </p>
       </div>
 
       {planningMode === 'manual' ? (
