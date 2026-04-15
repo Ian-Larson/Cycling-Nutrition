@@ -642,7 +642,7 @@ export function PlannerPage() {
       </div>
 
       <div className="fixed left-3 right-3 z-40 rounded-[1.15rem] border border-[color:var(--border-soft)] bg-shell-50/96 shadow-[var(--shadow-soft)] backdrop-blur bottom-[var(--mobile-nav-offset)] md:bottom-0 md:left-0 md:right-0 md:rounded-none md:border-x-0 md:shadow-none">
-        <div className="mx-auto flex max-w-5xl items-center gap-2 px-3 py-3 md:px-6">
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-3 md:px-6">
           <div className="hidden min-w-[10rem] lg:block">
             <p className="section-kicker text-[0.62rem]">Step</p>
             <p className="mt-1 text-sm leading-5 text-ink-700">{STEP_LABELS[step - 1]?.label}</p>
