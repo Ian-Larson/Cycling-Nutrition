@@ -1,9 +1,8 @@
 import { clsx } from 'clsx';
-import { useMemo, useState, type KeyboardEvent } from 'react';
+import { useState, type KeyboardEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { PageIntro } from '@/components/layout/page-intro';
 import {
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -17,11 +16,6 @@ import {
   poundsToKilograms,
   type AnthropometricsUnit,
 } from '@/lib/athlete/anthropometrics';
-import {
-  createStravaAuthState,
-  createStravaProvider,
-} from '@/lib/auth/strava-provider';
-import type { AuthStatus } from '@/lib/auth/types';
 import { useStore, type AthleteProfile, type TemperatureUnit } from '@/store';
 
 type OptionalNumericAthleteField =
@@ -81,12 +75,6 @@ export function AthletePage() {
   const engineVersion = useStore((s) => s.settings.engineVersion);
   const updateAthleteProfile = useStore((s) => s.updateAthleteProfile);
   const updateSettings = useStore((s) => s.updateSettings);
-  const stravaProvider = useMemo(() => createStravaProvider(), []);
-  const [authStatus, setAuthStatus] = useState<AuthStatus>(
-    stravaProvider.isConfigured() ? 'disconnected' : 'not_configured'
-  );
-  const [authMessage, setAuthMessage] = useState<string | null>(null);
-
   const anthropometricsUnit = athleteProfile.anthropometricsUnit ?? 'metric';
   const ftp = athleteProfile.ftpWatts;
   const weightKg = athleteProfile.weightKg;
@@ -292,28 +280,6 @@ export function AthletePage() {
 
     updateAthleteProfile({ anthropometricsUnit: nextUnit });
     setWeightDraft(getWeightDraftFromProfile(athleteProfile.weightKg, nextUnit));
-  };
-
-  const handleConnectStrava = () => {
-    if (!stravaProvider.isConfigured()) {
-      setAuthStatus('not_configured');
-      setAuthMessage(
-        'Set VITE_STRAVA_CLIENT_ID and VITE_STRAVA_REDIRECT_URI to enable OAuth.'
-      );
-      return;
-    }
-
-    const state = createStravaAuthState();
-    const authorizeUrl = stravaProvider.getAuthorizeUrl(state);
-    if (!authorizeUrl) {
-      setAuthStatus('error');
-      setAuthMessage('Could not create Strava authorize URL.');
-      return;
-    }
-
-    setAuthStatus('pending');
-    setAuthMessage('Redirecting to Strava...');
-    window.location.assign(authorizeUrl);
   };
 
   return (
@@ -569,6 +535,13 @@ export function AthletePage() {
               </div>
 
               <Link
+                to="/account"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-white px-3.5 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 md:min-h-10"
+              >
+                Account and cloud backup
+              </Link>
+
+              <Link
                 to="/power-meter-analyzer"
                 className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-white px-3.5 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 md:min-h-10"
               >
@@ -582,51 +555,16 @@ export function AthletePage() {
               <h2 className="section-title text-lg">Connections</h2>
             </CardHeader>
             <CardContent className="space-y-3 md:space-y-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-ink-900">Strava</span>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                    authStatus === 'not_configured'
-                      ? 'bg-amber-100 text-amber-800'
-                      : authStatus === 'pending'
-                        ? 'bg-blue-100 text-blue-800'
-                        : authStatus === 'error'
-                          ? 'bg-red-100 text-red-800'
-                          : authStatus === 'connected'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  {authStatus === 'not_configured'
-                    ? 'Not configured'
-                    : authStatus === 'pending'
-                      ? 'Connecting'
-                      : authStatus === 'error'
-                        ? 'Error'
-                        : authStatus === 'connected'
-                          ? 'Connected'
-                          : 'Ready'}
-                </span>
-              </div>
-
               <p className="text-sm leading-5 text-ink-600 md:leading-6">
-                Optional. Not used for planning.
+                Sign in to back up this device and connect Strava.
               </p>
 
-              <Button
-                variant="secondary"
-                className="w-full"
-                onClick={handleConnectStrava}
-                disabled={authStatus === 'pending'}
+              <Link
+                to="/account"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[color:var(--border-soft)] bg-white px-4 py-2 text-sm font-medium text-ink-900 transition-colors hover:bg-shell-50 md:min-h-10"
               >
-                Connect Strava
-              </Button>
-
-              {authMessage && (
-                <p className="text-sm leading-5 text-ink-600 md:leading-6">
-                  {authMessage}
-                </p>
-              )}
+                Open account
+              </Link>
             </CardContent>
           </Card>
         </div>

@@ -1,22 +1,36 @@
 export type AuthProviderName = 'strava';
 
-export type AuthStatus =
-  | 'disconnected'
-  | 'connected'
-  | 'pending'
-  | 'error'
-  | 'not_configured';
+export type AppAuthStatus =
+  | 'guest'
+  | 'loading'
+  | 'signedIn'
+  | 'signedOut'
+  | 'error';
 
-export interface AuthSession {
-  provider: AuthProviderName;
-  connectedAt: number;
-  athleteId?: string;
-  athleteName?: string;
+export type CloudSyncStatus =
+  | 'idle'
+  | 'syncing'
+  | 'synced'
+  | 'offline'
+  | 'conflict'
+  | 'error';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  createdAt: string;
 }
 
-export interface AuthProvider {
+export interface StravaConnection {
+  athleteId: string;
+  athleteName?: string;
+  scopes: string[];
+  connectedAt: string;
+  updatedAt?: string;
+}
+
+export interface StravaOAuthProvider {
   name: AuthProviderName;
   isConfigured: () => boolean;
   getAuthorizeUrl: (state: string) => string | null;
-  handleCallback: (params: { code: string; state: string }) => Promise<AuthSession>;
 }

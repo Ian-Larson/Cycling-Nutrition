@@ -1,11 +1,15 @@
 import { nanoid } from 'nanoid';
-import type { AuthProvider, AuthSession } from './types';
+import { getDefaultAuthRedirectUrl } from '@/lib/supabase/client';
+import type { StravaOAuthProvider } from './types';
 
 const STRAVA_OAUTH_STATE_KEY = 'strava_oauth_state';
+const STRAVA_SCOPE = 'read,profile:read_all';
 
 function getStravaConfig() {
   const clientId = import.meta.env.VITE_STRAVA_CLIENT_ID;
-  const redirectUri = import.meta.env.VITE_STRAVA_REDIRECT_URI;
+  const redirectUri =
+    import.meta.env.VITE_STRAVA_REDIRECT_URI ||
+    getDefaultAuthRedirectUrl('/auth/strava/callback');
 
   return {
     clientId: typeof clientId === 'string' ? clientId : '',
@@ -26,7 +30,7 @@ export function validateStravaAuthState(returnedState: string | null): boolean {
   return !!expectedState && !!returnedState && expectedState === returnedState;
 }
 
-export function createStravaProvider(): AuthProvider {
+export function createStravaProvider(): StravaOAuthProvider {
   return {
     name: 'strava',
     isConfigured() {
@@ -44,19 +48,14 @@ export function createStravaProvider(): AuthProvider {
       url.searchParams.set('redirect_uri', redirectUri);
       url.searchParams.set('response_type', 'code');
       url.searchParams.set('approval_prompt', 'auto');
-      url.searchParams.set('scope', 'read,profile:read_all,activity:read_all');
+      url.searchParams.set('scope', STRAVA_SCOPE);
       url.searchParams.set('state', state);
 
       return url.toString();
     },
-    async handleCallback(params: {
-      code: string;
-      state: string;
-    }): Promise<AuthSession> {
-      void params;
-      throw new Error(
-        'Strava token exchange is not implemented yet. Add a backend callback endpoint to complete auth.'
-      );
-    },
   };
+}
+
+export function getRequestedStravaScopes(): string[] {
+  return STRAVA_SCOPE.split(',');
 }

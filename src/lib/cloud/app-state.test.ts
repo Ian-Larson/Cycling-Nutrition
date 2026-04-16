@@ -1,0 +1,91 @@
+import { describe, expect, it } from 'vitest';
+import { DEFAULT_SETTINGS, type AppState } from '@/store';
+import {
+  APP_STATE_SCHEMA_VERSION,
+  parseSerializedAppState,
+  serializeAppState,
+} from './app-state';
+
+const baseState: Pick<
+  AppState,
+  'bottles' | 'products' | 'fuelPlans' | 'settings' | 'plannerDraft'
+> = {
+  bottles: [
+    {
+      id: 'bottle-1',
+      name: '750ml',
+      capacityMl: 750,
+      isAvailable: true,
+      createdAt: 1,
+      updatedAt: 2,
+    },
+  ],
+  products: [
+    {
+      id: 'mix-1',
+      name: 'Mix',
+      type: 'drink_mix',
+      isAvailable: true,
+      nutrition: { carbsGrams: 60, calories: 240 },
+      serving: {},
+      createdAt: 3,
+      updatedAt: 4,
+    },
+  ],
+  fuelPlans: [],
+  settings: {
+    ...DEFAULT_SETTINGS,
+    athleteProfile: {
+      ...DEFAULT_SETTINGS.athleteProfile,
+      ftpWatts: 280,
+      weightKg: 72,
+    },
+  },
+  plannerDraft: null,
+};
+
+describe('cloud app-state snapshots', () => {
+  it('serializes local app data into a versioned snapshot', () => {
+    const snapshot = serializeAppState(baseState, new Date('2026-04-16T12:00:00Z'));
+
+    expect(snapshot.schemaVersion).toBe(APP_STATE_SCHEMA_VERSION);
+    expect(snapshot.clientUpdatedAt).toBe('2026-04-16T12:00:00.000Z');
+    expect(snapshot.data.bottles[0].name).toBe('750ml');
+    expect(snapshot.data.products[0].nutrition.calories).toBe(240);
+    expect(snapshot.data.settings.athleteProfile.ftpWatts).toBe(280);
+  });
+
+  it('parses and normalizes a valid cloud snapshot', () => {
+    const snapshot = serializeAppState(baseState);
+    const parsed = parseSerializedAppState(
+      {
+        ...snapshot,
+        data: {
+          ...snapshot.data,
+          products: [
+            {
+              ...snapshot.data.products[0],
+              nutrition: { carbsGrams: 50 },
+            },
+          ],
+        },
+      },
+      snapshot.data
+    );
+
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.snapshot.data.products[0].nutrition.calories).toBe(200);
+    }
+  });
+
+  it('rejects unsupported snapshot versions', () => {
+    const snapshot = serializeAppState(baseState);
+    const parsed = parseSerializedAppState(
+      { ...snapshot, schemaVersion: 999 },
+      snapshot.data
+    );
+
+    expect(parsed.ok).toBe(false);
+  });
+});

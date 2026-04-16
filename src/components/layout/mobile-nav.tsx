@@ -6,6 +6,7 @@ const navItems = [
   { path: '/athlete', label: 'Athlete' },
   { path: '/inventory', label: 'Inventory' },
   { path: '/history', label: 'Plans' },
+  { path: '/account', label: 'Account' },
 ];
 
 export function MobileNav() {
@@ -13,7 +14,7 @@ export function MobileNav() {
 
   return (
     <nav className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--safe-area-bottom)+var(--mobile-nav-gap))] z-40 md:hidden">
-      <div className="pointer-events-auto mx-auto grid h-[var(--mobile-nav-height)] w-[calc(100%-1.5rem)] max-w-[28rem] grid-cols-4 gap-1 rounded-[2rem] border border-white/75 bg-white/88 p-1.5 shadow-[var(--shadow-float)] backdrop-blur-xl">
+      <div className="pointer-events-auto mx-auto grid h-[var(--mobile-nav-height)] w-[calc(100%-1.5rem)] max-w-[28rem] grid-cols-5 gap-1 rounded-[2rem] border border-white/75 bg-white/88 p-1.5 shadow-[var(--shadow-float)] backdrop-blur-xl">
         {navItems.map((item) => (
           <Link
             key={item.path}

@@ -43,6 +43,14 @@ export interface PlannerDraft {
   title?: string;
 }
 
+export interface AppDataSnapshot {
+  bottles: Bottle[];
+  products: Product[];
+  fuelPlans: FuelPlan[];
+  settings: Settings;
+  plannerDraft: PlannerDraft | null;
+}
+
 export interface AppReadiness {
   hasAvailableBottle: boolean;
   hasAvailableDrinkMix: boolean;
@@ -53,7 +61,7 @@ export interface AppReadiness {
   missingProfileFields: string[];
 }
 
-interface AppState {
+export interface AppState {
   bottles: Bottle[];
   products: Product[];
   fuelPlans: FuelPlan[];
@@ -76,12 +84,13 @@ interface AppState {
 
   updateSettings: (settings: SettingsUpdate) => void;
   updateAthleteProfile: (updates: Partial<AthleteProfile>) => void;
+  replaceAppData: (data: Partial<AppDataSnapshot>) => void;
   getReadiness: () => AppReadiness;
 
   initializeDefaults: () => void;
 }
 
-const DEFAULT_SETTINGS: Settings = {
+export const DEFAULT_SETTINGS: Settings = {
   temperatureUnit: 'celsius',
   engineVersion: 'v2',
   athleteProfile: {
@@ -136,7 +145,7 @@ function normalizeGutTrainingTarget(
   return 65;
 }
 
-function normalizeSettings(value: unknown): Settings {
+export function normalizeSettings(value: unknown): Settings {
   const incoming = value as Partial<Settings> | undefined;
   const incomingProfile = incoming?.athleteProfile as
     | (Partial<AthleteProfile> & { gutTrained?: boolean })
@@ -194,6 +203,41 @@ export function normalizeProducts(
   });
 }
 
+export function normalizeBottles(
+  value: unknown,
+  fallback: Bottle[]
+): Bottle[] {
+  if (!Array.isArray(value)) return fallback;
+
+  const normalized = value.flatMap((bottle) => {
+    const incoming = bottle as Partial<Bottle>;
+    if (
+      typeof incoming.id !== 'string' ||
+      typeof incoming.name !== 'string' ||
+      typeof incoming.capacityMl !== 'number' ||
+      !Number.isFinite(incoming.capacityMl) ||
+      incoming.capacityMl <= 0
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        id: incoming.id,
+        name: incoming.name,
+        capacityMl: Math.round(incoming.capacityMl),
+        isAvailable: incoming.isAvailable ?? true,
+        createdAt:
+          normalizeNonNegativeNumber(incoming.createdAt) ?? Date.now(),
+        updatedAt:
+          normalizeNonNegativeNumber(incoming.updatedAt) ?? Date.now(),
+      },
+    ];
+  });
+
+  return normalized.length > 0 ? normalized : fallback;
+}
+
 function estimateCaloriesFromCarbs(product: Product | undefined, carbsGrams: number): number {
   if (!Number.isFinite(carbsGrams) || carbsGrams <= 0) return 0;
   if (!product) return Math.round(carbsGrams * 4);
@@ -208,7 +252,7 @@ function estimateCaloriesFromCarbs(product: Product | undefined, carbsGrams: num
   return Math.round(carbsGrams * 4);
 }
 
-function normalizeFuelPlans(
+export function normalizeFuelPlans(
   value: unknown,
   fallback: FuelPlan[],
   products: Product[]
@@ -253,7 +297,7 @@ function normalizeFuelPlans(
   });
 }
 
-function normalizePlannerDraft(value: unknown): PlannerDraft | null {
+export function normalizePlannerDraft(value: unknown): PlannerDraft | null {
   if (!value || typeof value !== 'object') return null;
   const draft = value as Partial<PlannerDraft>;
   const ride = draft.ride as Partial<RideCharacteristics> | undefined;
@@ -300,6 +344,48 @@ function normalizePlannerDraft(value: unknown): PlannerDraft | null {
     includeUnavailableBottles: Boolean(draft.includeUnavailableBottles),
     includeUnavailableProducts: Boolean(draft.includeUnavailableProducts),
     title: typeof draft.title === 'string' ? draft.title : undefined,
+  };
+}
+
+export function getAppDataFromState(
+  state: Pick<
+    AppState,
+    'bottles' | 'products' | 'fuelPlans' | 'settings' | 'plannerDraft'
+  >
+): AppDataSnapshot {
+  return {
+    bottles: state.bottles,
+    products: state.products,
+    fuelPlans: state.fuelPlans,
+    settings: state.settings,
+    plannerDraft: state.plannerDraft,
+  };
+}
+
+export function normalizeAppData(
+  value: unknown,
+  fallback: AppDataSnapshot
+): AppDataSnapshot {
+  const incoming = value as Partial<AppDataSnapshot> | undefined;
+  const bottles = normalizeBottles(incoming?.bottles, fallback.bottles);
+  const products = normalizeProducts(incoming?.products, fallback.products);
+
+  return {
+    bottles,
+    products,
+    fuelPlans: normalizeFuelPlans(
+      incoming?.fuelPlans,
+      fallback.fuelPlans,
+      products
+    ),
+    settings:
+      incoming?.settings === undefined
+        ? fallback.settings
+        : normalizeSettings(incoming.settings),
+    plannerDraft:
+      incoming?.plannerDraft === undefined
+        ? fallback.plannerDraft
+        : normalizePlannerDraft(incoming.plannerDraft),
   };
 }
 
@@ -461,6 +547,17 @@ export const useStore = create<AppState>()(
       updateAthleteProfile: (updates) =>
         set((state) => {
           Object.assign(state.settings.athleteProfile, updates);
+        }),
+
+      replaceAppData: (data) =>
+        set((state) => {
+          const normalized = normalizeAppData(data, getAppDataFromState(state));
+          state.bottles = normalized.bottles;
+          state.products = normalized.products;
+          state.fuelPlans = normalized.fuelPlans;
+          state.settings = normalized.settings;
+          state.plannerDraft = normalized.plannerDraft;
+          state._initialized = true;
         }),
 
       getReadiness: () => getReadinessFromState(get()),

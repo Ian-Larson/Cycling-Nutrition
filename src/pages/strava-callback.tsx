@@ -2,22 +2,41 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
+import { validateStravaAuthState } from '@/lib/auth/strava-provider';
+import { exchangeStravaCode } from '@/lib/auth/strava-service';
 import { getSupabaseClient } from '@/lib/supabase/client';
+import { useAuth } from '@/lib/auth/auth-context';
 
 type CallbackState = 'loading' | 'success' | 'error';
 
-export function AuthCallbackPage() {
+export function StravaCallbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { refreshStravaConnection } = useAuth();
   const [state, setState] = useState<CallbackState>('loading');
-  const [message, setMessage] = useState('Finishing sign in...');
+  const [message, setMessage] = useState('Finishing Strava connection...');
 
   useEffect(() => {
     const run = async () => {
-      const callbackError = searchParams.get('error');
-      if (callbackError) {
+      const oauthError = searchParams.get('error');
+      if (oauthError) {
         setState('error');
-        setMessage(`Sign-in returned an error: ${callbackError}`);
+        setMessage(`Strava returned an error: ${oauthError}`);
+        return;
+      }
+
+      const code = searchParams.get('code');
+      const returnedState = searchParams.get('state');
+
+      if (!code || !returnedState) {
+        setState('error');
+        setMessage('Missing Strava callback parameters.');
+        return;
+      }
+
+      if (!validateStravaAuthState(returnedState)) {
+        setState('error');
+        setMessage('Strava state validation failed. Please try connecting again.');
         return;
       }
 
@@ -28,32 +47,34 @@ export function AuthCallbackPage() {
         return;
       }
 
-      const code = searchParams.get('code');
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        setState('error');
+        setMessage('Sign in before connecting Strava.');
+        return;
+      }
+
       try {
-        if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) throw error;
-        } else {
-          const { data, error } = await supabase.auth.getSession();
-          if (error) throw error;
-          if (!data.session) {
-            throw new Error('No sign-in session was found.');
-          }
-        }
+        await exchangeStravaCode(supabase, {
+          code,
+          scope: searchParams.get('scope'),
+        });
+        await refreshStravaConnection();
         setState('success');
-        setMessage('Signed in successfully.');
+        setMessage('Strava connected successfully.');
       } catch (error) {
         setState('error');
         setMessage(
           error instanceof Error
             ? error.message
-            : 'Sign-in could not be completed.'
+            : 'Strava connection could not be completed.'
         );
       }
     };
 
     void run();
-  }, [searchParams]);
+  }, [refreshStravaConnection, searchParams]);
 
   useEffect(() => {
     if (state === 'loading') return;
@@ -66,10 +87,10 @@ export function AuthCallbackPage() {
   return (
     <div className="page-shell max-w-3xl space-y-4 md:space-y-6">
       <PageIntro
-        title="Account"
+        title="Strava"
         description={
           <>
-            Finishing account sign-in.
+            Finishing connection.
           </>
         }
       />
@@ -78,10 +99,10 @@ export function AuthCallbackPage() {
         <CardHeader className="space-y-2 bg-white/55">
           <h2 className="section-title text-lg">
             {state === 'loading'
-              ? 'Signing in...'
+              ? 'Connecting...'
               : state === 'success'
-                ? 'Signed in'
-                : 'Sign-in failed'}
+                ? 'Connected'
+                : 'Connection failed'}
           </h2>
         </CardHeader>
         <CardContent className="space-y-2.5 md:space-y-3">

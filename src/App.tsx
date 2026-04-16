@@ -8,6 +8,9 @@ import { InventoryPage } from '@/pages/inventory';
 import { HistoryPage } from '@/pages/history';
 import { AuthCallbackPage } from '@/pages/auth-callback';
 import { PowerMeterAnalyzerPage } from '@/pages/power-meter-analyzer';
+import { AccountPage } from '@/pages/account';
+import { StravaCallbackPage } from '@/pages/strava-callback';
+import { AuthProvider } from '@/lib/auth/auth-provider';
 import { useStore } from '@/store';
 
 function App() {
@@ -20,31 +23,35 @@ function App() {
 
   return (
     <BrowserRouter basename={basename}>
-      <div className="app-shell min-h-screen">
-        <Header />
-        <main>
-          <Routes>
-            <Route path="/" element={<PlannerPage />} />
-            <Route path="/athlete" element={<AthletePage />} />
-            <Route path="/inventory" element={<InventoryPage />} />
-            <Route path="/bottles" element={<Navigate to="/inventory" replace />} />
-            <Route path="/products" element={<Navigate to="/inventory" replace />} />
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/power-meter-analyzer" element={<PowerMeterAnalyzerPage />} />
-            <Route
-              path="/settings"
-              element={
-                <Navigate
-                  to={{ pathname: '/athlete', hash: '#preferences' }}
-                  replace
-                />
-              }
-            />
-            <Route path="/auth/callback" element={<AuthCallbackPage />} />
-          </Routes>
-        </main>
-        <MobileNav />
-      </div>
+      <AuthProvider>
+        <div className="app-shell min-h-screen">
+          <Header />
+          <main>
+            <Routes>
+              <Route path="/" element={<PlannerPage />} />
+              <Route path="/athlete" element={<AthletePage />} />
+              <Route path="/inventory" element={<InventoryPage />} />
+              <Route path="/bottles" element={<Navigate to="/inventory" replace />} />
+              <Route path="/products" element={<Navigate to="/inventory" replace />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/account" element={<AccountPage />} />
+              <Route path="/power-meter-analyzer" element={<PowerMeterAnalyzerPage />} />
+              <Route
+                path="/settings"
+                element={
+                  <Navigate
+                    to={{ pathname: '/athlete', hash: '#preferences' }}
+                    replace
+                  />
+                }
+              />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/auth/strava/callback" element={<StravaCallbackPage />} />
+            </Routes>
+          </main>
+          <MobileNav />
+        </div>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
