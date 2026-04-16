@@ -124,3 +124,22 @@ export const WET_BULB_STULL_COEFFICIENTS = {
   e: 0.023101,
   f: 4.686035,
 } as const;
+
+/**
+ * Wet-bulb temperature thresholds (°C) for mapping to EffectiveHeat bands.
+ * Calibrated against Stull 2011 outputs for representative conditions:
+ *   10°C/40% RH → wb ≈ 4°C  → cold
+ *   20°C/50% RH → wb ≈ 14°C → moderate
+ *   25°C/50% RH → wb ≈ 18°C → warm
+ *   30°C/70% RH → wb ≈ 26°C → hot
+ *   35°C/80% RH → wb ≈ 32°C → extreme
+ * Source: derived from Stull 2011 formula applied to ACSM exertional heat guidelines.
+ */
+export const WET_BULB_HEAT_THRESHOLDS = {
+  cold: 7,       // wb < 7 → cold
+  cool: 13,      // 7 ≤ wb < 13 → cool
+  moderate: 20,  // 13 ≤ wb < 20 → moderate
+  warm: 25,      // 20 ≤ wb < 25 → warm
+  hot: 30,       // 25 ≤ wb < 30 → hot
+                  // wb ≥ 30 → extreme
+} as const;
