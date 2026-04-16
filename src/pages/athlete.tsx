@@ -536,6 +536,13 @@ export function AthletePage() {
                   Used in ride data weather fields.
                 </p>
               </div>
+
+              <Link
+                to="/power-meter-analyzer"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-white px-3.5 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 md:min-h-10"
+              >
+                Power meter lab
+              </Link>
             </CardContent>
           </Card>
 

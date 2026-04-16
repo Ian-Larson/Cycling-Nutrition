@@ -7,6 +7,7 @@ import { AthletePage } from '@/pages/athlete';
 import { InventoryPage } from '@/pages/inventory';
 import { HistoryPage } from '@/pages/history';
 import { AuthCallbackPage } from '@/pages/auth-callback';
+import { PowerMeterAnalyzerPage } from '@/pages/power-meter-analyzer';
 import { useStore } from '@/store';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
             <Route path="/bottles" element={<Navigate to="/inventory" replace />} />
             <Route path="/products" element={<Navigate to="/inventory" replace />} />
             <Route path="/history" element={<HistoryPage />} />
+            <Route path="/power-meter-analyzer" element={<PowerMeterAnalyzerPage />} />
             <Route
               path="/settings"
               element={
