@@ -11,9 +11,12 @@ import {
 import { PageIntro } from '@/components/layout/page-intro';
 import { DebugCopyButton } from '@/components/planner/debug-copy-button';
 import { FuelResult } from '@/components/planner/fuel-result';
+import { FuelResultV3 } from '@/components/planner/fuel-result-v3';
 import { RideForm, type RideFormSnapshot } from '@/components/planner/ride-form';
 import { SetupCard } from '@/components/planner/setup-card';
 import { calculateFuelPlan, recalculatePlan, type CalculatorInput } from '@/lib/calculator';
+import { useFuelingEngine } from '@/hooks/use-fueling-engine';
+import type { FuelingPrescription } from '@/lib/fueling';
 import { useStore } from '@/store';
 import type { Bottle, FuelPlan, Product, RideCharacteristics } from '@/types';
 import type { PlannerDraft } from '@/store';
@@ -188,6 +191,10 @@ export function PlannerPage() {
   const [plan, setPlan] = useState<Omit<FuelPlan, 'id' | 'createdAt'> | null>(
     null
   );
+  const [v3Prescription, setV3Prescription] =
+    useState<FuelingPrescription | null>(null);
+  const fuelingEngine = useFuelingEngine();
+  const isV3 = fuelingEngine.version === 'v3';
   const [planTitle, setPlanTitle] = useState(initialDraft?.title ?? '');
   const [rideFormSnapshot, setRideFormSnapshot] = useState<RideFormSnapshot>();
   const [rideFormCanCalculate, setRideFormCanCalculate] = useState(false);
@@ -343,6 +350,19 @@ export function PlannerPage() {
     const result = calculateFuelPlan(input);
     lastInputRef.current = input;
     setPlan(result);
+
+    if (isV3) {
+      const prescription = fuelingEngine.buildV3({
+        ride,
+        selectedBottles: selectedBottlePool,
+        selectedDrinkMix,
+        selectedSolids: availableSolids,
+      });
+      setV3Prescription(prescription);
+    } else {
+      setV3Prescription(null);
+    }
+
     setPlanTitle((current) => current || getPlanTitleSuggestion(ride));
     setStep(3);
     setResultTab('pack');
@@ -610,14 +630,36 @@ export function PlannerPage() {
                   </CardContent>
                 </Card>
 
-                <FuelResult
-                  section={resultTab}
-                  plan={plan}
-                  bottles={bottles}
-                  products={products}
-                  onSolidQuantityChange={handleSolidQuantityChange}
-                  onBottleCountChange={handleBottleCountChange}
-                />
+                {isV3 && v3Prescription ? (
+                  <FuelResultV3
+                    section={resultTab}
+                    prescription={v3Prescription}
+                    bottles={bottles}
+                    products={products}
+                  />
+                ) : (
+                  <FuelResult
+                    section={resultTab}
+                    plan={plan}
+                    bottles={bottles}
+                    products={products}
+                    onSolidQuantityChange={handleSolidQuantityChange}
+                    onBottleCountChange={handleBottleCountChange}
+                  />
+                )}
+                {isV3 && !v3Prescription && (
+                  <Card>
+                    <CardContent className="py-6 text-center text-ink-600">
+                      <p className="font-semibold text-ink-900">
+                        v3 engine needs your weight
+                      </p>
+                      <p className="mt-1 text-sm leading-6">
+                        Set weight on the Athlete page to unlock the science-backed
+                        prescription. Showing the v2 plan below.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {import.meta.env.DEV && (
                   <DebugCopyButton
@@ -670,6 +712,7 @@ export function PlannerPage() {
               variant="secondary"
               onClick={() => {
                 setPlan(null);
+                setV3Prescription(null);
                 setPlanTitle('');
                 setResultTab('pack');
                 setStep(1);

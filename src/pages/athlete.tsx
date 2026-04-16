@@ -78,6 +78,7 @@ export function AthletePage() {
   const [searchParams] = useSearchParams();
   const athleteProfile = useStore((s) => s.settings.athleteProfile);
   const temperatureUnit = useStore((s) => s.settings.temperatureUnit);
+  const engineVersion = useStore((s) => s.settings.engineVersion);
   const updateAthleteProfile = useStore((s) => s.updateAthleteProfile);
   const updateSettings = useStore((s) => s.updateSettings);
   const stravaProvider = useMemo(() => createStravaProvider(), []);
@@ -534,6 +535,36 @@ export function AthletePage() {
                 </div>
                 <p className="text-sm leading-5 text-ink-600 md:leading-6">
                   Used in ride data weather fields.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-ink-900">Fueling engine</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      { value: 'v2', label: 'v2 (classic)' },
+                      { value: 'v3', label: 'v3 (science)' },
+                    ] as const
+                  ).map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => updateSettings({ engineVersion: option.value })}
+                      className={clsx(
+                        'min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors md:min-h-10',
+                        engineVersion === option.value
+                          ? 'border-brand-300 bg-brand-100 text-brand-800'
+                          : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-sm leading-5 text-ink-600 md:leading-6">
+                  v3 adds pre/post-ride, daily targets, and warnings. Requires
+                  weight.
                 </p>
               </div>
 
