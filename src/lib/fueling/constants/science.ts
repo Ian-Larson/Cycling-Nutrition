@@ -143,3 +143,42 @@ export const WET_BULB_HEAT_THRESHOLDS = {
   hot: 30,       // 25 ≤ wb < 30 → hot
                   // wb ≥ 30 → extreme
 } as const;
+
+/** Max fluid absorption rate before GI distress. Source: Jeukendrup 2011. */
+export const MAX_FLUID_INTAKE_ML_PER_HOUR = 1200;
+
+/** Sodium replacement fraction — replace ~60% of sweat sodium losses. Source: general sports-nutrition consensus. */
+export const SODIUM_REPLACEMENT_FRACTION = 0.6;
+
+/**
+ * During-ride carb intensity adjustment parameters.
+ * Below tempo IF, ceiling is reduced; at race IF, full ceiling used.
+ * Source: Derived from Jeukendrup 2014 intensity-dependent oxidation rates.
+ */
+export const CARB_INTENSITY_ADJUSTMENT = {
+  tempoIfThreshold: 0.82,     // below this IF, reduce ceiling
+  reductionFactor: 0.8,       // multiply ceiling by this when below threshold
+  raceIfThreshold: 0.97,      // at or above this, full ceiling
+} as const;
+
+/**
+ * Hydration intensity adjustment formula coefficients.
+ * Applied as: factor = baseMultiplier + slope * (IF - midpoint), clamped [min, max].
+ * Source: Composite model from sweat rate vs. intensity literature.
+ */
+export const HYDRATION_INTENSITY_FACTOR = {
+  baseMultiplier: 0.9,
+  slope: 0.5,
+  midpoint: 0.5,
+  min: 0.8,
+  max: 1.4,
+} as const;
+
+/** Hydration warning thresholds as fractions of sweat rate. Source: ACSM position stand. */
+export const HYDRATION_WARNING_THRESHOLDS = {
+  deficitFraction: 0.6,       // warn if drinking < 60% of sweat loss
+  overhydrationFraction: 1.03, // warn if drinking > 103% of sweat loss
+} as const;
+
+/** SGLT1 single-transporter max — above this g/h, multi-transport required. Source: Jeukendrup 2011. */
+export const SINGLE_TRANSPORTER_MAX_GPH = 60;

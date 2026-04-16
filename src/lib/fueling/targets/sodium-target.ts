@@ -3,6 +3,7 @@ import type { Warning } from '../types';
 import {
   BOTTLE_SODIUM_MG_PER_L_RANGE,
   BOTTLE_SODIUM_MG_PER_L_HEAVY_SWEATER_CEILING,
+  SODIUM_REPLACEMENT_FRACTION,
 } from '../constants/science';
 
 export interface SodiumTargetResult {
@@ -40,8 +41,8 @@ export function sodiumTarget(
   // 1. Sodium loss from actual sweat (not drink volume)
   const sodiumLossMgPerHour = rider.sweatRateLph * rider.sweatSodiumMgPerL;
 
-  // 2. Target replacement: ~60% of loss
-  let sodiumMgPerHour = sodiumLossMgPerHour * 0.6;
+  // 2. Target replacement: replace fraction of loss
+  let sodiumMgPerHour = sodiumLossMgPerHour * SODIUM_REPLACEMENT_FRACTION;
 
   // 3. Bottle [Na+] target
   const drinkVolumeLph = hydrationMlPerHour / 1000;

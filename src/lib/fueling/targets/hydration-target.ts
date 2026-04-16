@@ -1,14 +1,16 @@
 import type { FuelingContext } from '../context';
 import type { Warning } from '../types';
+import {
+  MAX_FLUID_INTAKE_ML_PER_HOUR,
+  HYDRATION_INTENSITY_FACTOR,
+  HYDRATION_WARNING_THRESHOLDS,
+} from '../constants/science';
 
 export interface HydrationTargetResult {
   hydrationMlPerHour: number;
   totalHydrationMl: number;
   warnings: Warning[];
 }
-
-/** GI absorption ceiling for fluid intake (ml/h). */
-const MAX_FLUID_ML_PER_HOUR = 1200;
 
 /** Round to nearest multiple of `step`. */
 function roundTo(value: number, step: number): number {
@@ -40,14 +42,18 @@ export function hydrationTarget(context: FuelingContext): HydrationTargetResult 
   let mlPerHour = sweatMlPerHour;
 
   // 2. Intensity adjustment factor
-  const factor = clamp(0.9 + 0.5 * (intensityFactor - 0.5), 0.8, 1.4);
+  const factor = clamp(
+    HYDRATION_INTENSITY_FACTOR.baseMultiplier + HYDRATION_INTENSITY_FACTOR.slope * (intensityFactor - HYDRATION_INTENSITY_FACTOR.midpoint),
+    HYDRATION_INTENSITY_FACTOR.min,
+    HYDRATION_INTENSITY_FACTOR.max,
+  );
   mlPerHour *= factor;
 
   // 3. Cap at GI limit
-  mlPerHour = Math.min(mlPerHour, MAX_FLUID_ML_PER_HOUR);
+  mlPerHour = Math.min(mlPerHour, MAX_FLUID_INTAKE_ML_PER_HOUR);
 
   // 4. Deficit warning (before rounding)
-  if (mlPerHour < sweatMlPerHour * 0.6) {
+  if (mlPerHour < sweatMlPerHour * HYDRATION_WARNING_THRESHOLDS.deficitFraction) {
     const predictedLossPct = ((sweatMlPerHour - mlPerHour) / sweatMlPerHour) * 100;
     warnings.push({
       code: 'hydration-deficit',
@@ -58,7 +64,7 @@ export function hydrationTarget(context: FuelingContext): HydrationTargetResult 
   }
 
   // 5. Overhydration warning (before rounding)
-  if (mlPerHour > sweatMlPerHour * 1.03) {
+  if (mlPerHour > sweatMlPerHour * HYDRATION_WARNING_THRESHOLDS.overhydrationFraction) {
     warnings.push({
       code: 'hyponatremia-risk',
       severity: 'warn',

@@ -1,6 +1,10 @@
 import type { FuelingContext } from '../context';
 import type { Warning } from '../types';
-import { DURATION_CHO_BRACKETS } from '../constants/science';
+import {
+  DURATION_CHO_BRACKETS,
+  CARB_INTENSITY_ADJUSTMENT,
+  SINGLE_TRANSPORTER_MAX_GPH,
+} from '../constants/science';
 
 export interface CarbTargetResult {
   carbsGPerHour: number;
@@ -46,12 +50,12 @@ export function carbTarget(context: FuelingContext): CarbTargetResult {
   let ceiling = bracket.ceilingGph;
 
   // 3. Intensity modifier
-  if (intensityFactor < 0.82) {
-    // Below tempo — reduce ceiling by 20%
-    ceiling *= 0.8;
+  if (intensityFactor < CARB_INTENSITY_ADJUSTMENT.tempoIfThreshold) {
+    // Below tempo — reduce ceiling
+    ceiling *= CARB_INTENSITY_ADJUSTMENT.reductionFactor;
   }
-  // IF 0.82–0.97: ceiling as-is
-  // IF >= 0.97: full ceiling (no change)
+  // IF tempoIfThreshold–raceIfThreshold: ceiling as-is
+  // IF >= raceIfThreshold: full ceiling (no change)
 
   // 4. Gut ceiling cap
   let carbsGPerHour = ceiling;
@@ -66,7 +70,7 @@ export function carbTarget(context: FuelingContext): CarbTargetResult {
   }
 
   // 5. Multi-transportable carbs flag
-  const usesMultiTransportableCarbs = bracket.requiresFructoseMix && carbsGPerHour > 60;
+  const usesMultiTransportableCarbs = bracket.requiresFructoseMix && carbsGPerHour > SINGLE_TRANSPORTER_MAX_GPH;
 
   // 6. Round to nearest 5
   carbsGPerHour = roundTo(carbsGPerHour, 5);
