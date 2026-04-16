@@ -25,6 +25,7 @@ export interface AthleteProfile {
 
 export interface Settings {
   temperatureUnit: TemperatureUnit;
+  engineVersion: 'v2' | 'v3';
   athleteProfile: AthleteProfile;
 }
 
@@ -82,6 +83,7 @@ interface AppState {
 
 const DEFAULT_SETTINGS: Settings = {
   temperatureUnit: 'celsius',
+  engineVersion: 'v2',
   athleteProfile: {
     anthropometricsUnit: 'metric',
     heavySweater: false,
@@ -143,6 +145,8 @@ function normalizeSettings(value: unknown): Settings {
   return {
     temperatureUnit:
       incoming?.temperatureUnit === 'fahrenheit' ? 'fahrenheit' : 'celsius',
+    engineVersion:
+      (incoming as Partial<Settings>)?.engineVersion === 'v3' ? 'v3' : 'v2',
     athleteProfile: {
       name: normalizeOptionalText(incomingProfile?.name),
       ftpWatts: normalizePositiveNumber(incomingProfile?.ftpWatts),
