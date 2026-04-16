@@ -4,6 +4,7 @@ import type { Bottle, Product } from '@/types';
 
 const baseSettings: Settings = {
   temperatureUnit: 'celsius',
+  engineVersion: 'v2',
   athleteProfile: {
     anthropometricsUnit: 'metric',
     heavySweater: false,
