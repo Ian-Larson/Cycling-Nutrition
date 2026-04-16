@@ -18,3 +18,7 @@ export type { PostRideTargetResult } from './post-ride-target';
 
 export { caffeineTarget } from './caffeine-target';
 export type { CaffeineTargetResult } from './caffeine-target';
+
+export { dailyTargets } from './daily-target';
+
+export { carbLoadProtocol } from './carb-load';
