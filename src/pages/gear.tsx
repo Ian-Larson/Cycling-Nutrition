@@ -4,10 +4,13 @@ import { useStore } from '@/store';
 import { useStravaGear } from '@/hooks/use-strava-gear';
 import { BikePillRow } from '@/components/gear/bike-pill-row';
 import { GearTabs } from '@/components/gear/gear-tabs';
+import { DueList } from '@/components/gear/due-list';
+import { deriveDue } from '@/lib/gear/derive-due';
 import { Button } from '@/components/ui';
 
 export function GearPage() {
   const bikes = useStore((s) => s.bikes);
+  const serviceEntries = useStore((s) => s.serviceEntries);
   const upsertBikesFromStrava = useStore((s) => s.upsertBikesFromStrava);
   const {
     bikes: stravaBikes,
@@ -25,6 +28,18 @@ export function GearPage() {
     primaryBikeId
   );
   const [tab, setTab] = useState<'due' | 'history'>('due');
+
+  const dueItems = useMemo(
+    () => deriveDue(bikes, serviceEntries),
+    [bikes, serviceEntries]
+  );
+  const filteredDueItems = useMemo(
+    () =>
+      selectedBikeId
+        ? dueItems.filter((d) => d.bikeId === selectedBikeId)
+        : dueItems,
+    [dueItems, selectedBikeId]
+  );
 
   // Mirror fresh Strava bikes into the store whenever they arrive.
   useEffect(() => {
@@ -58,8 +73,12 @@ export function GearPage() {
         stravaError={error}
       />
       <GearTabs value={tab} onChange={setTab} />
-      <div className="pt-4 text-sm text-ink-700">
-        {tab === 'due' ? 'Due list coming soon' : 'History coming soon'}
+      <div className="pt-4">
+        {tab === 'due' ? (
+          <DueList items={filteredDueItems} bikes={bikes} />
+        ) : (
+          <p className="text-sm text-ink-700">History coming soon</p>
+        )}
       </div>
     </div>
   );
