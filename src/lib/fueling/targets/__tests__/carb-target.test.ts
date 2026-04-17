@@ -19,13 +19,18 @@ const baseRider: RiderProfile = {
 function makeContext(
   durationMinutes: number,
   intensityFactor: number,
-  opts?: { purposeOverride?: 'recovery' | 'adaptation' | 'race'; gutCeiling?: number },
+  opts?: {
+    purposeOverride?: 'recovery' | 'adaptation' | 'race';
+    gutCeiling?: number;
+    carbsGPerHourOverride?: number;
+  },
 ) {
   const rider = { ...baseRider, currentGutCeilingGph: opts?.gutCeiling ?? 90 };
   const session: SessionPlan = {
     id: 'test',
     inputMode: { kind: 'duration_if', durationMinutes, intensityFactor },
     purposeOverride: opts?.purposeOverride,
+    carbsGPerHourOverride: opts?.carbsGPerHourOverride,
   };
   return buildContext({ rider, session });
 }
@@ -78,5 +83,43 @@ describe('carbTarget', () => {
     const result = carbTarget(ctx);
     // 120-180 bracket = 60 g/h, low IF reduces by 20% -> 48, round to 50
     expect(result.carbsGPerHour).toBe(50);
+  });
+
+  it('honors carbsGPerHourOverride over duration-bracket default', () => {
+    // Baseline: 2h endurance would be 30 g/h bracket × 0.8 = 25 g/h
+    const baseline = carbTarget(makeContext(120, 0.70));
+    expect(baseline.carbsGPerHour).toBe(25);
+
+    // With user override of 75 g/h, the engine should honor it
+    const ctx = makeContext(120, 0.70, { carbsGPerHourOverride: 75 });
+    const result = carbTarget(ctx);
+    expect(result.carbsGPerHour).toBe(75);
+    expect(result.totalCarbsGrams).toBe(150);
+    expect(result.usesMultiTransportableCarbs).toBe(true);
+  });
+
+  it('override still subject to gut ceiling cap', () => {
+    const ctx = makeContext(120, 0.85, {
+      carbsGPerHourOverride: 100,
+      gutCeiling: 75,
+    });
+    const result = carbTarget(ctx);
+    expect(result.carbsGPerHour).toBe(75);
+    expect(result.warnings.some((w) => w.code === 'gut-cap-applied')).toBe(true);
+  });
+
+  it('override of 0 or undefined falls back to bracket logic', () => {
+    const withZero = carbTarget(makeContext(120, 0.70, { carbsGPerHourOverride: 0 }));
+    const baseline = carbTarget(makeContext(120, 0.70));
+    expect(withZero.carbsGPerHour).toBe(baseline.carbsGPerHour);
+  });
+
+  it('recovery purpose returns 0 even when override is set', () => {
+    const ctx = makeContext(60, 0.55, {
+      purposeOverride: 'recovery',
+      carbsGPerHourOverride: 60,
+    });
+    const result = carbTarget(ctx);
+    expect(result.carbsGPerHour).toBe(0);
   });
 });
