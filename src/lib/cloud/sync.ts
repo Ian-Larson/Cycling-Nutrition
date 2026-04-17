@@ -39,7 +39,13 @@ interface InitialCloudSyncOptions {
   repository: CloudStateRepository;
   getLocalState: () => Pick<
     AppState,
-    'bottles' | 'products' | 'fuelPlans' | 'settings' | 'plannerDraft'
+    | 'bottles'
+    | 'products'
+    | 'fuelPlans'
+    | 'settings'
+    | 'plannerDraft'
+    | 'bikes'
+    | 'serviceEntries'
   >;
   replaceAppData: (data: AppDataSnapshot) => void;
   saveBackup?: (snapshot: SerializedAppState) => void;

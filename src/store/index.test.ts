@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { getReadinessFromState, normalizeProducts, type Settings } from './index';
 import type { Bottle, Product } from '@/types';
+import { useStore } from './index';
 
 const baseSettings: Settings = {
   temperatureUnit: 'celsius',
@@ -123,5 +124,71 @@ describe('getReadinessFromState', () => {
     expect(readiness.autoReady).toBe(false);
     expect(readiness.profileCompletionPercent).toBeLessThan(100);
     expect(readiness.missingProfileFields).toContain('FTP');
+  });
+});
+
+describe('bikes slice', () => {
+  beforeEach(() => {
+    useStore.setState({ bikes: [], serviceEntries: [] });
+  });
+
+  it('addBike appends with generated id and marks first bike primary', () => {
+    useStore.getState().addBike({ name: 'Force E1', stravaGearId: 'b1', cachedOdometerMi: 1800 });
+    const bikes = useStore.getState().bikes;
+    expect(bikes).toHaveLength(1);
+    expect(bikes[0].id).toBeTruthy();
+    expect(bikes[0].isPrimary).toBe(true);
+  });
+
+  it('setPrimaryBike enforces exactly one primary', () => {
+    useStore.getState().addBike({ name: 'Force E1', stravaGearId: 'b1', cachedOdometerMi: 1800 });
+    useStore.getState().addBike({ name: 'Allied ABLE', stravaGearId: 'b2', cachedOdometerMi: 600 });
+    const [a, b] = useStore.getState().bikes;
+    useStore.getState().setPrimaryBike(b.id);
+    const after = useStore.getState().bikes;
+    expect(after.find((x) => x.id === b.id)!.isPrimary).toBe(true);
+    expect(after.find((x) => x.id === a.id)!.isPrimary).toBe(false);
+  });
+
+  it('deleteBike removes its service entries', () => {
+    useStore.getState().addBike({ name: 'Force E1', stravaGearId: null, cachedOdometerMi: 0 });
+    const bikeId = useStore.getState().bikes[0].id;
+    useStore.getState().addServiceEntry({
+      bikeId, typeKey: 'chain_wax', dateIso: '2026-04-17', mileageMi: 1800, intervalMi: 250,
+    });
+    useStore.getState().deleteBike(bikeId);
+    expect(useStore.getState().bikes).toHaveLength(0);
+    expect(useStore.getState().serviceEntries).toHaveLength(0);
+  });
+
+  it('upsertBikesFromStrava adds new and updates odometer on existing', () => {
+    useStore.getState().upsertBikesFromStrava([
+      { stravaGearId: 'b1', name: 'Force E1', odometerMi: 1800, isPrimary: true },
+    ]);
+    expect(useStore.getState().bikes).toHaveLength(1);
+
+    useStore.getState().upsertBikesFromStrava([
+      { stravaGearId: 'b1', name: 'Force E1', odometerMi: 1855, isPrimary: true },
+      { stravaGearId: 'b2', name: 'Allied ABLE', odometerMi: 600, isPrimary: false },
+    ]);
+    const bikes = useStore.getState().bikes;
+    expect(bikes).toHaveLength(2);
+    expect(bikes.find((b) => b.stravaGearId === 'b1')!.cachedOdometerMi).toBe(1855);
+  });
+});
+
+describe('serviceEntries slice', () => {
+  beforeEach(() => {
+    useStore.setState({ bikes: [], serviceEntries: [] });
+    useStore.getState().addBike({ name: 'Force E1', stravaGearId: null, cachedOdometerMi: 1800 });
+  });
+
+  it('addServiceEntry computes serviceAtMi = mileage + interval', () => {
+    const bikeId = useStore.getState().bikes[0].id;
+    useStore.getState().addServiceEntry({
+      bikeId, typeKey: 'chain_wax', dateIso: '2026-04-17', mileageMi: 1800, intervalMi: 250,
+    });
+    const e = useStore.getState().serviceEntries[0];
+    expect(e.serviceAtMi).toBe(2050);
   });
 });

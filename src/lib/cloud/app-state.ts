@@ -24,7 +24,13 @@ function cloneJson<T>(value: T): T {
 export function serializeAppState(
   state: Pick<
     AppState,
-    'bottles' | 'products' | 'fuelPlans' | 'settings' | 'plannerDraft'
+    | 'bottles'
+    | 'products'
+    | 'fuelPlans'
+    | 'settings'
+    | 'plannerDraft'
+    | 'bikes'
+    | 'serviceEntries'
   >,
   now = new Date()
 ): SerializedAppState {
