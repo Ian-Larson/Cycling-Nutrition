@@ -15,25 +15,30 @@ export interface UseStravaGearResult {
 export function useStravaGear(options: { autoFetch?: boolean } = {}): UseStravaGearResult {
   const { autoFetch = true } = options;
   const supabase = useMemo(() => getSupabaseClient(), []);
+
   const [bikes, setBikes] = useState<StravaBike[] | null>(null);
   const [isFetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
+
+  const lastSyncedAtRef = useRef<number | null>(null);
   const inflight = useRef<Promise<void> | null>(null);
 
   const refresh = useCallback(async () => {
-    if (inflight.current) return inflight.current;
     if (!supabase) {
       setError('Supabase is not configured.');
       return;
     }
+    if (inflight.current) return inflight.current;
     setFetching(true);
     setError(null);
     const p = (async () => {
       try {
         const result = await fetchStravaBikes(supabase);
         setBikes(result);
-        setLastSyncedAt(Date.now());
+        const now = Date.now();
+        lastSyncedAtRef.current = now;
+        setLastSyncedAt(now);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Strava fetch failed');
       } finally {
@@ -47,10 +52,15 @@ export function useStravaGear(options: { autoFetch?: boolean } = {}): UseStravaG
 
   useEffect(() => {
     if (!autoFetch) return;
-    if (lastSyncedAt && Date.now() - lastSyncedAt < CACHE_MS) return;
+    if (lastSyncedAtRef.current && Date.now() - lastSyncedAtRef.current < CACHE_MS) return;
     void refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoFetch]);
+  }, [autoFetch, refresh]);
+
+  useEffect(() => {
+    return () => {
+      inflight.current = null;
+    };
+  }, []);
 
   return { bikes, isFetching, error, lastSyncedAt, refresh };
 }
