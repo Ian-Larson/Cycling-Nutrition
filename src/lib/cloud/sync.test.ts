@@ -24,12 +24,20 @@ function makeAppData(name: string): AppDataSnapshot {
     fuelPlans: [],
     settings: DEFAULT_SETTINGS,
     plannerDraft: null,
+    bikes: [],
+    serviceEntries: [],
   };
 }
 
 function makeAppState(data: AppDataSnapshot): Pick<
   AppState,
-  'bottles' | 'products' | 'fuelPlans' | 'settings' | 'plannerDraft'
+  | 'bottles'
+  | 'products'
+  | 'fuelPlans'
+  | 'settings'
+  | 'plannerDraft'
+  | 'bikes'
+  | 'serviceEntries'
 > {
   return data;
 }

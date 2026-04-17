@@ -8,7 +8,13 @@ import {
 
 const baseState: Pick<
   AppState,
-  'bottles' | 'products' | 'fuelPlans' | 'settings' | 'plannerDraft'
+  | 'bottles'
+  | 'products'
+  | 'fuelPlans'
+  | 'settings'
+  | 'plannerDraft'
+  | 'bikes'
+  | 'serviceEntries'
 > = {
   bottles: [
     {
@@ -42,6 +48,8 @@ const baseState: Pick<
     },
   },
   plannerDraft: null,
+  bikes: [],
+  serviceEntries: [],
 };
 
 describe('cloud app-state snapshots', () => {

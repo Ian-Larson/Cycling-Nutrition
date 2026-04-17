@@ -2,7 +2,14 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { nanoid } from 'nanoid';
-import type { Bottle, Product, FuelPlan, RideCharacteristics } from '@/types';
+import type {
+  Bottle,
+  Product,
+  FuelPlan,
+  RideCharacteristics,
+  Bike,
+  ServiceEntry,
+} from '@/types';
 import { DEFAULT_BOTTLES, DEFAULT_PRODUCTS } from '@/lib/defaults';
 import {
   normalizeAnthropometricsUnit,
@@ -49,6 +56,8 @@ export interface AppDataSnapshot {
   fuelPlans: FuelPlan[];
   settings: Settings;
   plannerDraft: PlannerDraft | null;
+  bikes: Bike[];
+  serviceEntries: ServiceEntry[];
 }
 
 export interface AppReadiness {
@@ -67,6 +76,8 @@ export interface AppState {
   fuelPlans: FuelPlan[];
   settings: Settings;
   plannerDraft: PlannerDraft | null;
+  bikes: Bike[];
+  serviceEntries: ServiceEntry[];
   _initialized: boolean;
 
   addBottle: (bottle: Omit<Bottle, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -81,6 +92,34 @@ export interface AppState {
   deleteFuelPlan: (id: string) => void;
   setPlannerDraft: (draft: PlannerDraft | null) => void;
   consumePlannerDraft: () => PlannerDraft | null;
+
+  addBike: (
+    bike: Omit<
+      Bike,
+      'id' | 'createdAt' | 'updatedAt' | 'isPrimary' | 'odometerSyncedAtIso'
+    >
+  ) => void;
+  updateBike: (id: string, updates: Partial<Bike>) => void;
+  deleteBike: (id: string) => void;
+  setPrimaryBike: (id: string) => void;
+  upsertBikesFromStrava: (
+    incoming: {
+      stravaGearId: string;
+      name: string;
+      odometerMi: number;
+      isPrimary: boolean;
+    }[]
+  ) => void;
+  setBikeOdometer: (bikeId: string, odometerMi: number) => void;
+
+  addServiceEntry: (
+    entry: Omit<
+      ServiceEntry,
+      'id' | 'createdAt' | 'updatedAt' | 'serviceAtMi'
+    >
+  ) => void;
+  updateServiceEntry: (id: string, updates: Partial<ServiceEntry>) => void;
+  deleteServiceEntry: (id: string) => void;
 
   updateSettings: (settings: SettingsUpdate) => void;
   updateAthleteProfile: (updates: Partial<AthleteProfile>) => void;
@@ -350,7 +389,13 @@ export function normalizePlannerDraft(value: unknown): PlannerDraft | null {
 export function getAppDataFromState(
   state: Pick<
     AppState,
-    'bottles' | 'products' | 'fuelPlans' | 'settings' | 'plannerDraft'
+    | 'bottles'
+    | 'products'
+    | 'fuelPlans'
+    | 'settings'
+    | 'plannerDraft'
+    | 'bikes'
+    | 'serviceEntries'
   >
 ): AppDataSnapshot {
   return {
@@ -359,6 +404,8 @@ export function getAppDataFromState(
     fuelPlans: state.fuelPlans,
     settings: state.settings,
     plannerDraft: state.plannerDraft,
+    bikes: state.bikes,
+    serviceEntries: state.serviceEntries,
   };
 }
 
@@ -386,6 +433,10 @@ export function normalizeAppData(
       incoming?.plannerDraft === undefined
         ? fallback.plannerDraft
         : normalizePlannerDraft(incoming.plannerDraft),
+    bikes: Array.isArray(incoming?.bikes) ? incoming.bikes : fallback.bikes,
+    serviceEntries: Array.isArray(incoming?.serviceEntries)
+      ? incoming.serviceEntries
+      : fallback.serviceEntries,
   };
 }
 
@@ -447,6 +498,8 @@ export const useStore = create<AppState>()(
         athleteProfile: { ...DEFAULT_SETTINGS.athleteProfile },
       },
       plannerDraft: null,
+      bikes: [],
+      serviceEntries: [],
       _initialized: false,
 
       addBottle: (bottle) =>
@@ -534,6 +587,151 @@ export const useStore = create<AppState>()(
         return current;
       },
 
+      addBike: (bike) =>
+        set((state) => {
+          const isFirstBike = state.bikes.length === 0;
+          state.bikes.push({
+            ...bike,
+            id: nanoid(),
+            isPrimary: isFirstBike,
+            odometerSyncedAtIso: null,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          });
+        }),
+
+      updateBike: (id, updates) =>
+        set((state) => {
+          const index = state.bikes.findIndex((b) => b.id === id);
+          if (index !== -1) {
+            const {
+              id: _ignoredId,
+              createdAt: _ignoredCreatedAt,
+              ...rest
+            } = updates;
+            void _ignoredId;
+            void _ignoredCreatedAt;
+            state.bikes[index] = {
+              ...state.bikes[index],
+              ...rest,
+              updatedAt: Date.now(),
+            };
+          }
+        }),
+
+      deleteBike: (id) =>
+        set((state) => {
+          const deleted = state.bikes.find((b) => b.id === id);
+          state.bikes = state.bikes.filter((b) => b.id !== id);
+          state.serviceEntries = state.serviceEntries.filter(
+            (entry) => entry.bikeId !== id
+          );
+          if (deleted?.isPrimary && state.bikes.length > 0) {
+            state.bikes[0].isPrimary = true;
+            state.bikes[0].updatedAt = Date.now();
+          }
+        }),
+
+      setPrimaryBike: (id) =>
+        set((state) => {
+          state.bikes.forEach((bike) => {
+            const nextPrimary = bike.id === id;
+            if (bike.isPrimary !== nextPrimary) {
+              bike.isPrimary = nextPrimary;
+              bike.updatedAt = Date.now();
+            }
+          });
+        }),
+
+      upsertBikesFromStrava: (incoming) =>
+        set((state) => {
+          const nowIso = new Date().toISOString();
+          const storeHasPrimary = state.bikes.some((b) => b.isPrimary);
+          let claimedPrimaryThisOp = false;
+
+          incoming.forEach((candidate) => {
+            const existing = state.bikes.find(
+              (b) => b.stravaGearId === candidate.stravaGearId
+            );
+            if (existing) {
+              existing.cachedOdometerMi = candidate.odometerMi;
+              existing.odometerSyncedAtIso = nowIso;
+              existing.updatedAt = Date.now();
+              return;
+            }
+
+            const canClaimPrimary =
+              candidate.isPrimary &&
+              !storeHasPrimary &&
+              !claimedPrimaryThisOp &&
+              state.bikes.length === 0;
+
+            if (canClaimPrimary) {
+              claimedPrimaryThisOp = true;
+            }
+
+            state.bikes.push({
+              id: nanoid(),
+              name: candidate.name,
+              stravaGearId: candidate.stravaGearId,
+              cachedOdometerMi: candidate.odometerMi,
+              odometerSyncedAtIso: nowIso,
+              isPrimary: canClaimPrimary,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            });
+          });
+        }),
+
+      setBikeOdometer: (bikeId, odometerMi) =>
+        set((state) => {
+          const bike = state.bikes.find((b) => b.id === bikeId);
+          if (!bike) return;
+          bike.cachedOdometerMi = odometerMi;
+          bike.odometerSyncedAtIso = new Date().toISOString();
+          bike.updatedAt = Date.now();
+        }),
+
+      addServiceEntry: (entry) =>
+        set((state) => {
+          state.serviceEntries.push({
+            ...entry,
+            id: nanoid(),
+            serviceAtMi: entry.mileageMi + entry.intervalMi,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          });
+        }),
+
+      updateServiceEntry: (id, updates) =>
+        set((state) => {
+          const index = state.serviceEntries.findIndex((e) => e.id === id);
+          if (index === -1) return;
+          const {
+            id: _ignoredId,
+            createdAt: _ignoredCreatedAt,
+            ...rest
+          } = updates;
+          void _ignoredId;
+          void _ignoredCreatedAt;
+          const merged = {
+            ...state.serviceEntries[index],
+            ...rest,
+            updatedAt: Date.now(),
+          };
+          if (rest.mileageMi !== undefined || rest.intervalMi !== undefined) {
+            merged.serviceAtMi = merged.mileageMi + merged.intervalMi;
+          }
+          state.serviceEntries[index] = merged;
+        }),
+
+      deleteServiceEntry: (id) =>
+        set((state) => {
+          state.serviceEntries = state.serviceEntries.filter(
+            (e) => e.id !== id
+          );
+        }),
+
       updateSettings: (updates) =>
         set((state) => {
           const { athleteProfile, ...rest } = updates;
@@ -557,6 +755,8 @@ export const useStore = create<AppState>()(
           state.fuelPlans = normalized.fuelPlans;
           state.settings = normalized.settings;
           state.plannerDraft = normalized.plannerDraft;
+          state.bikes = normalized.bikes;
+          state.serviceEntries = normalized.serviceEntries;
           state._initialized = true;
         }),
 
@@ -617,6 +817,10 @@ export const useStore = create<AppState>()(
           ),
           settings: normalizeSettings(incoming.settings),
           plannerDraft: normalizePlannerDraft(incoming.plannerDraft),
+          bikes: Array.isArray(incoming.bikes) ? incoming.bikes : currentState.bikes,
+          serviceEntries: Array.isArray(incoming.serviceEntries)
+            ? incoming.serviceEntries
+            : currentState.serviceEntries,
         };
       },
     }
