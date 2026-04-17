@@ -817,6 +817,10 @@ export const useStore = create<AppState>()(
           ),
           settings: normalizeSettings(incoming.settings),
           plannerDraft: normalizePlannerDraft(incoming.plannerDraft),
+          bikes: Array.isArray(incoming.bikes) ? incoming.bikes : currentState.bikes,
+          serviceEntries: Array.isArray(incoming.serviceEntries)
+            ? incoming.serviceEntries
+            : currentState.serviceEntries,
         };
       },
     }
