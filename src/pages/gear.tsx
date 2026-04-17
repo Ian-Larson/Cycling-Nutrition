@@ -6,8 +6,10 @@ import { BikePillRow } from '@/components/gear/bike-pill-row';
 import { GearTabs } from '@/components/gear/gear-tabs';
 import { DueList } from '@/components/gear/due-list';
 import { HistoryList } from '@/components/gear/history-list';
+import { LogServiceSheet } from '@/components/gear/log-service-sheet';
 import { deriveDue } from '@/lib/gear/derive-due';
 import { Button } from '@/components/ui';
+import type { ServiceTypeKey } from '@/types/gear';
 
 export function GearPage() {
   const bikes = useStore((s) => s.bikes);
@@ -29,6 +31,11 @@ export function GearPage() {
     primaryBikeId
   );
   const [tab, setTab] = useState<'due' | 'history'>('due');
+  const [sheetState, setSheetState] = useState<{
+    open: boolean;
+    preselectedTypeKey?: ServiceTypeKey;
+    preselectedBikeId?: string;
+  }>({ open: false });
 
   const dueItems = useMemo(
     () => deriveDue(bikes, serviceEntries),
@@ -66,7 +73,11 @@ export function GearPage() {
         title="Gear"
         description="Track maintenance and service intervals for your bikes."
         actions={
-          <Button variant="primary" size="sm" disabled>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setSheetState({ open: true })}
+          >
             + Log service
           </Button>
         }
@@ -83,11 +94,33 @@ export function GearPage() {
       <GearTabs value={tab} onChange={setTab} />
       <div className="pt-4">
         {tab === 'due' ? (
-          <DueList items={filteredDueItems} bikes={bikes} />
+          <DueList
+            items={filteredDueItems}
+            bikes={bikes}
+            onLog={(bikeId, typeKey) =>
+              setSheetState({
+                open: true,
+                preselectedTypeKey: typeKey,
+                preselectedBikeId: bikeId,
+              })
+            }
+          />
         ) : (
           <HistoryList entries={filteredEntries} bikes={bikes} />
         )}
       </div>
+      <LogServiceSheet
+        open={sheetState.open}
+        onClose={() => setSheetState({ open: false })}
+        bikes={bikes}
+        entries={serviceEntries}
+        preselectedTypeKey={sheetState.preselectedTypeKey}
+        preselectedBikeId={sheetState.preselectedBikeId}
+        stravaBikes={stravaBikes}
+        onRefreshStrava={handleRefresh}
+        isStravaRefreshing={isFetching}
+        stravaLastSyncedAt={lastSyncedAt}
+      />
     </div>
   );
 }
