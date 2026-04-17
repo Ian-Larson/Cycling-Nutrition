@@ -16,6 +16,7 @@ interface FitDefinitionMessage {
   globalMessageNumber: number;
   littleEndian: boolean;
   fields: FitFieldDefinition[];
+  developerFields: FitFieldDefinition[];
 }
 
 interface NormalizedRecordPoint extends AnalyzerPoint {
@@ -516,6 +517,10 @@ function readFitDataMessage(
     cursor += field.size;
   }
 
+  for (const field of definition.developerFields) {
+    cursor += field.size;
+  }
+
   return {
     values,
     nextOffset: cursor,
@@ -594,6 +599,7 @@ function parseFit(arrayBuffer: ArrayBuffer, fileName: string): ParsedAnalyzerFil
       const fieldCount = view.getUint8(offset);
       offset += 1;
       const fields: FitFieldDefinition[] = [];
+      const developerFields: FitFieldDefinition[] = [];
 
       for (let fieldIndex = 0; fieldIndex < fieldCount; fieldIndex += 1) {
         fields.push({
@@ -606,13 +612,27 @@ function parseFit(arrayBuffer: ArrayBuffer, fileName: string): ParsedAnalyzerFil
 
       if (hasDeveloperData) {
         const developerFieldCount = view.getUint8(offset);
-        offset += 1 + developerFieldCount * 3;
+        offset += 1;
+
+        for (
+          let developerFieldIndex = 0;
+          developerFieldIndex < developerFieldCount;
+          developerFieldIndex += 1
+        ) {
+          developerFields.push({
+            fieldNumber: view.getUint8(offset),
+            size: view.getUint8(offset + 1),
+            baseType: view.getUint8(offset + 2),
+          });
+          offset += 3;
+        }
       }
 
       definitions.set(localMessageType, {
         globalMessageNumber,
         littleEndian,
         fields,
+        developerFields,
       });
       continue;
     }

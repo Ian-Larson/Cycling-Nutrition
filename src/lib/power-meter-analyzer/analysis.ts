@@ -203,6 +203,7 @@ function getSecondValueMap(series: ChartSeries): Map<number, ComparisonPoint> {
   for (const point of series.points) {
     map.set(roundTimestampToSecond(point.timestamp), {
       elapsedSeconds: point.elapsedSeconds,
+      timestamp: point.timestamp,
       referenceValue: point.value,
       comparisonValue: point.value,
     });
@@ -287,6 +288,7 @@ export function buildReferenceComparisons(
         if (!referencePoint) continue;
         points.push({
           elapsedSeconds: point.elapsedSeconds,
+          timestamp: point.timestamp,
           referenceValue: referencePoint.referenceValue,
           comparisonValue: point.value,
         });

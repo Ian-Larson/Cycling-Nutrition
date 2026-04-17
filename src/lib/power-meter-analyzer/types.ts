@@ -71,6 +71,7 @@ export interface FileSummary {
 
 export interface ComparisonPoint {
   elapsedSeconds: number;
+  timestamp: number;
   referenceValue: number;
   comparisonValue: number;
 }

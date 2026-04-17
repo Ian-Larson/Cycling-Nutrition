@@ -47,6 +47,37 @@ function makeMinimalFitFile(): ArrayBuffer {
   return new Uint8Array([...header, ...data]).buffer;
 }
 
+function makeFitFileWithDeveloperFields(): ArrayBuffer {
+  const data: number[] = [];
+  const startFitTimestamp = Math.round(
+    (Date.UTC(2026, 0, 1, 12, 0, 0) - FIT_EPOCH_MS) / 1000
+  );
+
+  data.push(0x60, 0x00, 0x00);
+  pushUint16(data, 20);
+  data.push(2);
+  data.push(253, 4, 0x86);
+  data.push(7, 2, 0x84);
+  data.push(1);
+  data.push(0, 3, 0);
+
+  [
+    { timestamp: startFitTimestamp, power: 250, developerBytes: [11, 12, 13] },
+    { timestamp: startFitTimestamp + 1, power: 260, developerBytes: [21, 22, 23] },
+  ].forEach((record) => {
+    data.push(0x00);
+    pushUint32(data, record.timestamp);
+    pushUint16(data, record.power);
+    data.push(...record.developerBytes);
+  });
+
+  const header: number[] = [14, 0x10, 0, 0];
+  pushUint32(header, data.length);
+  header.push(0x2e, 0x46, 0x49, 0x54, 0, 0);
+
+  return new Uint8Array([...header, ...data]).buffer;
+}
+
 describe('parsePowerMeterFile', () => {
   it('extracts timestamped power samples from a FIT record stream', async () => {
     const file = {
@@ -62,6 +93,19 @@ describe('parsePowerMeterFile', () => {
     expect(parsed.points[0].cadence).toBe(91);
     expect(parsed.points[0].leftRightBalance).toBe(50);
     expect(parsed.powerPointCount).toBe(2);
+  });
+
+  it('skips FIT developer field payloads when reading record messages', async () => {
+    const file = {
+      name: 'developer-fields.fit',
+      arrayBuffer: async () => makeFitFileWithDeveloperFields(),
+    } as File;
+
+    const parsed = await parsePowerMeterFile(file);
+
+    expect(parsed.points).toHaveLength(2);
+    expect(parsed.points.map((point) => point.power)).toEqual([250, 260]);
+    expect(parsed.warnings).toEqual([]);
   });
 
   it('accepts CSV files with elapsed seconds', async () => {
