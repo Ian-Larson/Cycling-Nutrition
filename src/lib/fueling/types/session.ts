@@ -18,4 +18,11 @@ export interface SessionPlan {
   refuelStopOffsets?: number[];       // offsets in minutes from ride start
   nextSessionAtIso?: string;          // drives recovery aggressiveness
   priorSessionEndedAtIso?: string;    // drives pre-ride glycogen state estimate
+  /**
+   * User-provided during-ride carb target (g/h). When set, the engine honors
+   * this as the primary target instead of the duration-bracket default. The
+   * rider's gut ceiling is still applied as a safety cap. Pre/post-ride
+   * prescriptions never reduce this value — they stack on top.
+   */
+  carbsGPerHourOverride?: number;
 }

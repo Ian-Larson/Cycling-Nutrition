@@ -125,11 +125,19 @@ export function buildFuelingInputFromV2(
         )
       : [];
 
+  const carbsGPerHourOverride =
+    typeof ride.carbTargetGramsPerHour === 'number' &&
+    Number.isFinite(ride.carbTargetGramsPerHour) &&
+    ride.carbTargetGramsPerHour > 0
+      ? ride.carbTargetGramsPerHour
+      : undefined;
+
   const session: SessionPlan = {
     id: 'planner-session',
     inputMode,
     purposeOverride: INTENSITY_TO_PURPOSE[ride.intensity],
     refuelStopOffsets,
+    carbsGPerHourOverride,
   };
 
   const environment: Environment = {

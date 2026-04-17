@@ -18,6 +18,7 @@ export interface FuelingContext {
     refuelStopOffsets: number[];
     nextSessionAtIso?: string;
     priorSessionEndedAtIso?: string;
+    carbsGPerHourOverride?: number;
   };
   environment: ResolvedEnvironment;
   purpose: SessionPurpose;
@@ -96,6 +97,7 @@ export function buildContext(input: BuildContextInput): FuelingContext {
       refuelStopOffsets: session.refuelStopOffsets ?? [],
       nextSessionAtIso: session.nextSessionAtIso,
       priorSessionEndedAtIso: session.priorSessionEndedAtIso,
+      carbsGPerHourOverride: session.carbsGPerHourOverride,
     },
     environment: resolvedEnv,
     purpose,
