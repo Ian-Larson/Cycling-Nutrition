@@ -55,7 +55,7 @@ export function BikePillRow({
               onClick={() => onSelect(null)}
               aria-pressed={selectedBikeId === null}
               className={clsx(
-                'shrink-0 rounded-full border border-[color:var(--border-soft)] px-3.5 py-1.5 text-sm font-medium transition-colors',
+                'shrink-0 whitespace-nowrap rounded-full border border-[color:var(--border-soft)] px-3.5 py-1.5 text-sm font-medium transition-colors',
                 selectedBikeId === null
                   ? 'bg-brand-100 text-brand-900'
                   : 'bg-white text-ink-700 hover:bg-shell-50'
@@ -72,7 +72,7 @@ export function BikePillRow({
                   onClick={() => onSelect(bike.id)}
                   aria-pressed={active}
                   className={clsx(
-                    'shrink-0 rounded-full border border-[color:var(--border-soft)] px-3.5 py-1.5 text-sm font-medium transition-colors',
+                    'shrink-0 whitespace-nowrap rounded-full border border-[color:var(--border-soft)] px-3.5 py-1.5 text-sm font-medium transition-colors',
                     active
                       ? 'bg-brand-100 text-brand-900'
                       : 'bg-white text-ink-700 hover:bg-shell-50'
@@ -107,7 +107,7 @@ export function BikePillRow({
         </button>
       </div>
       {stravaError ? (
-        <p className="text-xs text-amber-700">{stravaError}</p>
+        <p className="text-xs text-rose-700">{stravaError}</p>
       ) : lastSyncedAt ? (
         <p className="text-xs text-ink-500">{formatSyncedAgo(lastSyncedAt)}</p>
       ) : null}
