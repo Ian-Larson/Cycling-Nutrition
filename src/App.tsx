@@ -6,6 +6,7 @@ import { PlannerPage } from '@/pages/planner';
 import { AthletePage } from '@/pages/athlete';
 import { InventoryPage } from '@/pages/inventory';
 import { HistoryPage } from '@/pages/history';
+import { GearPage } from '@/pages/gear';
 import { AuthCallbackPage } from '@/pages/auth-callback';
 import { PowerMeterAnalyzerPage } from '@/pages/power-meter-analyzer';
 import { AccountPage } from '@/pages/account';
@@ -34,6 +35,7 @@ function App() {
               <Route path="/bottles" element={<Navigate to="/inventory" replace />} />
               <Route path="/products" element={<Navigate to="/inventory" replace />} />
               <Route path="/history" element={<HistoryPage />} />
+              <Route path="/gear" element={<GearPage />} />
               <Route path="/account" element={<AccountPage />} />
               <Route path="/power-meter-analyzer" element={<PowerMeterAnalyzerPage />} />
               <Route

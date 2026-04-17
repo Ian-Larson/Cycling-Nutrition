@@ -6,6 +6,7 @@ const navItems = [
   { path: '/athlete', label: 'Athlete' },
   { path: '/inventory', label: 'Inventory' },
   { path: '/history', label: 'Plans' },
+  { path: '/gear', label: 'Gear' },
   { path: '/account', label: 'Account' },
 ];
 
