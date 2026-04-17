@@ -51,7 +51,7 @@ export function validateServiceEntryDraft(
       });
     const latest = sameTarget[0];
     if (latest && draft.mileageMi < latest.mileageMi) {
-      errors.mileageMi = `Mileage must be ≥ your last logged mileage (${latest.mileageMi})`;
+      errors.mileageMi = `Mileage must be ≥ your last logged mileage (${latest.mileageMi.toLocaleString()}).`;
     }
   }
 

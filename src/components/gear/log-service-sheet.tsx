@@ -159,14 +159,13 @@ function LogServiceForm({
 
   const handleBikeChange = (nextId: string) => {
     setBikeId(nextId);
-    if (!mileageDirty) {
-      const nextBike = bikes.find((b) => b.id === nextId);
-      setMileageMi(
-        nextBike && nextBike.cachedOdometerMi != null
-          ? Math.round(nextBike.cachedOdometerMi)
-          : ''
-      );
-    }
+    setMileageDirty(false);
+    const nextBike = bikes.find((b) => b.id === nextId);
+    setMileageMi(
+      nextBike && nextBike.cachedOdometerMi != null
+        ? Math.round(nextBike.cachedOdometerMi)
+        : ''
+    );
   };
 
   const handleSubmit = (e: FormEvent) => {

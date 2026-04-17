@@ -100,7 +100,7 @@ describe('validateServiceEntryDraft', () => {
       TODAY
     );
     expect(errors.mileageMi).toBe(
-      'Mileage must be ≥ your last logged mileage (800)'
+      'Mileage must be ≥ your last logged mileage (800).'
     );
   });
 
@@ -151,7 +151,7 @@ describe('validateServiceEntryDraft', () => {
       TODAY
     );
     expect(errors.mileageMi).toBe(
-      'Mileage must be ≥ your last logged mileage (1000)'
+      'Mileage must be ≥ your last logged mileage (1,000).'
     );
   });
 });
