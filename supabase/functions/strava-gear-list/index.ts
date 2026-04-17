@@ -64,14 +64,17 @@ serve(async (req) => {
 
     let accessToken = tokenRow.access_token;
     const nowSec = Math.floor(Date.now() / 1000);
-    if (tokenRow.expires_at && tokenRow.expires_at <= nowSec + 60) {
+    const expiresAtSec = tokenRow.expires_at
+      ? Math.floor(new Date(tokenRow.expires_at).getTime() / 1000)
+      : 0;
+    if (expiresAtSec <= nowSec + 60) {
       const refreshed = await refreshAccessToken(tokenRow.refresh_token, clientId, clientSecret);
       if (!refreshed) return jsonResponse({ error: 'Token refresh failed' }, { status: 502 });
       accessToken = refreshed.access_token;
       await serviceClient.from('strava_tokens').update({
         access_token: refreshed.access_token,
         refresh_token: refreshed.refresh_token,
-        expires_at: refreshed.expires_at,
+        expires_at: new Date(refreshed.expires_at * 1000).toISOString(),
         updated_at: new Date().toISOString(),
       }).eq('user_id', userData.user.id);
     }
