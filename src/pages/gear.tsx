@@ -5,6 +5,7 @@ import { useStravaGear } from '@/hooks/use-strava-gear';
 import { BikePillRow } from '@/components/gear/bike-pill-row';
 import { GearTabs } from '@/components/gear/gear-tabs';
 import { DueList } from '@/components/gear/due-list';
+import { HistoryList } from '@/components/gear/history-list';
 import { deriveDue } from '@/lib/gear/derive-due';
 import { Button } from '@/components/ui';
 
@@ -39,6 +40,13 @@ export function GearPage() {
         ? dueItems.filter((d) => d.bikeId === selectedBikeId)
         : dueItems,
     [dueItems, selectedBikeId]
+  );
+  const filteredEntries = useMemo(
+    () =>
+      selectedBikeId
+        ? serviceEntries.filter((e) => e.bikeId === selectedBikeId)
+        : serviceEntries,
+    [serviceEntries, selectedBikeId]
   );
 
   // Mirror fresh Strava bikes into the store whenever they arrive.
@@ -77,7 +85,7 @@ export function GearPage() {
         {tab === 'due' ? (
           <DueList items={filteredDueItems} bikes={bikes} />
         ) : (
-          <p className="text-sm text-ink-700">History coming soon</p>
+          <HistoryList entries={filteredEntries} bikes={bikes} />
         )}
       </div>
     </div>
