@@ -11,12 +11,43 @@ export interface Bike {
 
 export type GearPartCategory = 'chain' | 'tire' | 'brake_pad' | 'cassette' | 'chainring';
 
+export interface TireAttributes {
+  category: 'tire';
+  widthMm: number;
+  diameter?: string;
+  tubelessReady?: boolean;
+}
+
+export interface ChainAttributes {
+  category: 'chain';
+  speedCount?: number;
+}
+
+export interface BrakePadAttributes {
+  category: 'brake_pad';
+  compound?: string;
+  padShape?: string;
+}
+
+export interface CassetteAttributes {
+  category: 'cassette';
+  range: string;
+  speedCount?: number;
+}
+
+export interface ChainringAttributes {
+  category: 'chainring';
+  toothCount: number;
+  position?: string;
+  mount?: string;
+}
+
 export type GearPartAttributes =
-  | { category: 'tire'; widthMm: number; diameter?: string; tubelessReady?: boolean }
-  | { category: 'chain'; speedCount?: number }
-  | { category: 'brake_pad'; compound?: string; padShape?: string }
-  | { category: 'cassette'; range: string; speedCount?: number }
-  | { category: 'chainring'; toothCount: number; position?: string; mount?: string };
+  | TireAttributes
+  | ChainAttributes
+  | BrakePadAttributes
+  | CassetteAttributes
+  | ChainringAttributes;
 
 export interface GearPartCatalogItem {
   id: string;

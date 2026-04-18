@@ -157,9 +157,6 @@ export function normalizeGearPartCatalog(value: unknown): GearPartCatalogItem[] 
     if (!id || !model || !parsedCategory) return [];
     const attributes = normalizeAttributes(parsedCategory, item.attributes);
     if (!attributes) return [];
-    if (item.weightGrams !== undefined && positiveNumber(item.weightGrams) === undefined) {
-      return [];
-    }
 
     return [
       {
@@ -167,7 +164,8 @@ export function normalizeGearPartCatalog(value: unknown): GearPartCatalogItem[] 
         category: parsedCategory,
         brand: text(item.brand),
         model,
-        weightGrams: positiveNumber(item.weightGrams),
+        weightGrams:
+          item.weightGrams === undefined ? undefined : positiveNumber(item.weightGrams),
         attributes,
         notes: text(item.notes),
         createdAt: timestamp(item.createdAt),
@@ -186,6 +184,8 @@ export function normalizeGearPartInstances(value: unknown): GearPartInstance[] {
     const catalogItemId = text(item.catalogItemId);
     const status = instanceStatus(item.status);
     if (!id || !catalogItemId || !status) return [];
+    const acquiredDateIso = dateIso(item.acquiredDateIso);
+    const retiredDateIso = dateIso(item.retiredDateIso);
 
     return [
       {
@@ -193,8 +193,8 @@ export function normalizeGearPartInstances(value: unknown): GearPartInstance[] {
         catalogItemId,
         label: text(item.label),
         status,
-        acquiredDateIso: dateIso(item.acquiredDateIso),
-        retiredDateIso: dateIso(item.retiredDateIso),
+        acquiredDateIso,
+        retiredDateIso,
         notes: text(item.notes),
         createdAt: timestamp(item.createdAt),
         updatedAt: timestamp(item.updatedAt),
@@ -225,14 +225,17 @@ export function normalizeGearInstallRecords(value: unknown): GearInstallRecord[]
       return [];
     }
 
-    const removedAtMileageMi = nonNegativeNumber(item.removedAtMileageMi);
+    const removedAtMileageMi =
+      item.removedAtMileageMi === undefined ? undefined : nonNegativeNumber(item.removedAtMileageMi);
     const removedDateIso = dateIso(item.removedDateIso);
-    if (item.removedAtMileageMi !== undefined && removedAtMileageMi === undefined) {
-      return [];
-    }
-    if (item.removedDateIso !== undefined && removedDateIso === undefined) {
-      return [];
-    }
+    const removeReason =
+      item.removeReason === 'swapped' ||
+      item.removeReason === 'worn' ||
+      item.removeReason === 'damaged' ||
+      item.removeReason === 'sold' ||
+      item.removeReason === 'other'
+        ? item.removeReason
+        : undefined;
 
     return [
       {
@@ -244,14 +247,7 @@ export function normalizeGearInstallRecords(value: unknown): GearInstallRecord[]
         installedDateIso,
         removedAtMileageMi,
         removedDateIso,
-        removeReason:
-          item.removeReason === 'swapped' ||
-          item.removeReason === 'worn' ||
-          item.removeReason === 'damaged' ||
-          item.removeReason === 'sold' ||
-          item.removeReason === 'other'
-            ? item.removeReason
-            : undefined,
+        removeReason,
         createdAt: timestamp(item.createdAt),
         updatedAt: timestamp(item.updatedAt),
       },
@@ -269,24 +265,6 @@ export function normalizeGearServiceEvents(value: unknown): GearServiceEvent[] {
     const parsedType = serviceType(item.typeKey);
     const parsedDate = dateIso(item.dateIso);
     if (!id || !bikeId || !parsedType || !parsedDate) return [];
-    if (item.mileageMi !== undefined && nonNegativeNumber(item.mileageMi) === undefined) {
-      return [];
-    }
-    if (item.intervalMi !== undefined && positiveNumber(item.intervalMi) === undefined) {
-      return [];
-    }
-    if (item.intervalDays !== undefined && positiveNumber(item.intervalDays) === undefined) {
-      return [];
-    }
-    if (
-      item.nextDueMileageMi !== undefined &&
-      nonNegativeNumber(item.nextDueMileageMi) === undefined
-    ) {
-      return [];
-    }
-    if (item.nextDueDateIso !== undefined && dateIso(item.nextDueDateIso) === undefined) {
-      return [];
-    }
 
     return [
       {
@@ -296,10 +274,16 @@ export function normalizeGearServiceEvents(value: unknown): GearServiceEvent[] {
         slotKey: slotKey(item.slotKey),
         typeKey: parsedType,
         dateIso: parsedDate,
-        mileageMi: nonNegativeNumber(item.mileageMi),
-        intervalMi: positiveNumber(item.intervalMi),
-        intervalDays: positiveNumber(item.intervalDays),
-        nextDueMileageMi: nonNegativeNumber(item.nextDueMileageMi),
+        mileageMi:
+          item.mileageMi === undefined ? undefined : nonNegativeNumber(item.mileageMi),
+        intervalMi:
+          item.intervalMi === undefined ? undefined : positiveNumber(item.intervalMi),
+        intervalDays:
+          item.intervalDays === undefined ? undefined : positiveNumber(item.intervalDays),
+        nextDueMileageMi:
+          item.nextDueMileageMi === undefined
+            ? undefined
+            : nonNegativeNumber(item.nextDueMileageMi),
         nextDueDateIso: dateIso(item.nextDueDateIso),
         materialsNote: text(item.materialsNote),
         notes: text(item.notes),
