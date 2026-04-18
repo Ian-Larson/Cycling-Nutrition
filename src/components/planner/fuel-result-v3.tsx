@@ -297,7 +297,25 @@ function DuringCard({
 
         {packList && packList.bottles.length > 0 && (
           <div className="space-y-2">
-            <h4 className="section-title text-lg">Bottles</h4>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <h4 className="section-title text-lg">
+                Bring {packList.bottles.length === 1 ? '1 bottle' : `${packList.bottles.length} bottles`}
+              </h4>
+              <p className="text-sm leading-5 text-ink-600">
+                Fill each as shown below
+              </p>
+            </div>
+            {packList.fluidShortfallMl && packList.fluidShortfallMl > 0 ? (
+              <div className="rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-3 text-sm leading-5 text-amber-900 md:leading-6">
+                <p className="font-semibold">
+                  Plan a refill stop for ~{packList.fluidShortfallMl.toLocaleString()} ml extra fluid
+                </p>
+                <p className="mt-1">
+                  Your two bottles can't carry the full hydration target for this ride. Add a refill
+                  stop, top up from a hydration pack, or dial down the fluid plan.
+                </p>
+              </div>
+            ) : null}
             {packList.bottles.map((alloc, i) => {
               const bottle = bottles.find((b) => b.id === alloc.bottleId);
               const product = alloc.productId
@@ -352,7 +370,12 @@ function DuringCard({
 
         {packList && packList.solids.length > 0 && (
           <div className="space-y-2">
-            <h4 className="section-title text-lg">Solids</h4>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <h4 className="section-title text-lg">Bring solids</h4>
+              <p className="text-sm leading-5 text-ink-600">
+                Carry and eat on schedule
+              </p>
+            </div>
             {packList.solids.map((alloc, i) => {
               const product = products.find((p) => p.id === alloc.productId);
               return (

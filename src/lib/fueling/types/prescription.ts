@@ -102,6 +102,13 @@ export interface SolidAllocation {
 export interface PackList {
   bottles: BottleAllocation[];
   solids: SolidAllocation[];
+  /**
+   * Total fluid (ml) that your bottles can't cover across the ride, given
+   * refuel stops. When > 0, the UI should prompt for an extra refill stop
+   * or a smaller fluid target. 0 or undefined means the plan fully covers
+   * the hydration target.
+   */
+  fluidShortfallMl?: number;
 }
 
 // --- Timeline ---

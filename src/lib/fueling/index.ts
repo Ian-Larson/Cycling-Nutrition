@@ -111,6 +111,7 @@ export function buildPrescription(input: FuelingInput): FuelingPrescription {
   const packList = {
     bottles: mixAllocation.allocations,
     solids: solidAllocation.allocations,
+    fluidShortfallMl: bottleSelection.fluidShortfallMl,
   };
 
   // 8. Daily targets
