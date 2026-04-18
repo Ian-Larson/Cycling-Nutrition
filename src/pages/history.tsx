@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/store';
 import { Card, CardContent, Button } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
+import { SectionNav } from '@/components/layout/section-nav';
 import { FuelResult } from '@/components/planner/fuel-result';
 import type { FuelPlan } from '@/types';
 
@@ -110,13 +111,15 @@ export function HistoryPage() {
   return (
     <div className="page-shell max-w-6xl space-y-4 md:space-y-6">
       <PageIntro
-        title="Plans"
+        title="Saved plans"
         description={
           <>
             Reuse a saved plan.
           </>
         }
       />
+
+      <SectionNav section="nutrition" />
 
       {sortedPlans.length === 0 ? (
         <Card>

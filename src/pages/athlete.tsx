@@ -2,6 +2,7 @@ import { clsx } from 'clsx';
 import { useState, type KeyboardEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { PageIntro } from '@/components/layout/page-intro';
+import { SectionNav } from '@/components/layout/section-nav';
 import {
   Card,
   CardContent,
@@ -301,6 +302,8 @@ export function AthletePage() {
         }
       />
 
+      <SectionNav section="account" />
+
       <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1.16fr)_minmax(19rem,0.84fr)] lg:items-start lg:gap-6 lg:space-y-0">
         <div className="space-y-4">
           <Card className="overflow-hidden">
@@ -545,7 +548,7 @@ export function AthletePage() {
                 to="/power-meter-analyzer"
                 className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-white px-3.5 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 md:min-h-10"
               >
-                Power meter lab
+                Open labs
               </Link>
             </CardContent>
           </Card>

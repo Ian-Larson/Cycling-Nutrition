@@ -9,6 +9,7 @@ import {
   Toast,
 } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
+import { SectionNav } from '@/components/layout/section-nav';
 import { DebugCopyButton } from '@/components/planner/debug-copy-button';
 import { FuelResult } from '@/components/planner/fuel-result';
 import { FuelResultV3 } from '@/components/planner/fuel-result-v3';
@@ -448,6 +449,8 @@ export function PlannerPage() {
             </>
           }
         />
+
+        <SectionNav section="nutrition" />
 
         <section className="grid grid-cols-3 gap-2 md:gap-3">
             {STEP_LABELS.map((item) => {

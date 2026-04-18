@@ -30,12 +30,17 @@ function App() {
           <main>
             <Routes>
               <Route path="/" element={<PlannerPage />} />
+              <Route path="/nutrition-plan" element={<Navigate to="/" replace />} />
               <Route path="/athlete" element={<AthletePage />} />
               <Route path="/inventory" element={<InventoryPage />} />
               <Route path="/bottles" element={<Navigate to="/inventory" replace />} />
               <Route path="/products" element={<Navigate to="/inventory" replace />} />
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/gear" element={<GearPage />} />
+              <Route
+                path="/labs"
+                element={<Navigate to="/power-meter-analyzer" replace />}
+              />
               <Route path="/account" element={<AccountPage />} />
               <Route path="/power-meter-analyzer" element={<PowerMeterAnalyzerPage />} />
               <Route

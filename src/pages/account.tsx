@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { PageIntro } from '@/components/layout/page-intro';
+import { SectionNav } from '@/components/layout/section-nav';
 import { Button, Card, CardContent, CardHeader, Input } from '@/components/ui';
 import { useAuth } from '@/lib/auth/auth-context';
 
@@ -90,6 +91,8 @@ export function AccountPage() {
           </>
         }
       />
+
+      <SectionNav section="account" />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]">
         <div className="space-y-4">

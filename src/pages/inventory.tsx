@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useStore } from '@/store';
 import { Button, Card, CardContent, CardHeader, Toggle } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
+import { SectionNav } from '@/components/layout/section-nav';
 import { BottleForm } from '@/components/bottles/bottle-form';
 import { ProductForm } from '@/components/products/product-form';
 import type { Bottle, Product } from '@/types';
@@ -271,6 +272,8 @@ export function InventoryPage() {
           </>
         }
       />
+
+      <SectionNav section="nutrition" />
 
       <div className="space-y-6 xl:grid xl:grid-cols-[minmax(18rem,0.78fr)_minmax(0,1.22fr)] xl:items-start xl:gap-6 xl:space-y-0">
       {/* Bottles Section */}
