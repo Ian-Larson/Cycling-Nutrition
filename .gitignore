@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 .superpowers/
+.worktrees/
 
 # Supabase CLI local metadata
 supabase/.temp/
