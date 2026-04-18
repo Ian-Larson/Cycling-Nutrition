@@ -60,10 +60,7 @@
     --mobile-nav-offset: calc(
       var(--mobile-nav-height) + var(--safe-area-bottom) + var(--mobile-nav-gap) + var(--mobile-nav-gap)
     );
-    --mobile-cta-height: 4.5rem;
-    --mobile-toast-offset: calc(
-      var(--mobile-nav-offset) + var(--mobile-cta-height) + 0.75rem
-    );
+    --mobile-toast-offset: calc(var(--mobile-nav-offset) + 0.75rem);
   }
 
   html {
@@ -142,10 +139,6 @@
     @apply mx-auto max-w-6xl px-4;
     padding-top: 0.95rem;
     padding-bottom: calc(var(--mobile-nav-offset) + 1rem);
-  }
-
-  .page-shell--planner {
-    padding-bottom: calc(var(--mobile-nav-offset) + var(--mobile-cta-height) + 1rem);
   }
 
   .page-intro {
@@ -253,8 +246,7 @@
       padding-bottom: 0;
     }
 
-    .page-shell,
-    .page-shell--planner {
+    .page-shell {
       padding-top: 1.5rem;
       padding-bottom: 8rem;
       padding-inline: 1.5rem;

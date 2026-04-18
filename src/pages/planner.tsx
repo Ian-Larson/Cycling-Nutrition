@@ -406,41 +406,52 @@ export function PlannerPage() {
     setToastMessage('Plan saved to history.');
   };
 
+  const handleResetPlan = () => {
+    setPlan(null);
+    setV3Prescription(null);
+    setPlanTitle('');
+    setResultTab('pack');
+    setStep(1);
+    setRideFormInitialSnapshot(rideFormSnapshot);
+    setRideFormInstanceKey((current) => current + 1);
+  };
+
   const dismissToast = useCallback(() => setToastMessage(null), []);
 
-  const triggerStepAction = () => {
-    if (step === 1) {
+  const handleStepSelect = (targetStep: PlannerStep) => {
+    if (targetStep === step) return;
+
+    if (targetStep < step) {
+      setStep(targetStep);
+      return;
+    }
+
+    if (targetStep === 2) {
       if (canCalculate) {
         setStep(2);
       }
       return;
     }
 
-    if (step === 2) {
-      if (canCalculate && rideFormCanCalculate) {
+    if (targetStep === 3) {
+      if (step === 2 && canCalculate && rideFormCanCalculate) {
         setRideFormSubmitTrigger((current) => current + 1);
       }
-      return;
-    }
-
-    if (step === 3) {
-      handleSavePlan();
     }
   };
 
-  const stepActionLabel =
-    step === 1 ? 'Next: ride data' : step === 2 ? 'Create plan' : 'Save plan';
-
-  const stepActionDisabled =
-    step === 1
-      ? !canCalculate
-      : step === 2
-        ? !(canCalculate && rideFormCanCalculate)
-        : !plan;
+  const canOpenStep = (targetStep: PlannerStep) => {
+    if (targetStep <= step) return true;
+    if (targetStep === 2) return canCalculate;
+    if (targetStep === 3) {
+      return step === 2 && canCalculate && rideFormCanCalculate;
+    }
+    return false;
+  };
 
   return (
     <>
-      <div className="page-shell page-shell--planner space-y-5 md:space-y-6">
+      <div className="page-shell space-y-5 md:space-y-6">
         <PageIntro
           title="Fuel plan"
           description={
@@ -452,50 +463,62 @@ export function PlannerPage() {
 
         <SectionNav section="nutrition" />
 
-        <section className="grid grid-cols-3 gap-2 md:gap-3">
-            {STEP_LABELS.map((item) => {
-              const isActive = item.step === step;
-              const isComplete = item.step < step;
-              return (
-                <div
-                  key={item.step}
-                  className={`rounded-[0.95rem] border px-3 py-2 md:rounded-[1.15rem] md:px-4 md:py-2.5 ${
-                    isActive
-                      ? 'border-brand-300 bg-brand-100 text-brand-900'
+        <section className="grid grid-cols-3 gap-2 md:gap-3" aria-label="Plan steps">
+          {STEP_LABELS.map((item) => {
+            const isActive = item.step === step;
+            const isComplete = item.step < step;
+            const isDisabled = !canOpenStep(item.step);
+
+            return (
+              <button
+                key={item.step}
+                type="button"
+                disabled={isDisabled}
+                aria-current={isActive ? 'step' : undefined}
+                onClick={() => handleStepSelect(item.step)}
+                className={`min-h-[4rem] rounded-lg border px-3 py-2 text-left transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100 disabled:cursor-not-allowed md:min-h-[4.25rem] md:px-4 md:py-2.5 ${
+                  isActive
+                    ? 'border-brand-500 bg-brand-500 text-white shadow-[0_12px_26px_-16px_rgba(248,98,46,0.74)]'
                     : isComplete
-                        ? 'border-brand-100 bg-white/75 text-ink-900'
-                        : 'border-[color:var(--border-soft)] bg-transparent text-ink-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-[0.7rem] font-medium opacity-80 md:text-xs">
-                      Step {item.step}
-                    </p>
-                    {isComplete ? (
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-700">
-                        <svg
-                          viewBox="0 0 20 20"
-                          fill="none"
-                          className="h-3.5 w-3.5"
-                          aria-hidden
-                        >
-                          <path
-                            d="M5.5 10.5 8.5 13.5 14.5 6.5"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="mt-1 font-sans text-sm font-semibold leading-none md:text-base">
-                    {item.label}
-                  </p>
-                </div>
-              );
-            })}
+                      ? 'border-brand-200 bg-white text-ink-900 hover:bg-brand-50'
+                      : 'border-[color:var(--border-soft)] bg-white text-ink-600 hover:bg-shell-50 disabled:text-ink-400 disabled:hover:bg-white'
+                }`}
+              >
+                <span className="flex items-center justify-between gap-2">
+                  <span className="text-[0.7rem] font-semibold opacity-80 md:text-xs">
+                    Step {item.step}
+                  </span>
+                  {isComplete ? (
+                    <span
+                      className={`flex h-5 w-5 items-center justify-center rounded-full ${
+                        isActive
+                          ? 'bg-white/18 text-white'
+                          : 'bg-brand-100 text-brand-700'
+                      }`}
+                    >
+                      <svg
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        className="h-3.5 w-3.5"
+                        aria-hidden
+                      >
+                        <path
+                          d="M5.5 10.5 8.5 13.5 14.5 6.5"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  ) : null}
+                </span>
+                <span className="mt-1 block font-sans text-sm font-semibold leading-none md:text-base">
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
         </section>
 
         {step === 1 && (
@@ -555,6 +578,24 @@ export function PlannerPage() {
                       onChange={(event) => setPlanTitle(event.target.value)}
                       placeholder="Optional"
                     />
+
+                    <div className="grid gap-2 sm:flex sm:flex-wrap">
+                      <Button
+                        type="button"
+                        className="w-full sm:w-auto"
+                        onClick={handleSavePlan}
+                      >
+                        Save plan
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="w-full sm:w-auto"
+                        onClick={handleResetPlan}
+                      >
+                        Reset
+                      </Button>
+                    </div>
 
                     {fuelBreakdown && (
                       <div className="rounded-[1rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_90%,white)] p-3 md:rounded-[1.05rem] md:p-4">
@@ -684,49 +725,6 @@ export function PlannerPage() {
             )}
           </div>
         )}
-      </div>
-
-      <div className="fixed left-3 right-3 z-40 rounded-[1.15rem] border border-[color:var(--border-soft)] bg-shell-50/96 shadow-[var(--shadow-soft)] backdrop-blur bottom-[var(--mobile-nav-offset)] md:bottom-0 md:left-0 md:right-0 md:rounded-none md:border-x-0 md:shadow-none">
-        <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-3 md:px-6">
-          <div className="hidden min-w-[10rem] lg:block">
-            <p className="section-kicker text-[0.62rem]">Step</p>
-            <p className="mt-1 text-sm leading-5 text-ink-700">{STEP_LABELS[step - 1]?.label}</p>
-          </div>
-          {step > 1 && (
-            <Button
-              variant="secondary"
-              onClick={() =>
-                setStep((current) => (current === 3 ? 2 : 1))
-              }
-            >
-              Back
-            </Button>
-          )}
-          <Button
-            className="flex-1"
-            size="lg"
-            disabled={stepActionDisabled}
-            onClick={triggerStepAction}
-          >
-            {stepActionLabel}
-          </Button>
-          {step === 3 && (
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setPlan(null);
-                setV3Prescription(null);
-                setPlanTitle('');
-                setResultTab('pack');
-                setStep(1);
-                setRideFormInitialSnapshot(rideFormSnapshot);
-                setRideFormInstanceKey((current) => current + 1);
-              }}
-            >
-              Reset
-            </Button>
-          )}
-        </div>
       </div>
 
       {toastMessage && <Toast message={toastMessage} onDismiss={dismissToast} />}
