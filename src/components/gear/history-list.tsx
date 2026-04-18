@@ -29,8 +29,8 @@ export function HistoryList({ entries, bikes }: HistoryListProps) {
   if (entries.length === 0) {
     return (
       <Card>
-        <CardContent>
-          <p className="text-sm text-ink-600">No service history yet.</p>
+        <CardContent className="py-5 md:py-6">
+          <p className="text-sm leading-5 text-ink-600">No service history yet.</p>
         </CardContent>
       </Card>
     );
@@ -40,7 +40,7 @@ export function HistoryList({ entries, bikes }: HistoryListProps) {
     bikes.find((b) => b.id === id)?.name ?? 'Unknown bike';
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {SERVICE_TYPES.map((preset) => {
         const group = entries
           .filter((e) => e.typeKey === preset.key)
@@ -54,14 +54,14 @@ export function HistoryList({ entries, bikes }: HistoryListProps) {
         return (
           <Card key={preset.key}>
             <Collapsible>
-              <CollapsibleTrigger className="text-sm font-semibold text-ink-900">
+              <CollapsibleTrigger className="px-4 py-3 text-sm font-semibold text-ink-900 md:px-5 md:py-3.5">
                 <span>
                   {label} ({group.length})
                 </span>
               </CollapsibleTrigger>
-              <CollapsibleContent className="flex flex-col gap-1 px-3 pb-3">
+              <CollapsibleContent className="flex flex-col gap-1.5 border-t border-[color:var(--border-soft)] px-4 py-3 md:px-5">
                 {group.map((entry) => (
-                  <p key={entry.id} className="text-xs text-ink-700">
+                  <p key={entry.id} className="text-sm leading-5 text-ink-700">
                     {formatDate(entry.dateIso)}
                     <span className="text-ink-500">{' · '}</span>
                     {formatMi(entry.mileageMi)} mi → {formatMi(entry.serviceAtMi)}

@@ -81,7 +81,7 @@ export function AccountPage() {
   };
 
   return (
-    <div className="page-shell max-w-5xl space-y-4 md:space-y-6">
+    <div className="page-shell max-w-6xl space-y-4 md:space-y-6">
       <PageIntro
         title="Account"
         description={
@@ -202,7 +202,7 @@ export function AccountPage() {
         </div>
 
         <aside className="space-y-4">
-          <Card className="overflow-hidden">
+          <Card id="strava" className="scroll-mt-24 overflow-hidden">
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <h2 className="section-title text-lg">Strava</h2>
             </CardHeader>

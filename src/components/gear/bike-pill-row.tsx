@@ -1,4 +1,5 @@
 import { clsx } from 'clsx';
+import { Link } from 'react-router-dom';
 import type { Bike } from '@/types/gear';
 
 interface BikePillRowProps {
@@ -31,62 +32,27 @@ export function BikePillRow({
   lastSyncedAt,
   stravaError,
 }: BikePillRowProps) {
+  const syncLabel = stravaError
+    ? stravaError
+    : lastSyncedAt
+      ? formatSyncedAgo(lastSyncedAt)
+      : 'Not synced yet';
+
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-3">
-        {bikes.length === 0 ? (
-          <p className="text-sm text-ink-600">
-            No bikes yet. Connect Strava or add one manually.{' '}
-            <a
-              href="/account#strava"
-              className="font-medium text-brand-700 underline-offset-2 hover:underline"
-            >
-              Go to Account
-            </a>
-          </p>
-        ) : (
-          <div
-            className="-mx-1 flex flex-1 gap-2 overflow-x-auto px-1 pb-1"
-            role="group"
-            aria-label="Select bike"
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1">
+          <p className="section-kicker text-[0.68rem]">Bike</p>
+          <p
+            className={clsx(
+              'text-sm leading-5',
+              stravaError ? 'text-rose-700' : 'text-ink-600'
+            )}
           >
-            <button
-              type="button"
-              onClick={() => onSelect(null)}
-              aria-pressed={selectedBikeId === null}
-              className={clsx(
-                'shrink-0 whitespace-nowrap rounded-full border border-[color:var(--border-soft)] px-3.5 py-1.5 text-sm font-medium transition-colors',
-                selectedBikeId === null
-                  ? 'bg-brand-100 text-brand-900'
-                  : 'bg-white text-ink-700 hover:bg-shell-50'
-              )}
-            >
-              All bikes
-            </button>
-            {bikes.map((bike) => {
-              const active = bike.id === selectedBikeId;
-              return (
-                <button
-                  key={bike.id}
-                  type="button"
-                  onClick={() => onSelect(bike.id)}
-                  aria-pressed={active}
-                  className={clsx(
-                    'shrink-0 whitespace-nowrap rounded-full border border-[color:var(--border-soft)] px-3.5 py-1.5 text-sm font-medium transition-colors',
-                    active
-                      ? 'bg-brand-100 text-brand-900'
-                      : 'bg-white text-ink-700 hover:bg-shell-50'
-                  )}
-                >
-                  {bike.name}
-                  {bike.isPrimary ? (
-                    <span className="ml-1.5 text-xs text-ink-500">·primary</span>
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
-        )}
+            {syncLabel}
+          </p>
+        </div>
+
         <button
           type="button"
           onClick={onRefresh}
@@ -94,8 +60,8 @@ export function BikePillRow({
           aria-label="Refresh Strava bikes"
           title="Refresh from Strava"
           className={clsx(
-            'shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-white text-ink-700 transition-colors',
-            'hover:bg-shell-50 disabled:opacity-50 disabled:cursor-not-allowed'
+            'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-white text-ink-700 transition-colors',
+            'hover:bg-shell-50 disabled:cursor-not-allowed disabled:opacity-50'
           )}
         >
           <span
@@ -106,11 +72,58 @@ export function BikePillRow({
           </span>
         </button>
       </div>
-      {stravaError ? (
-        <p className="text-xs text-rose-700">{stravaError}</p>
-      ) : lastSyncedAt ? (
-        <p className="text-xs text-ink-500">{formatSyncedAgo(lastSyncedAt)}</p>
-      ) : null}
+
+      {bikes.length === 0 ? (
+        <p className="text-sm leading-5 text-ink-600">
+          No bikes yet. Connect Strava or add one manually.{' '}
+          <Link
+            to="/account#strava"
+            className="font-medium text-brand-700 underline-offset-2 hover:underline"
+          >
+            Account
+          </Link>
+        </p>
+      ) : (
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Select bike">
+          <button
+            type="button"
+            onClick={() => onSelect(null)}
+            aria-pressed={selectedBikeId === null}
+            className={clsx(
+              'min-h-10 shrink-0 whitespace-nowrap rounded-lg border border-[color:var(--border-soft)] px-3 py-1.5 text-sm font-medium transition-colors',
+              selectedBikeId === null
+                ? 'bg-brand-100 text-brand-900'
+                : 'bg-white text-ink-700 hover:bg-shell-50'
+            )}
+          >
+            All bikes
+          </button>
+          {bikes.map((bike) => {
+            const active = bike.id === selectedBikeId;
+            return (
+              <button
+                key={bike.id}
+                type="button"
+                onClick={() => onSelect(bike.id)}
+                aria-pressed={active}
+                className={clsx(
+                  'min-h-10 max-w-full shrink-0 whitespace-nowrap rounded-lg border border-[color:var(--border-soft)] px-3 py-1.5 text-sm font-medium transition-colors',
+                  active
+                    ? 'bg-brand-100 text-brand-900'
+                    : 'bg-white text-ink-700 hover:bg-shell-50'
+                )}
+              >
+                <span className="inline-block max-w-[13rem] truncate align-bottom">
+                  {bike.name}
+                </span>
+                {bike.isPrimary ? (
+                  <span className="ml-1.5 text-xs text-ink-500">·primary</span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

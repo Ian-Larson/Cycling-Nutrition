@@ -18,8 +18,8 @@ export function DueList({ items, bikes, onLog }: DueListProps) {
   if (items.length === 0) {
     return (
       <Card>
-        <CardContent>
-          <p className="text-sm text-ink-600">
+        <CardContent className="py-5 md:py-6">
+          <p className="text-sm leading-5 text-ink-600">
             Nothing due yet — log a service to start tracking.
           </p>
         </CardContent>
@@ -31,7 +31,7 @@ export function DueList({ items, bikes, onLog }: DueListProps) {
     bikes.find((b) => b.id === id)?.name ?? 'Unknown bike';
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {items.map((item) => {
         const preset = getServiceType(item.typeKey);
         const colorClass =
@@ -48,13 +48,13 @@ export function DueList({ items, bikes, onLog }: DueListProps) {
 
         return (
           <Card key={`${item.bikeId}-${item.typeKey}`}>
-            <CardContent>
-              <div className="flex items-center justify-between gap-3">
+            <CardContent className="py-3.5 md:py-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-ink-900">
+                  <p className="truncate text-base font-semibold leading-6 text-ink-900">
                     {preset.label} · {bikeName(item.bikeId)}
                   </p>
-                  <p className={clsx('text-xs', colorClass)}>
+                  <p className={clsx('text-sm leading-5', colorClass)}>
                     {headline}
                     <span className="text-ink-500">
                       {' · '}
@@ -66,7 +66,7 @@ export function DueList({ items, bikes, onLog }: DueListProps) {
                   <button
                     type="button"
                     onClick={() => onLog(item.bikeId, item.typeKey)}
-                    className="shrink-0 rounded-lg border border-[color:var(--border-soft)] bg-white px-3 py-1.5 text-xs font-medium text-ink-900 transition-colors hover:bg-shell-50"
+                    className="min-h-10 shrink-0 rounded-lg border border-[color:var(--border-soft)] bg-white px-3.5 py-2 text-sm font-medium text-ink-900 transition-colors hover:bg-shell-50"
                   >
                     Mark done ▸
                   </button>

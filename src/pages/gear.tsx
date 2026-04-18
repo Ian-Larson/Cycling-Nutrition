@@ -55,6 +55,12 @@ export function GearPage() {
         : serviceEntries,
     [serviceEntries, selectedBikeId]
   );
+  const activeCount =
+    tab === 'due' ? filteredDueItems.length : filteredEntries.length;
+  const activeCountLabel =
+    tab === 'due'
+      ? `${activeCount} ${activeCount === 1 ? 'item' : 'items'} due`
+      : `${activeCount} ${activeCount === 1 ? 'service' : 'services'} logged`;
 
   // Mirror fresh Strava bikes into the store whenever they arrive.
   useEffect(() => {
@@ -68,7 +74,7 @@ export function GearPage() {
   };
 
   return (
-    <div className="page-shell">
+    <div className="page-shell max-w-6xl space-y-4 md:space-y-6">
       <PageIntro
         title="Gear"
         description="Track maintenance and service intervals for your bikes."
@@ -82,33 +88,46 @@ export function GearPage() {
           </Button>
         }
       />
-      <BikePillRow
-        bikes={bikes}
-        selectedBikeId={selectedBikeId}
-        onSelect={setSelectedBikeId}
-        onRefresh={handleRefresh}
-        isRefreshing={isFetching}
-        lastSyncedAt={lastSyncedAt}
-        stravaError={error}
-      />
-      <GearTabs value={tab} onChange={setTab} />
-      <div className="pt-4">
-        {tab === 'due' ? (
-          <DueList
-            items={filteredDueItems}
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(16rem,18rem)_minmax(0,1fr)] lg:items-start lg:gap-6">
+        <aside className="surface-note p-3 md:p-4 lg:sticky lg:top-20">
+          <BikePillRow
             bikes={bikes}
-            onLog={(bikeId, typeKey) =>
-              setSheetState({
-                open: true,
-                preselectedTypeKey: typeKey,
-                preselectedBikeId: bikeId,
-              })
-            }
+            selectedBikeId={selectedBikeId}
+            onSelect={setSelectedBikeId}
+            onRefresh={handleRefresh}
+            isRefreshing={isFetching}
+            lastSyncedAt={lastSyncedAt}
+            stravaError={error}
           />
-        ) : (
-          <HistoryList entries={filteredEntries} bikes={bikes} />
-        )}
+        </aside>
+
+        <section className="min-w-0 space-y-3 md:space-y-4">
+          <div className="flex flex-col gap-2 border-b border-[color:var(--border-soft)] pb-3 sm:flex-row sm:items-center sm:justify-between md:pb-4">
+            <GearTabs value={tab} onChange={setTab} />
+            <p className="section-kicker text-[0.68rem] text-ink-500">
+              {activeCountLabel}
+            </p>
+          </div>
+
+          {tab === 'due' ? (
+            <DueList
+              items={filteredDueItems}
+              bikes={bikes}
+              onLog={(bikeId, typeKey) =>
+                setSheetState({
+                  open: true,
+                  preselectedTypeKey: typeKey,
+                  preselectedBikeId: bikeId,
+                })
+              }
+            />
+          ) : (
+            <HistoryList entries={filteredEntries} bikes={bikes} />
+          )}
+        </section>
       </div>
+
       <LogServiceSheet
         open={sheetState.open}
         onClose={() => setSheetState({ open: false })}
