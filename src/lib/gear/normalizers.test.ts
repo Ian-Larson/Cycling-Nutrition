@@ -116,4 +116,32 @@ describe('gear normalizers', () => {
       nextDueMileageMi: 350,
     });
   });
+
+  it('drops impossible required dates and clears impossible optional dates', () => {
+    const instances = normalizeGearPartInstances([
+      {
+        id: 'instance-1',
+        catalogItemId: 'part-1',
+        label: 'Rear GP5000 #1',
+        status: 'spare',
+        acquiredDateIso: '2026-02-31',
+        createdAt: 1,
+        updatedAt: 2,
+      },
+    ]);
+    const serviceEvents = normalizeGearServiceEvents([
+      {
+        id: 'service-1',
+        bikeId: 'bike-1',
+        typeKey: 'chain_wax',
+        dateIso: '2026-02-31',
+        createdAt: 1,
+        updatedAt: 2,
+      },
+    ]);
+
+    expect(instances).toHaveLength(1);
+    expect(instances[0].acquiredDateIso).toBeUndefined();
+    expect(serviceEvents).toHaveLength(0);
+  });
 });

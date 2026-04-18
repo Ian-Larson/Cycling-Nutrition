@@ -43,10 +43,26 @@ function timestamp(value: unknown): number {
   return nonNegativeNumber(value) ?? Date.now();
 }
 
+function isRealCalendarDateIso(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return false;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+}
+
 function dateIso(value: unknown): string | undefined {
   const parsed = text(value);
   if (!parsed) return undefined;
-  return /^\d{4}-\d{2}-\d{2}$/.test(parsed) ? parsed : undefined;
+  return isRealCalendarDateIso(parsed) ? parsed : undefined;
 }
 
 function category(value: unknown): GearPartCategory | undefined {
@@ -170,12 +186,6 @@ export function normalizeGearPartInstances(value: unknown): GearPartInstance[] {
     const catalogItemId = text(item.catalogItemId);
     const status = instanceStatus(item.status);
     if (!id || !catalogItemId || !status) return [];
-    if (item.acquiredDateIso !== undefined && dateIso(item.acquiredDateIso) === undefined) {
-      return [];
-    }
-    if (item.retiredDateIso !== undefined && dateIso(item.retiredDateIso) === undefined) {
-      return [];
-    }
 
     return [
       {
