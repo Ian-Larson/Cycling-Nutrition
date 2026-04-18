@@ -15,6 +15,10 @@ const baseState: Pick<
   | 'plannerDraft'
   | 'bikes'
   | 'serviceEntries'
+  | 'gearPartCatalog'
+  | 'gearPartInstances'
+  | 'gearInstallRecords'
+  | 'gearServiceEvents'
 > = {
   bottles: [
     {
@@ -50,6 +54,10 @@ const baseState: Pick<
   plannerDraft: null,
   bikes: [],
   serviceEntries: [],
+  gearPartCatalog: [],
+  gearPartInstances: [],
+  gearInstallRecords: [],
+  gearServiceEvents: [],
 };
 
 describe('cloud app-state snapshots', () => {
@@ -61,6 +69,68 @@ describe('cloud app-state snapshots', () => {
     expect(snapshot.data.bottles[0].name).toBe('750ml');
     expect(snapshot.data.products[0].nutrition.calories).toBe(240);
     expect(snapshot.data.settings.athleteProfile.ftpWatts).toBe(280);
+  });
+
+  it('serializes gear hub v2 data into a schema version 2 snapshot', () => {
+    const snapshot = serializeAppState(
+      {
+        ...baseState,
+        gearPartCatalog: [
+          {
+            id: 'catalog-chain',
+            category: 'chain',
+            brand: 'Shimano',
+            model: 'CN-M8100',
+            attributes: { category: 'chain', speedCount: 12 },
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+        gearPartInstances: [
+          {
+            id: 'chain-1',
+            catalogItemId: 'catalog-chain',
+            label: 'Chain 1',
+            status: 'installed',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+        gearInstallRecords: [
+          {
+            id: 'install-1',
+            bikeId: 'bike-1',
+            partInstanceId: 'chain-1',
+            slotKey: 'chain',
+            installedAtMileageMi: 1800,
+            installedDateIso: '2026-04-18',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+        gearServiceEvents: [
+          {
+            id: 'service-1',
+            bikeId: 'bike-1',
+            partInstanceId: 'chain-1',
+            typeKey: 'chain_wax',
+            dateIso: '2026-04-18',
+            mileageMi: 1800,
+            intervalMi: 250,
+            nextDueMileageMi: 2050,
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+      },
+      new Date('2026-04-18T12:00:00Z')
+    );
+
+    expect(snapshot.schemaVersion).toBe(2);
+    expect(snapshot.data.gearPartCatalog).toHaveLength(1);
+    expect(snapshot.data.gearPartInstances).toHaveLength(1);
+    expect(snapshot.data.gearInstallRecords).toHaveLength(1);
+    expect(snapshot.data.gearServiceEvents).toHaveLength(1);
   });
 
   it('parses and normalizes a valid cloud snapshot', () => {

@@ -9,12 +9,25 @@ import type {
   RideCharacteristics,
   Bike,
   ServiceEntry,
+  GearInstallRecord,
+  GearPartCatalogItem,
+  GearPartInstance,
+  GearPartInstanceStatus,
+  GearServiceEvent,
+  BikeSlotKey,
 } from '@/types';
 import { DEFAULT_BOTTLES, DEFAULT_PRODUCTS } from '@/lib/defaults';
 import {
   normalizeAnthropometricsUnit,
   type AnthropometricsUnit,
 } from '@/lib/athlete/anthropometrics';
+import { isPartCategoryCompatibleWithSlot } from '@/lib/gear/constants';
+import {
+  normalizeGearInstallRecords,
+  normalizeGearPartCatalog,
+  normalizeGearPartInstances,
+  normalizeGearServiceEvents,
+} from '@/lib/gear/normalizers';
 
 export type TemperatureUnit = 'celsius' | 'fahrenheit';
 
@@ -58,6 +71,10 @@ export interface AppDataSnapshot {
   plannerDraft: PlannerDraft | null;
   bikes: Bike[];
   serviceEntries: ServiceEntry[];
+  gearPartCatalog: GearPartCatalogItem[];
+  gearPartInstances: GearPartInstance[];
+  gearInstallRecords: GearInstallRecord[];
+  gearServiceEvents: GearServiceEvent[];
 }
 
 export interface AppReadiness {
@@ -78,6 +95,10 @@ export interface AppState {
   plannerDraft: PlannerDraft | null;
   bikes: Bike[];
   serviceEntries: ServiceEntry[];
+  gearPartCatalog: GearPartCatalogItem[];
+  gearPartInstances: GearPartInstance[];
+  gearInstallRecords: GearInstallRecord[];
+  gearServiceEvents: GearServiceEvent[];
   _initialized: boolean;
 
   addBottle: (bottle: Omit<Bottle, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -121,6 +142,55 @@ export interface AppState {
   updateServiceEntry: (id: string, updates: Partial<ServiceEntry>) => void;
   deleteServiceEntry: (id: string) => void;
 
+  addGearPartCatalogItem: (
+    item: Omit<GearPartCatalogItem, 'id' | 'createdAt' | 'updatedAt'>
+  ) => string;
+  updateGearPartCatalogItem: (
+    id: string,
+    updates: Partial<GearPartCatalogItem>
+  ) => void;
+  deleteGearPartCatalogItem: (id: string) => void;
+  addGearPartInstances: (input: {
+    catalogItemId: string;
+    quantity: number;
+    labelPrefix?: string;
+    acquiredDateIso?: string;
+    notes?: string;
+  }) => string[];
+  updateGearPartInstance: (
+    id: string,
+    updates: Partial<GearPartInstance>
+  ) => void;
+  installGearPart: (input: {
+    bikeId: string;
+    partInstanceId: string;
+    slotKey: BikeSlotKey;
+    installedAtMileageMi: number;
+    installedDateIso: string;
+  }) => string;
+  removeGearPart: (input: {
+    installRecordId: string;
+    removedAtMileageMi: number;
+    removedDateIso: string;
+    removeReason?: GearInstallRecord['removeReason'];
+    nextStatus: Extract<GearPartInstanceStatus, 'removed' | 'retired'>;
+  }) => void;
+  retireGearPart: (instanceId: string, retiredDateIso: string) => void;
+  logGearServiceEvent: (
+    event: Omit<
+      GearServiceEvent,
+      | 'id'
+      | 'createdAt'
+      | 'updatedAt'
+      | 'nextDueMileageMi'
+      | 'nextDueDateIso'
+    > & {
+      nextDueMileageMi?: number;
+      nextDueDateIso?: string;
+    }
+  ) => string;
+  deleteGearServiceEvent: (id: string) => void;
+
   updateSettings: (settings: SettingsUpdate) => void;
   updateAthleteProfile: (updates: Partial<AthleteProfile>) => void;
   replaceAppData: (data: Partial<AppDataSnapshot>) => void;
@@ -155,6 +225,26 @@ function normalizeOptionalText(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function addDaysIso(dateIso: string, days: number): string {
+  const [year, month, day] = dateIso.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function assertPositiveCount(quantity: number): void {
+  if (!Number.isInteger(quantity) || quantity <= 0) {
+    throw new Error('Quantity must be a positive integer.');
+  }
+}
+
+function isActiveGearInstall(record: GearInstallRecord): boolean {
+  return (
+    record.removedAtMileageMi === undefined &&
+    record.removedDateIso === undefined
+  );
 }
 
 function normalizeAge(value: unknown): number | undefined {
@@ -396,6 +486,10 @@ export function getAppDataFromState(
     | 'plannerDraft'
     | 'bikes'
     | 'serviceEntries'
+    | 'gearPartCatalog'
+    | 'gearPartInstances'
+    | 'gearInstallRecords'
+    | 'gearServiceEvents'
   >
 ): AppDataSnapshot {
   return {
@@ -405,7 +499,11 @@ export function getAppDataFromState(
     settings: state.settings,
     plannerDraft: state.plannerDraft,
     bikes: state.bikes,
-    serviceEntries: state.serviceEntries,
+    serviceEntries: [],
+    gearPartCatalog: state.gearPartCatalog,
+    gearPartInstances: state.gearPartInstances,
+    gearInstallRecords: state.gearInstallRecords,
+    gearServiceEvents: state.gearServiceEvents,
   };
 }
 
@@ -434,9 +532,23 @@ export function normalizeAppData(
         ? fallback.plannerDraft
         : normalizePlannerDraft(incoming.plannerDraft),
     bikes: Array.isArray(incoming?.bikes) ? incoming.bikes : fallback.bikes,
-    serviceEntries: Array.isArray(incoming?.serviceEntries)
-      ? incoming.serviceEntries
-      : fallback.serviceEntries,
+    serviceEntries: [],
+    gearPartCatalog:
+      incoming?.gearPartCatalog === undefined
+        ? fallback.gearPartCatalog
+        : normalizeGearPartCatalog(incoming.gearPartCatalog),
+    gearPartInstances:
+      incoming?.gearPartInstances === undefined
+        ? fallback.gearPartInstances
+        : normalizeGearPartInstances(incoming.gearPartInstances),
+    gearInstallRecords:
+      incoming?.gearInstallRecords === undefined
+        ? fallback.gearInstallRecords
+        : normalizeGearInstallRecords(incoming.gearInstallRecords),
+    gearServiceEvents:
+      incoming?.gearServiceEvents === undefined
+        ? fallback.gearServiceEvents
+        : normalizeGearServiceEvents(incoming.gearServiceEvents),
   };
 }
 
@@ -500,6 +612,10 @@ export const useStore = create<AppState>()(
       plannerDraft: null,
       bikes: [],
       serviceEntries: [],
+      gearPartCatalog: [],
+      gearPartInstances: [],
+      gearInstallRecords: [],
+      gearServiceEvents: [],
       _initialized: false,
 
       addBottle: (bottle) =>
@@ -732,6 +848,309 @@ export const useStore = create<AppState>()(
           );
         }),
 
+      addGearPartCatalogItem: (item) => {
+        const id = nanoid();
+        const now = Date.now();
+        set((state) => {
+          state.gearPartCatalog.push({
+            ...item,
+            id,
+            createdAt: now,
+            updatedAt: now,
+          });
+        });
+        return id;
+      },
+
+      updateGearPartCatalogItem: (id, updates) =>
+        set((state) => {
+          const index = state.gearPartCatalog.findIndex((item) => item.id === id);
+          if (index === -1) return;
+          const {
+            id: _ignoredId,
+            createdAt: _ignoredCreatedAt,
+            ...rest
+          } = updates;
+          void _ignoredId;
+          void _ignoredCreatedAt;
+          state.gearPartCatalog[index] = {
+            ...state.gearPartCatalog[index],
+            ...rest,
+            id: state.gearPartCatalog[index].id,
+            createdAt: state.gearPartCatalog[index].createdAt,
+            updatedAt: Date.now(),
+          };
+        }),
+
+      deleteGearPartCatalogItem: (id) =>
+        set((state) => {
+          const deletedInstanceIds = new Set(
+            state.gearPartInstances
+              .filter((instance) => instance.catalogItemId === id)
+              .map((instance) => instance.id)
+          );
+
+          state.gearPartCatalog = state.gearPartCatalog.filter(
+            (item) => item.id !== id
+          );
+          state.gearPartInstances = state.gearPartInstances.filter(
+            (instance) => instance.catalogItemId !== id
+          );
+          state.gearInstallRecords = state.gearInstallRecords.filter(
+            (record) => !deletedInstanceIds.has(record.partInstanceId)
+          );
+          state.gearServiceEvents = state.gearServiceEvents.filter(
+            (event) =>
+              !event.partInstanceId ||
+              !deletedInstanceIds.has(event.partInstanceId)
+          );
+        }),
+
+      addGearPartInstances: (input) => {
+        assertPositiveCount(input.quantity);
+        const catalogItem = get().gearPartCatalog.find(
+          (item) => item.id === input.catalogItemId
+        );
+        if (!catalogItem) {
+          throw new Error('Gear part catalog item not found.');
+        }
+
+        const now = Date.now();
+        const ids = Array.from({ length: input.quantity }, () => nanoid());
+        set((state) => {
+          ids.forEach((id, index) => {
+            state.gearPartInstances.push({
+              id,
+              catalogItemId: input.catalogItemId,
+              label: input.labelPrefix
+                ? `${input.labelPrefix} ${index + 1}`
+                : undefined,
+              status: 'spare',
+              acquiredDateIso: input.acquiredDateIso,
+              notes: input.notes,
+              createdAt: now,
+              updatedAt: now,
+            });
+          });
+        });
+        return ids;
+      },
+
+      updateGearPartInstance: (id, updates) =>
+        set((state) => {
+          const index = state.gearPartInstances.findIndex(
+            (instance) => instance.id === id
+          );
+          if (index === -1) return;
+          const {
+            id: _ignoredId,
+            createdAt: _ignoredCreatedAt,
+            ...rest
+          } = updates;
+          void _ignoredId;
+          void _ignoredCreatedAt;
+          state.gearPartInstances[index] = {
+            ...state.gearPartInstances[index],
+            ...rest,
+            id: state.gearPartInstances[index].id,
+            createdAt: state.gearPartInstances[index].createdAt,
+            updatedAt: Date.now(),
+          };
+        }),
+
+      installGearPart: (input) => {
+        const state = get();
+        const bike = state.bikes.find((candidate) => candidate.id === input.bikeId);
+        if (!bike) {
+          throw new Error('Bike not found.');
+        }
+
+        const instance = state.gearPartInstances.find(
+          (candidate) => candidate.id === input.partInstanceId
+        );
+        if (!instance) {
+          throw new Error('Gear part instance not found.');
+        }
+        if (instance.status !== 'spare' && instance.status !== 'removed') {
+          throw new Error('Gear part instance must be spare or removed to install.');
+        }
+
+        const catalogItem = state.gearPartCatalog.find(
+          (candidate) => candidate.id === instance.catalogItemId
+        );
+        if (!catalogItem) {
+          throw new Error('Gear part catalog item not found.');
+        }
+        if (
+          !isPartCategoryCompatibleWithSlot(catalogItem.category, input.slotKey)
+        ) {
+          throw new Error(
+            `Gear part category ${catalogItem.category} is not compatible with slot ${input.slotKey}.`
+          );
+        }
+
+        const occupiedSlot = state.gearInstallRecords.some(
+          (record) =>
+            record.bikeId === input.bikeId &&
+            record.slotKey === input.slotKey &&
+            isActiveGearInstall(record)
+        );
+        if (occupiedSlot) {
+          throw new Error('Gear slot is already occupied.');
+        }
+
+        const id = nanoid();
+        const now = Date.now();
+        set((draft) => {
+          const draftInstance = draft.gearPartInstances.find(
+            (candidate) => candidate.id === input.partInstanceId
+          );
+          if (draftInstance) {
+            draftInstance.status = 'installed';
+            draftInstance.retiredDateIso = undefined;
+            draftInstance.updatedAt = now;
+          }
+
+          draft.gearInstallRecords.push({
+            id,
+            bikeId: input.bikeId,
+            partInstanceId: input.partInstanceId,
+            slotKey: input.slotKey,
+            installedAtMileageMi: input.installedAtMileageMi,
+            installedDateIso: input.installedDateIso,
+            createdAt: now,
+            updatedAt: now,
+          });
+        });
+        return id;
+      },
+
+      removeGearPart: (input) => {
+        const current = get();
+        const record = current.gearInstallRecords.find(
+          (candidate) =>
+            candidate.id === input.installRecordId &&
+            isActiveGearInstall(candidate)
+        );
+        if (!record) {
+          throw new Error('Active gear install record not found.');
+        }
+        if (input.removedAtMileageMi < record.installedAtMileageMi) {
+          throw new Error('Removal mileage cannot be before install mileage.');
+        }
+
+        const instance = current.gearPartInstances.find(
+          (candidate) => candidate.id === record.partInstanceId
+        );
+        if (!instance) {
+          throw new Error('Gear part instance not found.');
+        }
+
+        const now = Date.now();
+        set((state) => {
+          const draftRecord = state.gearInstallRecords.find(
+            (candidate) => candidate.id === input.installRecordId
+          );
+          const draftInstance = state.gearPartInstances.find(
+            (candidate) => candidate.id === record.partInstanceId
+          );
+
+          if (draftRecord) {
+            draftRecord.removedAtMileageMi = input.removedAtMileageMi;
+            draftRecord.removedDateIso = input.removedDateIso;
+            draftRecord.removeReason = input.removeReason;
+            draftRecord.updatedAt = now;
+          }
+
+          if (draftInstance) {
+            draftInstance.status = input.nextStatus;
+            if (input.nextStatus === 'retired') {
+              draftInstance.retiredDateIso = input.removedDateIso;
+            } else {
+              draftInstance.retiredDateIso = undefined;
+            }
+            draftInstance.updatedAt = now;
+          }
+        });
+      },
+
+      retireGearPart: (instanceId, retiredDateIso) => {
+        const current = get();
+        const instance = current.gearPartInstances.find(
+          (candidate) => candidate.id === instanceId
+        );
+        if (!instance) {
+          throw new Error('Gear part instance not found.');
+        }
+
+        const activeRecord = current.gearInstallRecords.find(
+          (candidate) =>
+            candidate.partInstanceId === instanceId &&
+            isActiveGearInstall(candidate)
+        );
+        const now = Date.now();
+
+        set((state) => {
+          const draftInstance = state.gearPartInstances.find(
+            (candidate) => candidate.id === instanceId
+          );
+          if (draftInstance) {
+            draftInstance.status = 'retired';
+            draftInstance.retiredDateIso = retiredDateIso;
+            draftInstance.updatedAt = now;
+          }
+
+          if (activeRecord) {
+            const draftRecord = state.gearInstallRecords.find(
+              (candidate) => candidate.id === activeRecord.id
+            );
+            if (draftRecord) {
+              draftRecord.removedAtMileageMi = activeRecord.installedAtMileageMi;
+              draftRecord.removedDateIso = retiredDateIso;
+              draftRecord.updatedAt = now;
+            }
+          }
+        });
+      },
+
+      logGearServiceEvent: (event) => {
+        const id = nanoid();
+        const now = Date.now();
+        const nextDueMileageMi =
+          event.nextDueMileageMi ??
+          (typeof event.mileageMi === 'number' &&
+          Number.isFinite(event.mileageMi) &&
+          typeof event.intervalMi === 'number' &&
+          Number.isFinite(event.intervalMi)
+            ? event.mileageMi + event.intervalMi
+            : undefined);
+        const nextDueDateIso =
+          event.nextDueDateIso ??
+          (typeof event.intervalDays === 'number' &&
+          Number.isFinite(event.intervalDays)
+            ? addDaysIso(event.dateIso, event.intervalDays)
+            : undefined);
+
+        set((state) => {
+          state.gearServiceEvents.push({
+            ...event,
+            id,
+            nextDueMileageMi,
+            nextDueDateIso,
+            createdAt: now,
+            updatedAt: now,
+          });
+        });
+        return id;
+      },
+
+      deleteGearServiceEvent: (id) =>
+        set((state) => {
+          state.gearServiceEvents = state.gearServiceEvents.filter(
+            (event) => event.id !== id
+          );
+        }),
+
       updateSettings: (updates) =>
         set((state) => {
           const { athleteProfile, ...rest } = updates;
@@ -756,7 +1175,11 @@ export const useStore = create<AppState>()(
           state.settings = normalized.settings;
           state.plannerDraft = normalized.plannerDraft;
           state.bikes = normalized.bikes;
-          state.serviceEntries = normalized.serviceEntries;
+          state.serviceEntries = [];
+          state.gearPartCatalog = normalized.gearPartCatalog;
+          state.gearPartInstances = normalized.gearPartInstances;
+          state.gearInstallRecords = normalized.gearInstallRecords;
+          state.gearServiceEvents = normalized.gearServiceEvents;
           state._initialized = true;
         }),
 
@@ -774,6 +1197,17 @@ export const useStore = create<AppState>()(
             draft.fuelPlans,
             [],
             draft.products
+          );
+          draft.serviceEntries = [];
+          draft.gearPartCatalog = normalizeGearPartCatalog(draft.gearPartCatalog);
+          draft.gearPartInstances = normalizeGearPartInstances(
+            draft.gearPartInstances
+          );
+          draft.gearInstallRecords = normalizeGearInstallRecords(
+            draft.gearInstallRecords
+          );
+          draft.gearServiceEvents = normalizeGearServiceEvents(
+            draft.gearServiceEvents
           );
 
           if (draft.bottles.length === 0) {
@@ -818,9 +1252,19 @@ export const useStore = create<AppState>()(
           settings: normalizeSettings(incoming.settings),
           plannerDraft: normalizePlannerDraft(incoming.plannerDraft),
           bikes: Array.isArray(incoming.bikes) ? incoming.bikes : currentState.bikes,
-          serviceEntries: Array.isArray(incoming.serviceEntries)
-            ? incoming.serviceEntries
-            : currentState.serviceEntries,
+          serviceEntries: [],
+          gearPartCatalog: normalizeGearPartCatalog(
+            incoming.gearPartCatalog ?? currentState.gearPartCatalog
+          ),
+          gearPartInstances: normalizeGearPartInstances(
+            incoming.gearPartInstances ?? currentState.gearPartInstances
+          ),
+          gearInstallRecords: normalizeGearInstallRecords(
+            incoming.gearInstallRecords ?? currentState.gearInstallRecords
+          ),
+          gearServiceEvents: normalizeGearServiceEvents(
+            incoming.gearServiceEvents ?? currentState.gearServiceEvents
+          ),
         };
       },
     }

@@ -5,7 +5,7 @@ import {
   type AppState,
 } from '@/store';
 
-export const APP_STATE_SCHEMA_VERSION = 1;
+export const APP_STATE_SCHEMA_VERSION = 2;
 
 export interface SerializedAppState {
   schemaVersion: typeof APP_STATE_SCHEMA_VERSION;
@@ -17,12 +17,33 @@ export type ParsedSerializedAppState =
   | { ok: true; snapshot: SerializedAppState }
   | { ok: false; error: string };
 
+type SerializeAppStateInput = Pick<
+  AppState,
+  | 'bottles'
+  | 'products'
+  | 'fuelPlans'
+  | 'settings'
+  | 'plannerDraft'
+  | 'bikes'
+  | 'serviceEntries'
+> &
+  Partial<
+    Pick<
+      AppState,
+      | 'gearPartCatalog'
+      | 'gearPartInstances'
+      | 'gearInstallRecords'
+      | 'gearServiceEvents'
+    >
+  >;
+
 function cloneJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-export function serializeAppState(
-  state: Pick<
+function withGearHubStateDefaults(
+  state: SerializeAppStateInput
+): Pick<
     AppState,
     | 'bottles'
     | 'products'
@@ -31,13 +52,28 @@ export function serializeAppState(
     | 'plannerDraft'
     | 'bikes'
     | 'serviceEntries'
-  >,
+    | 'gearPartCatalog'
+    | 'gearPartInstances'
+    | 'gearInstallRecords'
+    | 'gearServiceEvents'
+  > {
+  return {
+    ...state,
+    gearPartCatalog: state.gearPartCatalog ?? [],
+    gearPartInstances: state.gearPartInstances ?? [],
+    gearInstallRecords: state.gearInstallRecords ?? [],
+    gearServiceEvents: state.gearServiceEvents ?? [],
+  };
+}
+
+export function serializeAppState(
+  state: SerializeAppStateInput,
   now = new Date()
 ): SerializedAppState {
   return {
     schemaVersion: APP_STATE_SCHEMA_VERSION,
     clientUpdatedAt: now.toISOString(),
-    data: cloneJson(getAppDataFromState(state)),
+    data: cloneJson(getAppDataFromState(withGearHubStateDefaults(state))),
   };
 }
 

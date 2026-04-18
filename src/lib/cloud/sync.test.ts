@@ -26,6 +26,10 @@ function makeAppData(name: string): AppDataSnapshot {
     plannerDraft: null,
     bikes: [],
     serviceEntries: [],
+    gearPartCatalog: [],
+    gearPartInstances: [],
+    gearInstallRecords: [],
+    gearServiceEvents: [],
   };
 }
 
@@ -38,6 +42,10 @@ function makeAppState(data: AppDataSnapshot): Pick<
   | 'plannerDraft'
   | 'bikes'
   | 'serviceEntries'
+  | 'gearPartCatalog'
+  | 'gearPartInstances'
+  | 'gearInstallRecords'
+  | 'gearServiceEvents'
 > {
   return data;
 }
