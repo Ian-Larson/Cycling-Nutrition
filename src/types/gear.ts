@@ -142,3 +142,6 @@ export interface LegacyServiceEntry {
   createdAt: number;
   updatedAt: number;
 }
+
+export type ServiceTypeKey = LegacyServiceTypeKey;
+export type ServiceEntry = LegacyServiceEntry;
