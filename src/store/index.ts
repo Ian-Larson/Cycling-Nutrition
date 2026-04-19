@@ -1024,8 +1024,18 @@ export const useStore = create<AppState>()(
         if (!instance) {
           throw new Error('Gear part instance not found.');
         }
-        if (instance.status !== 'spare' && instance.status !== 'removed') {
-          throw new Error('Gear part instance must be spare or removed to install.');
+        if (instance.status === 'retired') {
+          throw new Error('Retired gear part instances cannot be installed.');
+        }
+        const alreadyActive = state.gearInstallRecords.some(
+          (record) =>
+            record.partInstanceId === instance.id &&
+            isActiveGearInstall(record)
+        );
+        if (alreadyActive) {
+          throw new Error(
+            'Gear part instance already has an active install record.'
+          );
         }
 
         const catalogItem = state.gearPartCatalog.find(

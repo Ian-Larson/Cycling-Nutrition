@@ -66,7 +66,7 @@ function isInstallCandidate(
   catalog: readonly GearPartCatalogItem[],
   installRecords: readonly GearInstallRecord[]
 ): boolean {
-  if (instance.status !== 'spare' && instance.status !== 'removed') return false;
+  if (instance.status === 'retired') return false;
   if (!slotKey) return false;
   const item = catalog.find((candidate) => candidate.id === instance.catalogItemId);
   if (!item || !isPartCategoryCompatibleWithSlot(item.category, slotKey)) return false;
