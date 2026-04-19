@@ -6,6 +6,8 @@ import { BikePillRow } from '@/components/gear/bike-pill-row';
 import { GearTabs, type GearTabValue } from '@/components/gear/gear-tabs';
 import { ActiveSetupList } from '@/components/gear/active-setup-list';
 import { GearDueList } from '@/components/gear/gear-due-list';
+import { PartCatalogForm } from '@/components/gear/part-catalog-form';
+import { PartInstanceForm } from '@/components/gear/part-instance-form';
 import { PartsInventory } from '@/components/gear/parts-inventory';
 import { GearHistoryList } from '@/components/gear/gear-history-list';
 import { deriveActiveSetup } from '@/lib/gear/derive-active-setup';
@@ -33,6 +35,8 @@ export function GearPage() {
   const gearPartInstances = useStore((s) => s.gearPartInstances);
   const gearInstallRecords = useStore((s) => s.gearInstallRecords);
   const gearServiceEvents = useStore((s) => s.gearServiceEvents);
+  const addGearPartCatalogItem = useStore((s) => s.addGearPartCatalogItem);
+  const addGearPartInstances = useStore((s) => s.addGearPartInstances);
   const upsertBikesFromStrava = useStore((s) => s.upsertBikesFromStrava);
   const {
     bikes: stravaBikes,
@@ -51,6 +55,9 @@ export function GearPage() {
   );
   const [hasUserSelectedBike, setHasUserSelectedBike] = useState(false);
   const [tab, setTab] = useState<GearTabValue>('active');
+  const [partsMode, setPartsMode] = useState<'list' | 'catalog' | 'instances'>(
+    'list'
+  );
   const [installSlotKey, setInstallSlotKey] = useState<BikeSlotKey | null>(null);
   const [removeInstallId, setRemoveInstallId] = useState<string | null>(null);
   const [serviceContext, setServiceContext] = useState<{
@@ -163,6 +170,13 @@ export function GearPage() {
     setSelectedBikeId(bikeId);
   };
 
+  const handleTabChange = (nextTab: GearTabValue) => {
+    setTab(nextTab);
+    if (nextTab !== 'parts') {
+      setPartsMode('list');
+    }
+  };
+
   const handleQueueService = (context: {
     bikeId?: string;
     slotKey?: BikeSlotKey;
@@ -248,7 +262,7 @@ export function GearPage() {
 
         <section className="min-w-0 space-y-3 md:space-y-4">
           <div className="flex flex-col gap-2 border-b border-[color:var(--border-soft)] pb-3 sm:flex-row sm:items-center sm:justify-between md:pb-4">
-            <GearTabs value={tab} onChange={setTab} />
+            <GearTabs value={tab} onChange={handleTabChange} />
             <p className="section-kicker text-[0.68rem] text-ink-500">
               {activeCountLabel}
             </p>
@@ -298,11 +312,58 @@ export function GearPage() {
             />
           ) : null}
 
-          {tab === 'parts' ? (
+          {tab === 'parts' && partsMode === 'list' ? (
             <PartsInventory
               catalog={gearPartCatalog}
               instances={gearPartInstances}
+              onAddCatalog={() => setPartsMode('catalog')}
+              onAddInstances={() => setPartsMode('instances')}
             />
+          ) : null}
+
+          {tab === 'parts' && partsMode === 'catalog' ? (
+            <Card>
+              <CardContent className="space-y-4 py-4 md:py-5">
+                <div>
+                  <p className="text-base font-semibold leading-6 text-ink-900">
+                    Add catalog part
+                  </p>
+                  <p className="text-sm leading-5 text-ink-600">
+                    Save specs for a reusable part type.
+                  </p>
+                </div>
+                <PartCatalogForm
+                  onSubmit={(payload) => {
+                    addGearPartCatalogItem(payload);
+                    setPartsMode('list');
+                  }}
+                  onCancel={() => setPartsMode('list')}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {tab === 'parts' && partsMode === 'instances' ? (
+            <Card>
+              <CardContent className="space-y-4 py-4 md:py-5">
+                <div>
+                  <p className="text-base font-semibold leading-6 text-ink-900">
+                    Add physical parts
+                  </p>
+                  <p className="text-sm leading-5 text-ink-600">
+                    Log spare or newly acquired parts.
+                  </p>
+                </div>
+                <PartInstanceForm
+                  catalog={gearPartCatalog}
+                  onSubmit={(input) => {
+                    addGearPartInstances(input);
+                    setPartsMode('list');
+                  }}
+                  onCancel={() => setPartsMode('list')}
+                />
+              </CardContent>
+            </Card>
           ) : null}
 
           {tab === 'history' ? (
