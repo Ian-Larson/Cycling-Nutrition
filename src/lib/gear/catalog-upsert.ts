@@ -17,7 +17,7 @@ function normText(value: string | undefined): string {
 }
 
 function normalizeAttributes(attrs: GearPartAttributes): string {
-  const entries = Object.entries(attrs as Record<string, unknown>)
+  const entries = Object.entries(attrs as unknown as Record<string, unknown>)
     .filter(([key]) => key !== 'category')
     .map(
       ([key, value]) =>

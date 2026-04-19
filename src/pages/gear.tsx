@@ -3,6 +3,7 @@ import { PageIntro } from '@/components/layout/page-intro';
 import { useStore } from '@/store';
 import { useStravaGear } from '@/hooks/use-strava-gear';
 import { BikePillRow } from '@/components/gear/bike-pill-row';
+import { GearSubNav } from '@/components/gear/gear-sub-nav';
 import { GearTabs, type GearTabValue } from '@/components/gear/gear-tabs';
 import { ActiveSetupList } from '@/components/gear/active-setup-list';
 import { GearDueList } from '@/components/gear/gear-due-list';
@@ -230,6 +231,8 @@ export function GearPage() {
           </Button>
         }
       />
+
+      <GearSubNav />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(16rem,18rem)_minmax(0,1fr)] lg:items-start lg:gap-6">
         <aside className="surface-note p-3 md:p-4 lg:sticky lg:top-20">
