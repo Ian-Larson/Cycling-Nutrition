@@ -355,6 +355,13 @@ export function GearPage() {
           {tab === 'history' ? (
             <GearHistoryList
               events={filteredServiceEvents}
+              installRecords={
+                selectedBikeIdForView
+                  ? gearInstallRecords.filter(
+                      (record) => record.bikeId === selectedBikeIdForView
+                    )
+                  : gearInstallRecords
+              }
               bikes={bikes}
               catalog={gearPartCatalog}
               instances={gearPartInstances}
