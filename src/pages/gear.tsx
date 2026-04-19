@@ -12,6 +12,8 @@ import { deriveActiveSetup } from '@/lib/gear/derive-active-setup';
 import { deriveGearDue } from '@/lib/gear/derive-gear-due';
 import { Button, Card, CardContent } from '@/components/ui';
 import type { BikeSlotKey, GearServiceTypeKey } from '@/types/gear';
+import type { ActiveSetupRow } from '@/lib/gear/derive-active-setup';
+import type { GearDueItem } from '@/lib/gear/derive-gear-due';
 
 function todayIso(): string {
   const date = new Date();
@@ -19,6 +21,10 @@ function todayIso(): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function activePartLabel(row: ActiveSetupRow): string {
+  return row.instance?.label ?? row.catalogItem?.model ?? row.slotLabel;
 }
 
 export function GearPage() {
@@ -53,6 +59,9 @@ export function GearPage() {
     partInstanceId?: string;
     typeKey?: GearServiceTypeKey;
   } | null>(null);
+  const [futureActionNotice, setFutureActionNotice] = useState<string | null>(
+    null
+  );
 
   const selectedBikeIdForView = useMemo(() => {
     if (selectedBikeId && bikes.some((bike) => bike.id === selectedBikeId)) {
@@ -154,6 +163,47 @@ export function GearPage() {
     setSelectedBikeId(bikeId);
   };
 
+  const handleQueueService = (context: {
+    bikeId?: string;
+    slotKey?: BikeSlotKey;
+    partInstanceId?: string;
+    typeKey?: GearServiceTypeKey;
+    label?: string;
+  }) => {
+    const { label, ...nextContext } = context;
+    setServiceContext(nextContext);
+    setFutureActionNotice(
+      label ? `Service flow is next. ${label} is selected.` : 'Service flow is next.'
+    );
+  };
+
+  const handleQueueInstall = (slotKey: BikeSlotKey) => {
+    const row = activeRows.find((candidate) => candidate.slotKey === slotKey);
+    setInstallSlotKey(slotKey);
+    setFutureActionNotice(
+      row
+        ? `Install flow is next. ${row.slotLabel} is selected.`
+        : 'Install flow is next.'
+    );
+  };
+
+  const handleQueueRemove = (row: ActiveSetupRow) => {
+    setRemoveInstallId(row.installRecord?.id ?? null);
+    setFutureActionNotice(
+      `Remove flow is next. ${activePartLabel(row)} is selected.`
+    );
+  };
+
+  const handleQueueDueService = (item: GearDueItem) => {
+    handleQueueService({
+      bikeId: item.event.bikeId,
+      slotKey: item.event.slotKey,
+      partInstanceId: item.event.partInstanceId,
+      typeKey: item.event.typeKey,
+      label: item.label,
+    });
+  };
+
   return (
     <div
       className="page-shell max-w-6xl space-y-4 md:space-y-6"
@@ -172,9 +222,10 @@ export function GearPage() {
             variant="primary"
             size="sm"
             onClick={() =>
-              setServiceContext(
-                selectedBikeIdForView ? { bikeId: selectedBikeIdForView } : {}
-              )
+              handleQueueService({
+                ...(selectedBikeIdForView ? { bikeId: selectedBikeIdForView } : {}),
+                label: selectedBike?.name,
+              })
             }
           >
             + Log service
@@ -203,6 +254,15 @@ export function GearPage() {
             </p>
           </div>
 
+          {futureActionNotice ? (
+            <div
+              role="status"
+              className="surface-note border-brand-200 px-3 py-2 text-sm leading-5 text-ink-700"
+            >
+              {futureActionNotice}
+            </div>
+          ) : null}
+
           {tab === 'active' && !selectedBike ? (
             <Card>
               <CardContent className="py-5 md:py-6">
@@ -216,14 +276,15 @@ export function GearPage() {
           {tab === 'active' && selectedBike ? (
             <ActiveSetupList
               rows={activeRows}
-              onInstall={(slotKey) => setInstallSlotKey(slotKey)}
-              onRemove={(row) => setRemoveInstallId(row.installRecord?.id ?? null)}
+              onInstall={handleQueueInstall}
+              onRemove={handleQueueRemove}
               onService={(row) =>
-                setServiceContext({
+                handleQueueService({
                   bikeId: selectedBike.id,
                   slotKey: row.slotKey,
                   partInstanceId: row.instance?.id,
                   typeKey: row.latestService?.typeKey,
+                  label: activePartLabel(row),
                 })
               }
             />
@@ -233,14 +294,7 @@ export function GearPage() {
             <GearDueList
               items={filteredDueItems}
               bikes={bikes}
-              onLogService={(item) =>
-                setServiceContext({
-                  bikeId: item.event.bikeId,
-                  slotKey: item.event.slotKey,
-                  partInstanceId: item.event.partInstanceId,
-                  typeKey: item.event.typeKey,
-                })
-              }
+              onLogService={handleQueueDueService}
             />
           ) : null}
 
