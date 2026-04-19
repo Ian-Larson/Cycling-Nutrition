@@ -1,10 +1,10 @@
 import type {
-  Bottle,
   Product,
   RideCharacteristics,
   HeatFactor,
   IntensityLevel,
 } from '@/types';
+import type { BottleSlot } from '@/lib/calculator/bottles';
 import type { AthleteProfile, TemperatureUnit } from '@/store';
 import type { FuelingInput } from '..';
 import type {
@@ -61,8 +61,8 @@ export interface AdapterInput {
   ride: RideCharacteristics;
   athleteProfile: AthleteProfile;
   temperatureUnit?: TemperatureUnit;
-  /** Bottles the user selected for this ride (already narrowed). */
-  selectedBottles: Bottle[];
+  /** Bottle slots the user selected for this ride (already narrowed). */
+  selectedBottles: BottleSlot[];
   /** Drink mix the user selected (or null for water-only). */
   selectedDrinkMix: Product | null;
   /** Solid products the user selected. */
@@ -144,14 +144,11 @@ export function buildFuelingInputFromV2(
     dryBulbCelsius: HEAT_TO_DRY_BULB_C[ride.heatFactor],
   };
 
-  // Ensure the v3 inventory layer sees only what the user has selected.
-  // The underlying allocators filter by `isAvailable`, so normalize it here.
   const markAvailable = <T extends { isAvailable?: boolean }>(item: T): T => ({
     ...item,
     isAvailable: true,
   });
 
-  const bottles = selectedBottles.map(markAvailable);
   const productsForEngine: Product[] = [];
   if (selectedDrinkMix) productsForEngine.push(markAvailable(selectedDrinkMix));
   for (const solid of selectedSolids) productsForEngine.push(markAvailable(solid));
@@ -160,7 +157,7 @@ export function buildFuelingInputFromV2(
     rider,
     session,
     environment,
-    bottles,
+    bottles: selectedBottles,
     products: productsForEngine,
     todaysTotalSessionMinutes: ride.durationMinutes,
   };

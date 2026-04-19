@@ -14,10 +14,11 @@ describe('migrateV2Plan', () => {
       },
       bottles: [
         {
-          bottleId: 'b1',
+          capacityMl: 750,
           productId: 'mix1',
           mixGrams: 60,
           carbsTotal: 45,
+          isWaterOnly: false,
         },
       ],
       solids: [

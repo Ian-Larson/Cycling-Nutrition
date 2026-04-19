@@ -3,9 +3,10 @@ import { useStore } from '@/store';
 import { Button, Card, CardContent, CardHeader, Toggle } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
 import { SectionNav } from '@/components/layout/section-nav';
-import { BottleForm } from '@/components/bottles/bottle-form';
 import { ProductForm } from '@/components/products/product-form';
-import type { Bottle, Product } from '@/types';
+import { BOTTLE_SIZES } from '@/types/bottle';
+import type { BottleSize } from '@/types/bottle';
+import type { Product } from '@/types';
 
 const PRODUCT_TYPE_LABELS: Record<Product['type'], string> = {
   drink_mix: 'Drink mix',
@@ -15,12 +16,48 @@ const PRODUCT_TYPE_LABELS: Record<Product['type'], string> = {
   other: 'Other',
 };
 
-export function InventoryPage() {
-  const [showBottleForm, setShowBottleForm] = useState(false);
-  const [editingBottleId, setEditingBottleId] = useState<string | null>(null);
-  const [bottleSortDirection, setBottleSortDirection] = useState<'asc' | 'desc'>(
-    'asc'
+function BottleCounter({
+  size,
+  count,
+  onIncrement,
+  onDecrement,
+}: {
+  size: BottleSize;
+  count: number;
+  onIncrement: () => void;
+  onDecrement: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-[1.1rem] border border-[color:var(--border-soft)] bg-white px-4 py-5">
+      <p className="font-semibold text-ink-900">{size}ml</p>
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          disabled={count <= 0}
+          onClick={onDecrement}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-shell-50 text-lg font-medium text-ink-700 transition-colors hover:bg-shell-100 disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label={`Remove one ${size}ml bottle`}
+        >
+          −
+        </button>
+        <span className="w-6 text-center text-xl font-semibold tabular-nums text-ink-900">
+          {count}
+        </span>
+        <button
+          type="button"
+          onClick={onIncrement}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-shell-50 text-lg font-medium text-ink-700 transition-colors hover:bg-shell-100"
+          aria-label={`Add one ${size}ml bottle`}
+        >
+          +
+        </button>
+      </div>
+      <p className="text-xs text-ink-500">{count === 1 ? '1 bottle' : `${count} bottles`}</p>
+    </div>
   );
+}
+
+export function InventoryPage() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [filterType, setFilterType] = useState<Product['type'] | 'all'>('all');
@@ -28,29 +65,13 @@ export function InventoryPage() {
     'all' | 'available' | 'unavailable'
   >('all');
 
-  const bottles = useStore((s) => s.bottles);
-  const addBottle = useStore((s) => s.addBottle);
-  const updateBottle = useStore((s) => s.updateBottle);
-  const deleteBottle = useStore((s) => s.deleteBottle);
+  const bottleCounts = useStore((s) => s.bottleCounts);
+  const incrementBottleCount = useStore((s) => s.incrementBottleCount);
 
   const products = useStore((s) => s.products);
   const addProduct = useStore((s) => s.addProduct);
   const updateProduct = useStore((s) => s.updateProduct);
   const deleteProduct = useStore((s) => s.deleteProduct);
-
-  const handleAddBottle = (data: { name: string; capacityMl: number }) => {
-    addBottle({ ...data, isAvailable: true });
-    setShowBottleForm(false);
-    setEditingBottleId(null);
-  };
-
-  const handleEditBottle = (
-    bottleId: string,
-    data: { name: string; capacityMl: number }
-  ) => {
-    updateBottle(bottleId, data);
-    setEditingBottleId(null);
-  };
 
   const handleAddProduct = (
     data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>
@@ -78,11 +99,6 @@ export function InventoryPage() {
     if (availabilityFilter === 'available') return product.isAvailable;
     return !product.isAvailable;
   });
-  const sortedBottles = [...bottles].sort((a, b) =>
-    bottleSortDirection === 'asc'
-      ? a.capacityMl - b.capacityMl
-      : b.capacityMl - a.capacityMl
-  );
 
   const typeFilters: Array<{ value: Product['type'] | 'all'; label: string }> = [
     { value: 'all', label: 'All' },
@@ -92,51 +108,10 @@ export function InventoryPage() {
     { value: 'bar', label: 'Bars' },
   ];
 
-  const availableBottleCount = bottles.filter((bottle) => bottle.isAvailable).length;
   const availableProductCount = products.filter((product) => product.isAvailable).length;
-  const editingBottle =
-    bottles.find((bottle) => bottle.id === editingBottleId) ?? null;
 
-  const visibleMobileBottles = sortedBottles.filter(
-    (bottle) => bottle.id !== editingBottleId
-  );
   const visibleMobileProducts = availabilityFilteredProducts.filter(
     (product) => product.id !== editingProduct?.id
-  );
-
-  const renderMobileBottleRow = (bottle: Bottle, isLast: boolean) => (
-    <div
-      key={bottle.id}
-      className={`space-y-2.5 px-3 py-3 ${
-        isLast ? '' : 'border-b border-[color:var(--border-soft)]'
-      } ${bottle.isAvailable ? '' : 'opacity-60'}`}
-    >
-      <div className="flex items-start gap-3">
-        <div className="min-w-0 flex-1 space-y-1">
-          <p className="truncate font-semibold text-ink-900">{bottle.name}</p>
-          <p className="text-sm leading-5 text-ink-600">{bottle.capacityMl}ml</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setShowBottleForm(false);
-              setEditingBottleId(bottle.id);
-            }}
-            className="inline-flex min-h-8 items-center rounded-lg px-1 text-[0.82rem] font-medium text-brand-700 transition-colors hover:text-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100"
-          >
-            Edit
-          </button>
-          <Toggle
-            checked={bottle.isAvailable}
-            onChange={() =>
-              updateBottle(bottle.id, { isAvailable: !bottle.isAvailable })
-            }
-            label={`Use ${bottle.name} in planning`}
-          />
-        </div>
-      </div>
-    </div>
   );
 
   const renderMobileProductRow = (product: Product, isLast: boolean) => (
@@ -179,39 +154,6 @@ export function InventoryPage() {
             label={`Use ${product.name} in planning`}
           />
         </div>
-      </div>
-    </div>
-  );
-
-  const renderDesktopBottleRow = (bottle: Bottle, isLast: boolean) => (
-    <div
-      key={bottle.id}
-      className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3.5 lg:px-5 ${
-        isLast ? '' : 'border-b border-[color:var(--border-soft)]'
-      } ${bottle.isAvailable ? '' : 'opacity-60'}`}
-    >
-      <div className="min-w-0">
-        <p className="truncate font-semibold text-ink-900">{bottle.name}</p>
-        <p className="mt-1 text-sm leading-5 text-ink-600">{bottle.capacityMl}ml</p>
-      </div>
-      <div className="flex items-center justify-end gap-3">
-        <button
-          type="button"
-          onClick={() => {
-            setShowBottleForm(false);
-            setEditingBottleId(bottle.id);
-          }}
-          className="inline-flex min-h-9 items-center rounded-lg px-2 text-sm font-medium text-brand-700 transition-colors hover:text-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100"
-        >
-          Edit
-        </button>
-        <Toggle
-          checked={bottle.isAvailable}
-          onChange={() =>
-            updateBottle(bottle.id, { isAvailable: !bottle.isAvailable })
-          }
-          label={`Use ${bottle.name} in planning`}
-        />
       </div>
     </div>
   );
@@ -278,119 +220,26 @@ export function InventoryPage() {
       <div className="space-y-6 xl:grid xl:grid-cols-[minmax(18rem,0.78fr)_minmax(0,1.22fr)] xl:items-start xl:gap-6 xl:space-y-0">
       {/* Bottles Section */}
       <section className="space-y-3 md:space-y-4">
-        <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3 md:mb-4">
-          <div>
-            <h2 className="section-title text-lg">Bottles</h2>
-            <p className="section-copy">
-              <span className="font-semibold text-brand-700">{availableBottleCount}</span>{' '}
-              of {bottles.length || 0} available
-            </p>
-          </div>
-          <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:items-center">
-            <button
-              type="button"
-              onClick={() =>
-                setBottleSortDirection((current) =>
-                  current === 'asc' ? 'desc' : 'asc'
-                )
-              }
-              className="min-h-11 rounded-full border border-[color:var(--border-soft)] bg-white px-4 py-2 text-center text-sm font-semibold text-ink-700 transition-colors hover:bg-shell-50 md:min-h-10"
-            >
-              Size {bottleSortDirection === 'asc' ? '↑' : '↓'}
-            </button>
-            {!showBottleForm && (
-              <Button
-                size="sm"
-                className="w-full md:w-auto"
-                onClick={() => {
-                  setEditingBottleId(null);
-                  setShowBottleForm(true);
-                }}
-              >
-                Add bottle
-              </Button>
-            )}
-          </div>
+        <div className="mb-2.5 md:mb-4">
+          <h2 className="section-title text-lg">Bottles</h2>
+          <p className="section-copy mt-1">Set how many of each size you own.</p>
         </div>
 
-        {showBottleForm && (
-          <Card className="mb-2.5 md:mb-3">
-            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-              <h3 className="section-title text-lg">Add bottle</h3>
-            </CardHeader>
-            <CardContent>
-              <BottleForm
-                onSubmit={handleAddBottle}
-                onCancel={() => setShowBottleForm(false)}
-              />
-            </CardContent>
-          </Card>
-        )}
+        <div className="grid grid-cols-3 gap-3">
+          {BOTTLE_SIZES.map((size: BottleSize) => (
+            <BottleCounter
+              key={size}
+              size={size}
+              count={bottleCounts[size]}
+              onIncrement={() => incrementBottleCount(size, 1)}
+              onDecrement={() => incrementBottleCount(size, -1)}
+            />
+          ))}
+        </div>
 
-        {editingBottle && (
-          <Card className={`mb-2.5 md:mb-3 ${!editingBottle.isAvailable ? 'opacity-60' : ''}`}>
-            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-              <h3 className="section-title text-lg">{editingBottle.name}</h3>
-            </CardHeader>
-            <CardContent>
-              <BottleForm
-                initialData={{
-                  name: editingBottle.name,
-                  capacityMl: editingBottle.capacityMl,
-                }}
-                submitLabel="Save"
-                onSubmit={(data) => handleEditBottle(editingBottle.id, data)}
-                onCancel={() => setEditingBottleId(null)}
-                onDelete={() => {
-                  deleteBottle(editingBottle.id);
-                  setEditingBottleId(null);
-                }}
-              />
-            </CardContent>
-          </Card>
-        )}
-
-        {bottles.length === 0 && !showBottleForm && !editingBottle ? (
-          <Card>
-            <CardContent className="py-5 text-center md:py-6">
-              <p className="mb-4 text-ink-600">No bottles added yet.</p>
-              <Button className="w-full sm:w-auto" onClick={() => setShowBottleForm(true)}>
-                Add bottle
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <div className="md:hidden">
-              {visibleMobileBottles.length > 0 && (
-                <Card className="overflow-hidden">
-                  <CardContent className="p-0">
-                    {visibleMobileBottles.map((bottle, index) =>
-                      renderMobileBottleRow(
-                        bottle,
-                        index === visibleMobileBottles.length - 1
-                      )
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-            <div className="hidden md:block">
-              {visibleMobileBottles.length > 0 && (
-                <Card className="overflow-hidden">
-                  <CardContent className="p-0">
-                    {visibleMobileBottles.map((bottle, index) =>
-                      renderDesktopBottleRow(
-                        bottle,
-                        index === visibleMobileBottles.length - 1
-                      )
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </>
-        )}
+        <p className="text-xs leading-5 text-ink-500">
+          These counts are your bottle inventory. In the planner you can choose how many of each to bring on a ride.
+        </p>
       </section>
 
       {/* Fuel Section */}

@@ -1,7 +1,7 @@
-import type { Bottle } from '@/types';
+import type { BottleSlot } from '@/lib/calculator/bottles';
 
 export interface BottleSelectionResult {
-  selectedBottles: Bottle[];
+  selectedBottles: BottleSlot[];
   totalCapacityMl: number;
   fluidShortfallMl: number;
 }
@@ -15,12 +15,11 @@ const MAX_BOTTLES = 2;
  * fluid as fluidShortfallMl so the UI can suggest an extra refill stop.
  */
 export function selectBottles(
-  bottles: Bottle[],
+  bottles: BottleSlot[],
   targetFluidMl: number,
   refuelStopCount: number,
 ): BottleSelectionResult {
-  const available = bottles.filter((b) => b.isAvailable);
-  if (available.length === 0) {
+  if (bottles.length === 0) {
     return {
       selectedBottles: [],
       totalCapacityMl: 0,
@@ -30,7 +29,7 @@ export function selectBottles(
 
   const legs = refuelStopCount + 1;
   const adjustedTarget = targetFluidMl / legs;
-  const descending = [...available].sort((a, b) => b.capacityMl - a.capacityMl);
+  const descending = [...bottles].sort((a, b) => b.capacityMl - a.capacityMl);
 
   // 1. Try single bottle: smallest that fits per leg
   const singleCandidates = descending
@@ -47,15 +46,15 @@ export function selectBottles(
   }
 
   // 2. Try 2-bottle combos: minimum total capacity that meets target
-  if (available.length >= 2) {
-    let bestCombo: Bottle[] | null = null;
+  if (bottles.length >= 2) {
+    let bestCombo: BottleSlot[] | null = null;
     let bestCapacity = Infinity;
 
-    for (let i = 0; i < available.length; i++) {
-      for (let j = i + 1; j < available.length; j++) {
-        const capacity = available[i].capacityMl + available[j].capacityMl;
+    for (let i = 0; i < bottles.length; i++) {
+      for (let j = i + 1; j < bottles.length; j++) {
+        const capacity = bottles[i].capacityMl + bottles[j].capacityMl;
         if (capacity >= adjustedTarget && capacity < bestCapacity) {
-          bestCombo = [available[i], available[j]];
+          bestCombo = [bottles[i], bottles[j]];
           bestCapacity = capacity;
         }
       }
@@ -72,7 +71,7 @@ export function selectBottles(
 
   // 3. Target exceeds what MAX_BOTTLES can hold for one leg — pick the
   //    largest bottles available (up to the cap) and report the gap.
-  const picks = descending.slice(0, Math.min(MAX_BOTTLES, available.length));
+  const picks = descending.slice(0, Math.min(MAX_BOTTLES, bottles.length));
   const totalCapacityMl = picks.reduce((sum, b) => sum + b.capacityMl, 0);
   const fluidShortfallMl = Math.max(
     0,

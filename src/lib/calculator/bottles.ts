@@ -1,15 +1,19 @@
-import type { Bottle, Product, BottleAllocation, RideCharacteristics } from '@/types';
+import type { Product, BottleAllocation, RideCharacteristics } from '@/types';
 import { calculateHydrationNeeds } from './carbs';
 import { MAX_CARB_CONCENTRATION_G_PER_ML } from './constants';
 
+export interface BottleSlot {
+  capacityMl: number;
+}
+
 export function selectBottlesForHydration(
-  available: Bottle[],
+  available: BottleSlot[],
   ride: RideCharacteristics,
   countOverride?: number
-): Bottle[] {
-  const sortedBottles = available
-    .filter((b) => b.isAvailable)
-    .sort((a, b) => b.capacityMl - a.capacityMl); // Largest first for fewer-bottle bias
+): BottleSlot[] {
+  const sortedBottles = [...available].sort(
+    (a, b) => b.capacityMl - a.capacityMl
+  ); // Largest first for fewer-bottle bias
 
   if (sortedBottles.length === 0) return [];
 
@@ -29,7 +33,7 @@ export function selectBottlesForHydration(
   if (sortedBottles.length >= 2) {
     // Sort ascending for combo search
     const ascending = [...sortedBottles].sort((a, b) => a.capacityMl - b.capacityMl);
-    let bestCombo: Bottle[] = ascending.slice(-2);
+    let bestCombo: BottleSlot[] = ascending.slice(-2);
     let bestCapacity = bestCombo.reduce((sum, b) => sum + b.capacityMl, 0);
 
     for (let i = 0; i < ascending.length; i++) {
@@ -50,7 +54,7 @@ export function selectBottlesForHydration(
 }
 
 export function calculateMaxLiquidCarbs(
-  bottles: Bottle[],
+  bottles: BottleSlot[],
   refuelStops: number
 ): number {
   const refuelMultiplier = refuelStops + 1;
@@ -62,7 +66,7 @@ export function calculateMaxLiquidCarbs(
 }
 
 export function allocateMixToBottles(
-  bottles: Bottle[],
+  bottles: BottleSlot[],
   carbsPerFill: number,
   drinkMix: Product
 ): BottleAllocation[] {
@@ -75,7 +79,7 @@ export function allocateMixToBottles(
   const totalCapacityMl = bottles.reduce((sum, b) => sum + b.capacityMl, 0);
   if (totalCapacityMl <= 0 || carbsPerFill <= 0 || servingGrams <= 0 || servingCarbs <= 0) {
     return bottles.map((b) => ({
-      bottleId: b.id,
+      capacityMl: b.capacityMl,
       productId: drinkMix.id,
       mixGrams: 0,
       mixScoops: 0,
@@ -126,7 +130,7 @@ export function allocateMixToBottles(
     const scoops = isWaterOnly ? 0 : Math.round((mixGrams / scoopSize) * 2) / 2;
 
     return {
-      bottleId: bottle.id,
+      capacityMl: bottle.capacityMl,
       productId: drinkMix.id,
       mixGrams,
       mixScoops: scoops,

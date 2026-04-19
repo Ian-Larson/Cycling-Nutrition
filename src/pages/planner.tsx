@@ -19,7 +19,9 @@ import { calculateFuelPlan, recalculatePlan, type CalculatorInput } from '@/lib/
 import { useFuelingEngine } from '@/hooks/use-fueling-engine';
 import type { FuelingPrescription } from '@/lib/fueling';
 import { useStore } from '@/store';
-import type { Bottle, FuelPlan, Product, RideCharacteristics } from '@/types';
+import { BOTTLE_SIZES, totalBottleCount, cloneBottleInventory } from '@/types/bottle';
+import type { BottleInventory, BottleSize } from '@/types/bottle';
+import type { FuelPlan, Product, RideCharacteristics } from '@/types';
 import type { PlannerDraft } from '@/store';
 
 type PlannerStep = 1 | 2 | 3;
@@ -125,17 +127,24 @@ function getRideFormSnapshotFromRide(
   };
 }
 
-function getDefaultSelectedBottleIds(
-  bottles: Bottle[],
+function initSelectedBottleCounts(
+  inventory: BottleInventory,
   draft: PlannerDraft | null
-): string[] {
-  if (draft?.selectedBottleIds) {
-    return draft.selectedBottleIds.filter((id) =>
-      bottles.some((bottle) => bottle.id === id)
+): BottleInventory {
+  if (draft?.selectedBottleCounts) {
+    // Cap each size by current inventory
+    return BOTTLE_SIZES.reduce(
+      (acc, size) => {
+        acc[size] = Math.min(
+          draft.selectedBottleCounts![size] ?? 0,
+          inventory[size]
+        );
+        return acc;
+      },
+      { 550: 0, 750: 0, 950: 0 } as BottleInventory
     );
   }
-
-  return bottles.filter((bottle) => bottle.isAvailable).map((bottle) => bottle.id);
+  return cloneBottleInventory(inventory);
 }
 
 function getDefaultSelectedDrinkMixId(
@@ -176,7 +185,7 @@ const STEP_LABELS: Array<{ step: PlannerStep; label: string }> = [
 
 export function PlannerPage() {
   const [searchParams] = useSearchParams();
-  const bottles = useStore((s) => s.bottles);
+  const bottleCounts = useStore((s) => s.bottleCounts);
   const products = useStore((s) => s.products);
   const saveFuelPlan = useStore((s) => s.saveFuelPlan);
   const plannerDraft = useStore((s) => s.plannerDraft);
@@ -202,8 +211,8 @@ export function PlannerPage() {
   const [rideFormSubmitTrigger, setRideFormSubmitTrigger] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const [selectedBottleIds, setSelectedBottleIds] = useState<string[]>(
-    getDefaultSelectedBottleIds(bottles, initialDraft)
+  const [selectedBottleCounts, setSelectedBottleCounts] = useState<BottleInventory>(
+    () => initSelectedBottleCounts(bottleCounts, initialDraft)
   );
   const [selectedDrinkMixId, setSelectedDrinkMixId] = useState<string | null>(
     getDefaultSelectedDrinkMixId(products, initialDraft)
@@ -225,16 +234,12 @@ export function PlannerPage() {
     }
   }, [plannerDraft, setPlannerDraft]);
 
-  const bottleOptions = useMemo(
-    () =>
-      [...bottles].sort(
-        (a, b) =>
-          Number(b.isAvailable) - Number(a.isAvailable) ||
-          a.capacityMl - b.capacityMl ||
-          a.name.localeCompare(b.name)
-      ),
-    [bottles]
-  );
+  const handleBottleCountChange = (size: BottleSize, count: number) => {
+    setSelectedBottleCounts((prev) => ({
+      ...prev,
+      [size]: Math.max(0, Math.min(count, bottleCounts[size])),
+    }));
+  };
 
   const drinkMixOptions = useMemo(
     () =>
@@ -256,15 +261,13 @@ export function PlannerPage() {
     [products]
   );
 
-  const selectedBottlePool = useMemo(
+  // Expand bottle counts into a flat BottleSlot[] for the calculator
+  const selectedBottleSlots = useMemo(
     () =>
-      bottleOptions.filter((bottle) => selectedBottleIds.includes(bottle.id)),
-    [bottleOptions, selectedBottleIds]
-  );
-
-  const effectiveSelectedBottleIds = useMemo(
-    () => selectedBottlePool.map((bottle) => bottle.id),
-    [selectedBottlePool]
+      BOTTLE_SIZES.flatMap((size) =>
+        Array.from({ length: selectedBottleCounts[size] }, () => ({ capacityMl: size }))
+      ),
+    [selectedBottleCounts]
   );
 
   const effectiveSelectedSolidIds = useMemo(
@@ -284,7 +287,8 @@ export function PlannerPage() {
 
   const selectedDrinkMix =
     drinkMixOptions.find((mix) => mix.id === effectiveSelectedDrinkMixId) ?? null;
-  const canCalculate = selectedBottlePool.length > 0 && Boolean(selectedDrinkMix);
+  const canCalculate = totalBottleCount(selectedBottleCounts) > 0 && Boolean(selectedDrinkMix);
+
   const fuelBreakdown = useMemo(() => {
     if (!plan) return null;
 
@@ -343,7 +347,7 @@ export function PlannerPage() {
 
     const input: CalculatorInput = {
       ride,
-      availableBottles: selectedBottlePool,
+      availableBottles: selectedBottleSlots,
       drinkMix: selectedDrinkMix,
       availableSolids,
     };
@@ -355,7 +359,7 @@ export function PlannerPage() {
     if (isV3) {
       const prescription = fuelingEngine.buildV3({
         ride,
-        selectedBottles: selectedBottlePool,
+        selectedBottles: selectedBottleSlots,
         selectedDrinkMix,
         selectedSolids: availableSolids,
       });
@@ -378,21 +382,6 @@ export function PlannerPage() {
     }));
 
     const updated = recalculatePlan(lastInputRef.current, plan, { solidOverrides });
-    setPlan(updated);
-  };
-
-  const handleBottleCountChange = (count: number) => {
-    if (!plan || !lastInputRef.current) return;
-
-    const solidOverrides = plan.solids.map((solid) => ({
-      productId: solid.productId,
-      quantity: solid.quantity,
-    }));
-
-    const updated = recalculatePlan(lastInputRef.current, plan, {
-      solidOverrides,
-      bottleCount: count,
-    });
     setPlan(updated);
   };
 
@@ -523,13 +512,13 @@ export function PlannerPage() {
 
         {step === 1 && (
           <SetupCard
-            bottles={bottleOptions}
+            bottleCounts={bottleCounts}
+            selectedBottleCounts={selectedBottleCounts}
             drinkMixes={drinkMixOptions}
             solidProducts={solidOptions}
-            selectedBottleIds={effectiveSelectedBottleIds}
             selectedDrinkMixId={effectiveSelectedDrinkMixId}
             selectedSolidIds={effectiveSelectedSolidIds}
-            onBottleIdsChange={setSelectedBottleIds}
+            onBottleCountChange={handleBottleCountChange}
             onDrinkMixChange={setSelectedDrinkMixId}
             onSolidChange={setSelectedSolidIds}
           />
@@ -678,17 +667,14 @@ export function PlannerPage() {
                   <FuelResultV3
                     section={resultTab}
                     prescription={v3Prescription}
-                    bottles={bottles}
                     products={products}
                   />
                 ) : (
                   <FuelResult
                     section={resultTab}
                     plan={plan}
-                    bottles={bottles}
                     products={products}
                     onSolidQuantityChange={handleSolidQuantityChange}
-                    onBottleCountChange={handleBottleCountChange}
                   />
                 )}
                 {isV3 && !v3Prescription && (
@@ -708,9 +694,8 @@ export function PlannerPage() {
                 {import.meta.env.DEV && (
                   <DebugCopyButton
                     plan={plan}
-                    bottles={bottles}
                     products={products}
-                    selectedBottleIds={effectiveSelectedBottleIds}
+                    selectedBottleCounts={selectedBottleCounts}
                     selectedDrinkMixId={effectiveSelectedDrinkMixId}
                     selectedSolidIds={effectiveSelectedSolidIds}
                   />

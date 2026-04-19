@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
-import type { Bottle, Product, RideCharacteristics } from '@/types';
+import type { Product, RideCharacteristics } from '@/types';
+import type { BottleSlot } from '@/lib/calculator/bottles';
 import { useStore } from '@/store';
 import { buildPrescription, type FuelingPrescription } from '@/lib/fueling';
 import { buildFuelingInputFromV2 } from '@/lib/fueling/adapters/from-v2-inputs';
 
 export interface BuildV3Args {
   ride: RideCharacteristics;
-  selectedBottles: Bottle[];
+  selectedBottles: BottleSlot[];
   selectedDrinkMix: Product | null;
   selectedSolids: Product[];
 }

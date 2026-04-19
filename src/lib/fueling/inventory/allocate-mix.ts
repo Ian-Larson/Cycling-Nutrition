@@ -1,4 +1,5 @@
-import type { Product, Bottle } from '@/types';
+import type { Product } from '@/types';
+import type { BottleSlot } from '@/lib/calculator/bottles';
 import type { BottleAllocation, Warning } from '../types';
 import { MAX_BOTTLE_CONC_G_PER_ML } from '../constants/science';
 
@@ -13,7 +14,7 @@ export interface MixAllocationResult {
  * Respects concentration limits and rounds to practical serving amounts.
  */
 export function allocateMix(
-  selectedBottles: Bottle[],
+  selectedBottles: BottleSlot[],
   drinkMix: Product | null,
   targetCarbsGrams: number,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for future sodium-aware allocation
@@ -26,7 +27,7 @@ export function allocateMix(
   if (drinkMix === null || drinkMix.type !== 'drink_mix') {
     return {
       allocations: selectedBottles.map((b) => ({
-        bottleId: b.id,
+        capacityMl: b.capacityMl,
         productId: null,
         mixGrams: 0,
         carbsTotal: 0,
@@ -77,7 +78,7 @@ export function allocateMix(
   if (servingCarbs <= 0 || servingGrams <= 0) {
     return {
       allocations: selectedBottles.map((b) => ({
-        bottleId: b.id,
+        capacityMl: b.capacityMl,
         productId: drinkMix.id,
         mixGrams: 0,
         carbsTotal: 0,
@@ -113,7 +114,7 @@ export function allocateMix(
     totalCarbsFromDrink += carbsTotal;
 
     const allocation: BottleAllocation = {
-      bottleId: bottle.id,
+      capacityMl: bottle.capacityMl,
       productId: drinkMix.id,
       mixGrams,
       carbsTotal,

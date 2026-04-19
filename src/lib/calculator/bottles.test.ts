@@ -1,25 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { Bottle, Product } from '@/types';
+import type { Product } from '@/types';
+import type { BottleSlot } from './bottles';
 import { allocateMixToBottles } from './bottles';
 import { MAX_CARB_CONCENTRATION_G_PER_ML } from './constants';
 
-const bottles: Bottle[] = [
-  {
-    id: 'b1',
-    name: '550ml Small',
-    capacityMl: 550,
-    isAvailable: true,
-    createdAt: 0,
-    updatedAt: 0,
-  },
-  {
-    id: 'b2',
-    name: '750ml Standard',
-    capacityMl: 750,
-    isAvailable: true,
-    createdAt: 0,
-    updatedAt: 0,
-  },
+const bottles: BottleSlot[] = [
+  { capacityMl: 550 },
+  { capacityMl: 750 },
 ];
 
 const mix: Product = {
@@ -43,9 +30,8 @@ describe('allocateMixToBottles', () => {
   it('targets equal concentrations across different bottle sizes', () => {
     const allocations = allocateMixToBottles(bottles, 130, mix);
 
-    const byBottle = new Map(allocations.map((a) => [a.bottleId, a]));
-    const small = byBottle.get('b1');
-    const large = byBottle.get('b2');
+    const small = allocations.find((a) => a.capacityMl === 550);
+    const large = allocations.find((a) => a.capacityMl === 750);
 
     expect(small?.carbsTotal).toBeDefined();
     expect(large?.carbsTotal).toBeDefined();
@@ -69,10 +55,7 @@ describe('allocateMixToBottles', () => {
 
     const concentrations = allocations
       .filter((a) => !a.isWaterOnly)
-      .map((a) => {
-        const bottle = bottles.find((b) => b.id === a.bottleId)!;
-        return a.carbsTotal / bottle.capacityMl;
-      });
+      .map((a) => a.carbsTotal / a.capacityMl);
 
     concentrations.forEach((value) => {
       expect(value).toBeLessThanOrEqual(MAX_CARB_CONCENTRATION_G_PER_ML + 0.001);

@@ -3,7 +3,8 @@ import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { nanoid } from 'nanoid';
 import type {
-  Bottle,
+  BottleInventory,
+  BottleSize,
   Product,
   FuelPlan,
   RideCharacteristics,
@@ -16,7 +17,14 @@ import type {
   GearServiceEvent,
   BikeSlotKey,
 } from '@/types';
-import { DEFAULT_BOTTLES, DEFAULT_PRODUCTS } from '@/lib/defaults';
+import {
+  BOTTLE_SIZES,
+  EMPTY_BOTTLE_INVENTORY,
+  cloneBottleInventory,
+  isBottleSize,
+  totalBottleCount,
+} from '@/types/bottle';
+import { DEFAULT_BOTTLE_COUNTS, DEFAULT_PRODUCTS } from '@/lib/defaults';
 import {
   normalizeAnthropometricsUnit,
   type AnthropometricsUnit,
@@ -55,16 +63,15 @@ type SettingsUpdate = Partial<Omit<Settings, 'athleteProfile'>> & {
 
 export interface PlannerDraft {
   ride: RideCharacteristics;
-  selectedBottleIds?: string[];
+  selectedBottleCounts?: BottleInventory;
   selectedDrinkMixId?: string | null;
   selectedSolidIds?: string[];
-  includeUnavailableBottles?: boolean;
   includeUnavailableProducts?: boolean;
   title?: string;
 }
 
 export interface AppDataSnapshot {
-  bottles: Bottle[];
+  bottleCounts: BottleInventory;
   products: Product[];
   fuelPlans: FuelPlan[];
   settings: Settings;
@@ -88,7 +95,7 @@ export interface AppReadiness {
 }
 
 export interface AppState {
-  bottles: Bottle[];
+  bottleCounts: BottleInventory;
   products: Product[];
   fuelPlans: FuelPlan[];
   settings: Settings;
@@ -101,9 +108,8 @@ export interface AppState {
   gearServiceEvents: GearServiceEvent[];
   _initialized: boolean;
 
-  addBottle: (bottle: Omit<Bottle, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateBottle: (id: string, updates: Partial<Bottle>) => void;
-  deleteBottle: (id: string) => void;
+  setBottleCount: (size: BottleSize, count: number) => void;
+  incrementBottleCount: (size: BottleSize, delta: number) => void;
 
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateProduct: (id: string, updates: Partial<Product>) => void;
@@ -332,39 +338,57 @@ export function normalizeProducts(
   });
 }
 
-export function normalizeBottles(
-  value: unknown,
-  fallback: Bottle[]
-): Bottle[] {
-  if (!Array.isArray(value)) return fallback;
+function clampCount(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    return 0;
+  }
+  return Math.min(Math.max(Math.round(value), 0), 99);
+}
 
-  const normalized = value.flatMap((bottle) => {
-    const incoming = bottle as Partial<Bottle>;
-    if (
-      typeof incoming.id !== 'string' ||
-      typeof incoming.name !== 'string' ||
-      typeof incoming.capacityMl !== 'number' ||
-      !Number.isFinite(incoming.capacityMl) ||
-      incoming.capacityMl <= 0
-    ) {
-      return [];
+function nearestBottleSize(capacityMl: number): BottleSize {
+  let closest: BottleSize = 750;
+  let diff = Number.POSITIVE_INFINITY;
+  for (const size of BOTTLE_SIZES) {
+    const current = Math.abs(size - capacityMl);
+    if (current < diff) {
+      diff = current;
+      closest = size;
     }
+  }
+  return closest;
+}
 
-    return [
-      {
-        id: incoming.id,
-        name: incoming.name,
-        capacityMl: Math.round(incoming.capacityMl),
-        isAvailable: incoming.isAvailable ?? true,
-        createdAt:
-          normalizeNonNegativeNumber(incoming.createdAt) ?? Date.now(),
-        updatedAt:
-          normalizeNonNegativeNumber(incoming.updatedAt) ?? Date.now(),
-      },
-    ];
-  });
+export function normalizeBottleCounts(value: unknown): BottleInventory {
+  const inventory: BottleInventory = cloneBottleInventory(EMPTY_BOTTLE_INVENTORY);
 
-  return normalized.length > 0 ? normalized : fallback;
+  if (Array.isArray(value)) {
+    // Legacy shape: array of Bottle records. Bucket by nearest supported size.
+    for (const entry of value) {
+      const incoming = entry as { capacityMl?: unknown; isAvailable?: unknown };
+      if (
+        typeof incoming.capacityMl !== 'number' ||
+        !Number.isFinite(incoming.capacityMl) ||
+        incoming.capacityMl <= 0
+      ) {
+        continue;
+      }
+      if (incoming.isAvailable === false) continue;
+      const size = nearestBottleSize(incoming.capacityMl);
+      inventory[size] += 1;
+    }
+    return inventory;
+  }
+
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    for (const size of BOTTLE_SIZES) {
+      const raw = record[String(size)];
+      inventory[size] = clampCount(raw);
+    }
+    return inventory;
+  }
+
+  return inventory;
 }
 
 function estimateCaloriesFromCarbs(product: Product | undefined, carbsGrams: number): number {
@@ -460,9 +484,9 @@ export function normalizePlannerDraft(value: unknown): PlannerDraft | null {
   return {
     ...draft,
     ride: ride as RideCharacteristics,
-    selectedBottleIds: Array.isArray(draft.selectedBottleIds)
-      ? draft.selectedBottleIds.filter((id): id is string => typeof id === 'string')
-      : [],
+    selectedBottleCounts: normalizeBottleCounts(
+      (draft as { selectedBottleCounts?: unknown }).selectedBottleCounts
+    ),
     selectedDrinkMixId:
       typeof draft.selectedDrinkMixId === 'string' || draft.selectedDrinkMixId === null
         ? draft.selectedDrinkMixId
@@ -470,7 +494,6 @@ export function normalizePlannerDraft(value: unknown): PlannerDraft | null {
     selectedSolidIds: Array.isArray(draft.selectedSolidIds)
       ? draft.selectedSolidIds.filter((id): id is string => typeof id === 'string')
       : [],
-    includeUnavailableBottles: Boolean(draft.includeUnavailableBottles),
     includeUnavailableProducts: Boolean(draft.includeUnavailableProducts),
     title: typeof draft.title === 'string' ? draft.title : undefined,
   };
@@ -479,7 +502,7 @@ export function normalizePlannerDraft(value: unknown): PlannerDraft | null {
 export function getAppDataFromState(
   state: Pick<
     AppState,
-    | 'bottles'
+    | 'bottleCounts'
     | 'products'
     | 'fuelPlans'
     | 'settings'
@@ -493,7 +516,7 @@ export function getAppDataFromState(
   >
 ): AppDataSnapshot {
   return {
-    bottles: state.bottles,
+    bottleCounts: cloneBottleInventory(state.bottleCounts),
     products: state.products,
     fuelPlans: state.fuelPlans,
     settings: state.settings,
@@ -511,12 +534,21 @@ export function normalizeAppData(
   value: unknown,
   fallback: AppDataSnapshot
 ): AppDataSnapshot {
-  const incoming = value as Partial<AppDataSnapshot> | undefined;
-  const bottles = normalizeBottles(incoming?.bottles, fallback.bottles);
+  const incoming = value as
+    | (Partial<AppDataSnapshot> & { bottles?: unknown })
+    | undefined;
+  const bottleCountsRaw =
+    incoming?.bottleCounts !== undefined
+      ? incoming.bottleCounts
+      : incoming?.bottles;
+  const bottleCounts =
+    bottleCountsRaw === undefined
+      ? cloneBottleInventory(fallback.bottleCounts)
+      : normalizeBottleCounts(bottleCountsRaw);
   const products = normalizeProducts(incoming?.products, fallback.products);
 
   return {
-    bottles,
+    bottleCounts,
     products,
     fuelPlans: normalizeFuelPlans(
       incoming?.fuelPlans,
@@ -553,9 +585,9 @@ export function normalizeAppData(
 }
 
 export function getReadinessFromState(
-  state: Pick<AppState, 'bottles' | 'products' | 'settings'>
+  state: Pick<AppState, 'bottleCounts' | 'products' | 'settings'>
 ): AppReadiness {
-  const hasAvailableBottle = state.bottles.some((bottle) => bottle.isAvailable);
+  const hasAvailableBottle = totalBottleCount(state.bottleCounts) > 0;
   const hasAvailableDrinkMix = state.products.some(
     (product) => product.type === 'drink_mix' && product.isAvailable
   );
@@ -602,7 +634,7 @@ export function getReadinessFromState(
 export const useStore = create<AppState>()(
   persist(
     immer((set, get) => ({
-      bottles: [],
+      bottleCounts: cloneBottleInventory(EMPTY_BOTTLE_INVENTORY),
       products: [],
       fuelPlans: [],
       settings: {
@@ -618,31 +650,17 @@ export const useStore = create<AppState>()(
       gearServiceEvents: [],
       _initialized: false,
 
-      addBottle: (bottle) =>
+      setBottleCount: (size, count) =>
         set((state) => {
-          state.bottles.push({
-            ...bottle,
-            id: nanoid(),
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-          });
+          if (!isBottleSize(size)) return;
+          state.bottleCounts[size] = clampCount(count);
         }),
 
-      updateBottle: (id, updates) =>
+      incrementBottleCount: (size, delta) =>
         set((state) => {
-          const index = state.bottles.findIndex((b) => b.id === id);
-          if (index !== -1) {
-            state.bottles[index] = {
-              ...state.bottles[index],
-              ...updates,
-              updatedAt: Date.now(),
-            };
-          }
-        }),
-
-      deleteBottle: (id) =>
-        set((state) => {
-          state.bottles = state.bottles.filter((b) => b.id !== id);
+          if (!isBottleSize(size)) return;
+          const next = (state.bottleCounts[size] ?? 0) + delta;
+          state.bottleCounts[size] = clampCount(next);
         }),
 
       addProduct: (product) =>
@@ -1169,7 +1187,7 @@ export const useStore = create<AppState>()(
       replaceAppData: (data) =>
         set((state) => {
           const normalized = normalizeAppData(data, getAppDataFromState(state));
-          state.bottles = normalized.bottles;
+          state.bottleCounts = normalized.bottleCounts;
           state.products = normalized.products;
           state.fuelPlans = normalized.fuelPlans;
           state.settings = normalized.settings;
@@ -1210,15 +1228,9 @@ export const useStore = create<AppState>()(
             draft.gearServiceEvents
           );
 
-          if (draft.bottles.length === 0) {
-            DEFAULT_BOTTLES.forEach((b) => {
-              draft.bottles.push({
-                ...b,
-                id: nanoid(),
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-              });
-            });
+          draft.bottleCounts = normalizeBottleCounts(draft.bottleCounts);
+          if (totalBottleCount(draft.bottleCounts) === 0) {
+            draft.bottleCounts = cloneBottleInventory(DEFAULT_BOTTLE_COUNTS);
           }
 
           if (draft.products.length === 0) {
@@ -1237,12 +1249,21 @@ export const useStore = create<AppState>()(
     {
       name: 'cycling-nutrition-storage',
       merge: (persistedState, currentState) => {
-        const incoming = (persistedState as Partial<AppState>) || {};
+        const incoming =
+          (persistedState as Partial<AppState> & { bottles?: unknown }) || {};
         const products = normalizeProducts(incoming.products, currentState.products);
+        const bottleCountsSource =
+          incoming.bottleCounts !== undefined
+            ? incoming.bottleCounts
+            : incoming.bottles;
 
         return {
           ...currentState,
           ...incoming,
+          bottleCounts:
+            bottleCountsSource === undefined
+              ? cloneBottleInventory(currentState.bottleCounts)
+              : normalizeBottleCounts(bottleCountsSource),
           products,
           fuelPlans: normalizeFuelPlans(
             incoming.fuelPlans,

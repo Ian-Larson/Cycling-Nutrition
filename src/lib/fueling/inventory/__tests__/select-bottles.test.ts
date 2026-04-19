@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { selectBottles } from '../select-bottles';
-import type { Bottle } from '@/types';
+import type { BottleSlot } from '@/lib/calculator/bottles';
 
-const bottles: Bottle[] = [
-  { id: 'b1', name: '550ml', capacityMl: 550, isAvailable: true, createdAt: 0, updatedAt: 0 },
-  { id: 'b2', name: '750ml', capacityMl: 750, isAvailable: true, createdAt: 0, updatedAt: 0 },
-  { id: 'b3', name: '950ml', capacityMl: 950, isAvailable: true, createdAt: 0, updatedAt: 0 },
+const bottles: BottleSlot[] = [
+  { capacityMl: 550 },
+  { capacityMl: 750 },
+  { capacityMl: 950 },
 ];
 
 describe('selectBottles', () => {
@@ -29,12 +29,6 @@ describe('selectBottles', () => {
     expect(result.selectedBottles).toHaveLength(1);
     expect(result.selectedBottles[0].capacityMl).toBe(750);
     expect(result.fluidShortfallMl).toBe(0);
-  });
-
-  it('filters unavailable bottles', () => {
-    const limited = bottles.map(b => b.id === 'b3' ? { ...b, isAvailable: false } : b);
-    const result = selectBottles(limited, 800, 0);
-    expect(result.selectedBottles.every(b => b.isAvailable)).toBe(true);
   });
 
   it('caps at 2 and surfaces shortfall when target exceeds 2-bottle capacity', () => {
@@ -62,9 +56,7 @@ describe('selectBottles', () => {
   });
 
   it('falls back to single largest when only one bottle is available and target is too high', () => {
-    const oneSmall: Bottle[] = [
-      { id: 'b1', name: '500ml', capacityMl: 500, isAvailable: true, createdAt: 0, updatedAt: 0 },
-    ];
+    const oneSmall: BottleSlot[] = [{ capacityMl: 500 }];
     const result = selectBottles(oneSmall, 2000, 0);
     expect(result.selectedBottles).toHaveLength(1);
     expect(result.totalCapacityMl).toBe(500);

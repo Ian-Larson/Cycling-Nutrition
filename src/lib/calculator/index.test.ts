@@ -1,24 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { calculateFuelPlan } from './index';
-import type { Bottle, Product, RideCharacteristics } from '@/types';
+import type { Product, RideCharacteristics } from '@/types';
+import type { BottleSlot } from './bottles';
 
-const baseBottles: Bottle[] = [
-  {
-    id: 'b1',
-    name: '750ml Bottle',
-    capacityMl: 750,
-    isAvailable: true,
-    createdAt: 0,
-    updatedAt: 0,
-  },
-  {
-    id: 'b2',
-    name: '950ml Bottle',
-    capacityMl: 950,
-    isAvailable: true,
-    createdAt: 0,
-    updatedAt: 0,
-  },
+const baseBottles: BottleSlot[] = [
+  { capacityMl: 750 },
+  { capacityMl: 950 },
 ];
 
 const drinkMix: Product = {

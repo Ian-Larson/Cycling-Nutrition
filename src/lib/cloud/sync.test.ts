@@ -8,18 +8,9 @@ import {
   type CloudUserStateRecord,
 } from './sync';
 
-function makeAppData(name: string): AppDataSnapshot {
+function makeAppData(bottleCount: number): AppDataSnapshot {
   return {
-    bottles: [
-      {
-        id: `bottle-${name}`,
-        name,
-        capacityMl: 750,
-        isAvailable: true,
-        createdAt: 1,
-        updatedAt: 1,
-      },
-    ],
+    bottleCounts: { 550: 0, 750: bottleCount, 950: 0 },
     products: [],
     fuelPlans: [],
     settings: DEFAULT_SETTINGS,
@@ -35,7 +26,7 @@ function makeAppData(name: string): AppDataSnapshot {
 
 function makeAppState(data: AppDataSnapshot): Pick<
   AppState,
-  | 'bottles'
+  | 'bottleCounts'
   | 'products'
   | 'fuelPlans'
   | 'settings'
@@ -69,7 +60,7 @@ class FakeRepository implements CloudStateRepository {
 describe('cloud sync initialization', () => {
   it('uploads local state when no cloud row exists', async () => {
     const repo = new FakeRepository();
-    const localData = makeAppData('local bottle');
+    const localData = makeAppData(1);
 
     const result = await initializeUserCloudState({
       userId: 'user-1',
@@ -81,13 +72,13 @@ describe('cloud sync initialization', () => {
 
     expect(result.kind).toBe('uploaded-local');
     expect(repo.upserts).toHaveLength(1);
-    expect(repo.upserts[0].snapshot.data.bottles[0].name).toBe('local bottle');
+    expect(repo.upserts[0].snapshot.data.bottleCounts[750]).toBe(1);
   });
 
   it('applies cloud state and saves a local backup when a cloud row exists', async () => {
     const repo = new FakeRepository();
-    const localData = makeAppData('local bottle');
-    const cloudData = makeAppData('cloud bottle');
+    const localData = makeAppData(1);
+    const cloudData = makeAppData(2);
     const cloudSnapshot = serializeAppState(makeAppState(cloudData));
     const replaceAppData = vi.fn();
     const saveBackup = vi.fn();

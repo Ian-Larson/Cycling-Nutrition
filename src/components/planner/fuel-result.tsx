@@ -1,14 +1,12 @@
 import { Card, CardContent, CardHeader, Stepper } from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
 import { NeedsIntensityBar } from './needs-intensity-bar';
-import type { FuelPlan, Bottle, Product } from '@/types';
+import type { FuelPlan, Product } from '@/types';
 
 interface FuelResultProps {
   plan: Omit<FuelPlan, 'id' | 'createdAt'>;
-  bottles: Bottle[];
   products: Product[];
   onSolidQuantityChange?: (productId: string, quantity: number) => void;
-  onBottleCountChange?: (count: number) => void;
   section?: 'all' | 'pack' | 'guide' | 'metrics';
 }
 
@@ -61,10 +59,8 @@ function formatDuration(mins: number): string {
 
 export function FuelResult({
   plan,
-  bottles,
   products,
   onSolidQuantityChange,
-  onBottleCountChange,
   section = 'all',
 }: FuelResultProps) {
   const totalCaloriesPlanned =
@@ -81,8 +77,6 @@ export function FuelResult({
 
   const refuelStops = plan.rideCharacteristics.refuelStops || 0;
   const autoMetrics = plan.rideCharacteristics.autoMetrics;
-  const currentBottleCount = plan.bottles.length;
-  const availableBottleCount = bottles.filter((b) => b.isAvailable).length;
 
   const showPack = section === 'all' || section === 'pack';
   const showGuide = section === 'all' || section === 'guide';
@@ -180,16 +174,14 @@ export function FuelResult({
             {plan.bottles.length > 0 && (
               <div className="space-y-3">
                 {plan.bottles.map((alloc, i) => {
-                  const bottle = bottles.find((b) => b.id === alloc.bottleId);
                   const product = products.find((p) => p.id === alloc.productId);
-                  const concentration =
-                    bottle && bottle.capacityMl > 0
-                      ? alloc.carbsTotal / bottle.capacityMl
-                      : 0;
+                  const concentration = alloc.capacityMl > 0
+                    ? alloc.carbsTotal / alloc.capacityMl
+                    : 0;
 
                   return (
                     <div
-                      key={`${alloc.bottleId}-${i}`}
+                      key={i}
                       className="grid gap-3 rounded-[1.15rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:rounded-[1.25rem] md:px-4 md:py-4"
                     >
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900 md:h-10 md:w-10">
@@ -197,10 +189,10 @@ export function FuelResult({
                       </div>
                       <div>
                         <p className="font-semibold text-ink-900">
-                          {bottle?.name || `Bottle ${i + 1}`}
+                          Bottle {i + 1}
                         </p>
                         <p className="mt-1 text-sm leading-6 text-ink-600">
-                          {bottle?.capacityMl}ml • {alloc.isWaterOnly ? 'Water only' : product?.name}
+                          {alloc.capacityMl}ml • {alloc.isWaterOnly ? 'Water only' : product?.name}
                         </p>
                         {!alloc.isWaterOnly && (
                           <p className="text-sm leading-6 text-ink-600">
@@ -225,7 +217,7 @@ export function FuelResult({
                               {alloc.mixGrams}g mix
                             </p>
                             <p className="mt-2 text-sm leading-6 text-ink-600">
-                              Add to {bottle?.capacityMl}ml bottle
+                              Add to {alloc.capacityMl}ml bottle
                             </p>
                           </>
                         )}
@@ -233,23 +225,6 @@ export function FuelResult({
                     </div>
                   );
                 })}
-
-                {onBottleCountChange && (
-                  <div className="surface-note flex flex-col items-start gap-3 p-3.5 md:flex-row md:items-center md:justify-between md:p-4">
-                    <div>
-                      <p className="section-kicker text-[0.68rem]">Bottle Count</p>
-                      <p className="mt-2 hidden text-sm leading-6 text-ink-700 md:block">
-                        Adjust bottle count.
-                      </p>
-                    </div>
-                    <Stepper
-                      value={currentBottleCount}
-                      onChange={onBottleCountChange}
-                      min={1}
-                      max={availableBottleCount}
-                    />
-                  </div>
-                )}
               </div>
             )}
 
