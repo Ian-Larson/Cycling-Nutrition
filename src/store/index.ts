@@ -167,6 +167,7 @@ export interface AppState {
     id: string,
     updates: Partial<GearPartInstance>
   ) => void;
+  deleteGearPartInstance: (id: string) => void;
   installGearPart: (input: {
     bikeId: string;
     partInstanceId: string;
@@ -195,6 +196,10 @@ export interface AppState {
       nextDueDateIso?: string;
     }
   ) => string;
+  updateGearServiceEvent: (
+    id: string,
+    updates: Partial<GearServiceEvent>
+  ) => void;
   deleteGearServiceEvent: (id: string) => void;
 
   updateSettings: (settings: SettingsUpdate) => void;
@@ -980,6 +985,30 @@ export const useStore = create<AppState>()(
           };
         }),
 
+      deleteGearPartInstance: (id) => {
+        const { gearPartInstances, gearInstallRecords } = get();
+        const instance = gearPartInstances.find((i) => i.id === id);
+        if (!instance) return;
+        if (instance.status === 'installed') {
+          const hasActive = gearInstallRecords.some(
+            (r) => r.partInstanceId === id && isActiveGearInstall(r)
+          );
+          if (hasActive) {
+            throw new Error(
+              'Cannot delete an installed part. Remove it from the bike first.'
+            );
+          }
+        }
+        set((state) => {
+          state.gearPartInstances = state.gearPartInstances.filter(
+            (i) => i.id !== id
+          );
+          state.gearInstallRecords = state.gearInstallRecords.filter(
+            (r) => r.partInstanceId !== id
+          );
+        });
+      },
+
       installGearPart: (input) => {
         const state = get();
         const bike = state.bikes.find((candidate) => candidate.id === input.bikeId);
@@ -1165,6 +1194,28 @@ export const useStore = create<AppState>()(
         });
         return id;
       },
+
+      updateGearServiceEvent: (id, updates) =>
+        set((state) => {
+          const index = state.gearServiceEvents.findIndex(
+            (event) => event.id === id
+          );
+          if (index === -1) return;
+          const {
+            id: _ignoredId,
+            createdAt: _ignoredCreatedAt,
+            ...rest
+          } = updates;
+          void _ignoredId;
+          void _ignoredCreatedAt;
+          state.gearServiceEvents[index] = {
+            ...state.gearServiceEvents[index],
+            ...rest,
+            id: state.gearServiceEvents[index].id,
+            createdAt: state.gearServiceEvents[index].createdAt,
+            updatedAt: Date.now(),
+          };
+        }),
 
       deleteGearServiceEvent: (id) =>
         set((state) => {
