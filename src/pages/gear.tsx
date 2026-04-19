@@ -6,9 +6,12 @@ import { BikePillRow } from '@/components/gear/bike-pill-row';
 import { GearTabs, type GearTabValue } from '@/components/gear/gear-tabs';
 import { ActiveSetupList } from '@/components/gear/active-setup-list';
 import { GearDueList } from '@/components/gear/gear-due-list';
+import { InstallPartSheet } from '@/components/gear/install-part-sheet';
+import { LogGearServiceSheet } from '@/components/gear/log-gear-service-sheet';
 import { PartCatalogForm } from '@/components/gear/part-catalog-form';
 import { PartInstanceForm } from '@/components/gear/part-instance-form';
 import { PartsInventory } from '@/components/gear/parts-inventory';
+import { RemovePartSheet } from '@/components/gear/remove-part-sheet';
 import { GearHistoryList } from '@/components/gear/gear-history-list';
 import { deriveActiveSetup } from '@/lib/gear/derive-active-setup';
 import { deriveGearDue } from '@/lib/gear/derive-gear-due';
@@ -25,10 +28,6 @@ function todayIso(): string {
   return `${year}-${month}-${day}`;
 }
 
-function activePartLabel(row: ActiveSetupRow): string {
-  return row.instance?.label ?? row.catalogItem?.model ?? row.slotLabel;
-}
-
 export function GearPage() {
   const bikes = useStore((s) => s.bikes);
   const gearPartCatalog = useStore((s) => s.gearPartCatalog);
@@ -37,6 +36,9 @@ export function GearPage() {
   const gearServiceEvents = useStore((s) => s.gearServiceEvents);
   const addGearPartCatalogItem = useStore((s) => s.addGearPartCatalogItem);
   const addGearPartInstances = useStore((s) => s.addGearPartInstances);
+  const installGearPart = useStore((s) => s.installGearPart);
+  const removeGearPart = useStore((s) => s.removeGearPart);
+  const logGearServiceEvent = useStore((s) => s.logGearServiceEvent);
   const upsertBikesFromStrava = useStore((s) => s.upsertBikesFromStrava);
   const {
     bikes: stravaBikes,
@@ -66,9 +68,6 @@ export function GearPage() {
     partInstanceId?: string;
     typeKey?: GearServiceTypeKey;
   } | null>(null);
-  const [futureActionNotice, setFutureActionNotice] = useState<string | null>(
-    null
-  );
 
   const selectedBikeIdForView = useMemo(() => {
     if (selectedBikeId && bikes.some((bike) => bike.id === selectedBikeId)) {
@@ -182,30 +181,16 @@ export function GearPage() {
     slotKey?: BikeSlotKey;
     partInstanceId?: string;
     typeKey?: GearServiceTypeKey;
-    label?: string;
   }) => {
-    const { label, ...nextContext } = context;
-    setServiceContext(nextContext);
-    setFutureActionNotice(
-      label ? `Service flow is next. ${label} is selected.` : 'Service flow is next.'
-    );
+    setServiceContext(context);
   };
 
   const handleQueueInstall = (slotKey: BikeSlotKey) => {
-    const row = activeRows.find((candidate) => candidate.slotKey === slotKey);
     setInstallSlotKey(slotKey);
-    setFutureActionNotice(
-      row
-        ? `Install flow is next. ${row.slotLabel} is selected.`
-        : 'Install flow is next.'
-    );
   };
 
   const handleQueueRemove = (row: ActiveSetupRow) => {
     setRemoveInstallId(row.installRecord?.id ?? null);
-    setFutureActionNotice(
-      `Remove flow is next. ${activePartLabel(row)} is selected.`
-    );
   };
 
   const handleQueueDueService = (item: GearDueItem) => {
@@ -214,19 +199,31 @@ export function GearPage() {
       slotKey: item.event.slotKey,
       partInstanceId: item.event.partInstanceId,
       typeKey: item.event.typeKey,
-      label: item.label,
     });
   };
+
+  const removeInstallRecord =
+    gearInstallRecords.find((record) => record.id === removeInstallId) ?? null;
+  const removeInstance =
+    removeInstallRecord === null
+      ? null
+      : gearPartInstances.find(
+          (instance) => instance.id === removeInstallRecord.partInstanceId
+        ) ?? null;
+  const removeCatalogItem =
+    removeInstance === null
+      ? null
+      : gearPartCatalog.find(
+          (item) => item.id === removeInstance.catalogItemId
+        ) ?? null;
+  const serviceBike =
+    serviceContext?.bikeId === undefined
+      ? selectedBike
+      : bikes.find((bike) => bike.id === serviceContext.bikeId) ?? selectedBike;
 
   return (
     <div
       className="page-shell max-w-6xl space-y-4 md:space-y-6"
-      data-install-slot-key={installSlotKey ?? undefined}
-      data-remove-install-id={removeInstallId ?? undefined}
-      data-service-bike-id={serviceContext?.bikeId ?? undefined}
-      data-service-slot-key={serviceContext?.slotKey ?? undefined}
-      data-service-part-instance-id={serviceContext?.partInstanceId ?? undefined}
-      data-service-type-key={serviceContext?.typeKey ?? undefined}
     >
       <PageIntro
         title="Gear"
@@ -238,7 +235,6 @@ export function GearPage() {
             onClick={() =>
               handleQueueService({
                 ...(selectedBikeIdForView ? { bikeId: selectedBikeIdForView } : {}),
-                label: selectedBike?.name,
               })
             }
           >
@@ -268,15 +264,6 @@ export function GearPage() {
             </p>
           </div>
 
-          {futureActionNotice ? (
-            <div
-              role="status"
-              className="surface-note border-brand-200 px-3 py-2 text-sm leading-5 text-ink-700"
-            >
-              {futureActionNotice}
-            </div>
-          ) : null}
-
           {tab === 'active' && !selectedBike ? (
             <Card>
               <CardContent className="py-5 md:py-6">
@@ -298,7 +285,6 @@ export function GearPage() {
                   slotKey: row.slotKey,
                   partInstanceId: row.instance?.id,
                   typeKey: row.latestService?.typeKey,
-                  label: activePartLabel(row),
                 })
               }
             />
@@ -376,6 +362,49 @@ export function GearPage() {
           ) : null}
         </section>
       </div>
+
+      <InstallPartSheet
+        open={installSlotKey !== null}
+        onClose={() => setInstallSlotKey(null)}
+        bikeId={selectedBikeIdForView}
+        slotKey={installSlotKey}
+        catalog={gearPartCatalog}
+        instances={gearPartInstances}
+        installRecords={gearInstallRecords}
+        currentMileageMi={selectedBike?.cachedOdometerMi ?? null}
+        onInstall={(input) => {
+          installGearPart(input);
+          setInstallSlotKey(null);
+        }}
+      />
+
+      <RemovePartSheet
+        open={removeInstallId !== null}
+        onClose={() => setRemoveInstallId(null)}
+        installRecord={removeInstallRecord}
+        instance={removeInstance}
+        catalogItem={removeCatalogItem}
+        currentMileageMi={selectedBike?.cachedOdometerMi ?? null}
+        onRemove={(input) => {
+          removeGearPart(input);
+          setRemoveInstallId(null);
+        }}
+      />
+
+      <LogGearServiceSheet
+        open={serviceContext !== null}
+        onClose={() => setServiceContext(null)}
+        bikes={bikes}
+        catalog={gearPartCatalog}
+        instances={gearPartInstances}
+        installRecords={gearInstallRecords}
+        initialContext={serviceContext}
+        currentMileageMi={serviceBike?.cachedOdometerMi ?? null}
+        onSave={(event) => {
+          logGearServiceEvent(event);
+          setServiceContext(null);
+        }}
+      />
     </div>
   );
 }
