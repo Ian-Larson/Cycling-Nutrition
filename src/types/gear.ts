@@ -70,6 +70,7 @@ export interface GearPartInstance {
   status: GearPartInstanceStatus;
   acquiredDateIso?: string;
   retiredDateIso?: string;
+  initialMileageMi?: number;
   notes?: string;
   createdAt: number;
   updatedAt: number;

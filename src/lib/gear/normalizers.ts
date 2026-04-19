@@ -186,6 +186,10 @@ export function normalizeGearPartInstances(value: unknown): GearPartInstance[] {
     if (!id || !catalogItemId || !status) return [];
     const acquiredDateIso = dateIso(item.acquiredDateIso);
     const retiredDateIso = dateIso(item.retiredDateIso);
+    const initialMileageMi =
+      item.initialMileageMi === undefined
+        ? undefined
+        : nonNegativeNumber(item.initialMileageMi);
 
     return [
       {
@@ -195,6 +199,7 @@ export function normalizeGearPartInstances(value: unknown): GearPartInstance[] {
         status,
         acquiredDateIso,
         retiredDateIso,
+        initialMileageMi,
         notes: text(item.notes),
         createdAt: timestamp(item.createdAt),
         updatedAt: timestamp(item.updatedAt),

@@ -5,6 +5,7 @@ import {
   GEAR_PART_CATEGORIES,
   getGearPartCategory,
 } from '@/lib/gear/constants';
+import { computePartLifetimeMileage } from '@/lib/gear/part-mileage';
 import type {
   Bike,
   GearInstallRecord,
@@ -52,8 +53,12 @@ function formatDate(dateIso?: string): string | null {
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
   });
+}
+
+function formatMileage(miles: number): string {
+  const rounded = Math.round(miles);
+  return `${rounded.toLocaleString('en-US')} mi`;
 }
 
 function formatAttributes(attributes: GearPartAttributes): string {
@@ -106,20 +111,33 @@ function instanceLabel(
   return 'Physical part';
 }
 
-function installedBikeName(
+function findActiveInstall(
   instance: GearPartInstance,
-  installRecords: GearInstallRecord[],
-  bikes: Bike[]
-): string | null {
+  installRecords: GearInstallRecord[]
+): GearInstallRecord | null {
   if (instance.status !== 'installed') return null;
-  const active = installRecords.find(
-    (record) =>
-      record.partInstanceId === instance.id &&
-      record.removedDateIso === undefined
+  return (
+    installRecords.find(
+      (record) =>
+        record.partInstanceId === instance.id &&
+        record.removedDateIso === undefined
+    ) ?? null
   );
-  if (!active) return null;
-  const bike = bikes.find((b) => b.id === active.bikeId);
-  return bike?.name ?? null;
+}
+
+function findLatestRemoval(
+  instance: GearPartInstance,
+  installRecords: GearInstallRecord[]
+): GearInstallRecord | null {
+  let latest: GearInstallRecord | null = null;
+  for (const record of installRecords) {
+    if (record.partInstanceId !== instance.id) continue;
+    if (!record.removedDateIso) continue;
+    if (!latest || record.removedDateIso > latest.removedDateIso!) {
+      latest = record;
+    }
+  }
+  return latest;
 }
 
 function pluralize(count: number, singular: string, plural: string): string {
@@ -385,34 +403,69 @@ export function GearInventory({
                       const catalogItem = catalogById.get(
                         instance.catalogItemId
                       );
-                      const acquiredDate = formatDate(instance.acquiredDateIso);
-                      const retiredDate = formatDate(instance.retiredDateIso);
-                      const bikeName = installedBikeName(
+                      const activeInstall = findActiveInstall(
                         instance,
-                        installRecords,
-                        bikes
+                        installRecords
                       );
+                      const latestRemoval = findLatestRemoval(
+                        instance,
+                        installRecords
+                      );
+                      const installedBike = activeInstall
+                        ? bikes.find((b) => b.id === activeInstall.bikeId) ?? null
+                        : null;
                       const attributes = catalogItem
                         ? formatAttributes(catalogItem.attributes)
                         : null;
+                      const lifetimeMiles = computePartLifetimeMileage({
+                        instance,
+                        installRecords,
+                        bikes,
+                      });
+
+                      const title = instance.label
+                        ? instance.label
+                        : catalogItem
+                          ? catalogTitle(catalogItem)
+                          : 'Physical part';
+
+                      let dateEntry: { label: string; value: string } | null = null;
+                      if (
+                        instance.status === 'installed' &&
+                        activeInstall?.installedDateIso
+                      ) {
+                        const value = formatDate(activeInstall.installedDateIso);
+                        if (value) dateEntry = { label: 'Installed', value };
+                      } else if (
+                        instance.status === 'retired' &&
+                        instance.retiredDateIso
+                      ) {
+                        const value = formatDate(instance.retiredDateIso);
+                        if (value) dateEntry = { label: 'Retired', value };
+                      } else if (
+                        instance.status === 'removed' &&
+                        latestRemoval?.removedDateIso
+                      ) {
+                        const value = formatDate(latestRemoval.removedDateIso);
+                        if (value) dateEntry = { label: 'Removed', value };
+                      } else if (instance.acquiredDateIso) {
+                        const value = formatDate(instance.acquiredDateIso);
+                        if (value) dateEntry = { label: 'Acquired', value };
+                      }
 
                       return (
                         <Card key={instance.id}>
-                          <CardContent className="space-y-2.5 py-3.5 md:py-4">
+                          <CardContent className="space-y-3 py-3.5 md:py-4">
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <p className="break-words text-base font-semibold leading-6 text-ink-900">
-                                  {instanceLabel(instance, catalogItem)}
+                                  {title}
                                 </p>
-                                {catalogItem ? (
-                                  <p className="text-sm leading-5 text-ink-600">
-                                    {catalogTitle(catalogItem)}
-                                  </p>
-                                ) : (
+                                {!catalogItem ? (
                                   <p className="text-sm leading-5 text-rose-700">
                                     Catalog part unavailable
                                   </p>
-                                )}
+                                ) : null}
                               </div>
                               <div className="flex shrink-0 items-start gap-1">
                                 <span
@@ -436,25 +489,50 @@ export function GearInventory({
                               </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-[color:var(--border-soft)] pt-2 text-sm leading-5 text-ink-600">
-                              {attributes ? <span>{attributes}</span> : null}
-                              {catalogItem?.weightGrams ? (
-                                <span>{catalogItem.weightGrams} g</span>
-                              ) : null}
-                              {bikeName ? <span>on {bikeName}</span> : null}
-                              {acquiredDate ? (
-                                <span>acquired {acquiredDate}</span>
-                              ) : null}
-                              {retiredDate ? (
-                                <span>retired {retiredDate}</span>
-                              ) : null}
-                            </div>
-
-                            {instance.notes ? (
-                              <p className="line-clamp-2 text-sm leading-5 text-ink-600">
-                                {instance.notes}
-                              </p>
+                            {attributes || catalogItem?.weightGrams ? (
+                              <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-sm leading-5 text-ink-600">
+                                {attributes ? <span>{attributes}</span> : null}
+                                {catalogItem?.weightGrams ? (
+                                  <>
+                                    {attributes ? (
+                                      <span aria-hidden="true" className="text-ink-400">
+                                        ·
+                                      </span>
+                                    ) : null}
+                                    <span>{catalogItem.weightGrams} g</span>
+                                  </>
+                                ) : null}
+                              </div>
                             ) : null}
+
+                            <dl className="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-[color:var(--border-soft)] pt-2.5 text-sm leading-5">
+                              {lifetimeMiles !== null ? (
+                                <div className="flex items-baseline gap-1.5">
+                                  <dt className="section-kicker text-[0.66rem] text-ink-500">
+                                    Miles
+                                  </dt>
+                                  <dd className="font-medium tabular-nums text-ink-900">
+                                    {formatMileage(lifetimeMiles)}
+                                  </dd>
+                                </div>
+                              ) : null}
+                              {installedBike ? (
+                                <div className="flex items-baseline gap-1.5">
+                                  <dt className="section-kicker text-[0.66rem] text-ink-500">
+                                    Bike
+                                  </dt>
+                                  <dd className="text-ink-700">{installedBike.name}</dd>
+                                </div>
+                              ) : null}
+                              {dateEntry ? (
+                                <div className="flex items-baseline gap-1.5">
+                                  <dt className="section-kicker text-[0.66rem] text-ink-500">
+                                    {dateEntry.label}
+                                  </dt>
+                                  <dd className="text-ink-700">{dateEntry.value}</dd>
+                                </div>
+                              ) : null}
+                            </dl>
                           </CardContent>
                         </Card>
                       );

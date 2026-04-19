@@ -31,7 +31,8 @@ type ErrorKey =
   | 'cassetteRange'
   | 'cassetteSpeedCount'
   | 'chainringToothCount'
-  | 'quantity';
+  | 'quantity'
+  | 'initialMileageMi';
 
 type FormErrors = Partial<Record<ErrorKey, string>>;
 
@@ -207,6 +208,11 @@ function AddPartForm({ instanceId, onClose }: AddPartFormProps) {
   const [acquiredDateIso, setAcquiredDateIso] = useState(
     editing?.acquiredDateIso ?? ''
   );
+  const [initialMileageMi, setInitialMileageMi] = useState(
+    editing?.initialMileageMi !== undefined
+      ? String(editing.initialMileageMi)
+      : ''
+  );
   const [status, setStatus] = useState<GearPartInstanceStatus>(
     editing?.status ?? 'spare'
   );
@@ -367,6 +373,14 @@ function AddPartForm({ instanceId, onClose }: AddPartFormProps) {
       }
     }
 
+    const parsedInitialMileageMi = parseOptionalNumber(
+      initialMileageMi,
+      'initialMileageMi',
+      'Starting mileage',
+      nextErrors,
+      { nonNegative: true }
+    );
+
     if (Object.keys(nextErrors).length > 0 || !attributes) {
       setErrors(nextErrors);
       return;
@@ -388,6 +402,7 @@ function AddPartForm({ instanceId, onClose }: AddPartFormProps) {
           label: label.trim() || undefined,
           status,
           acquiredDateIso: acquiredDateIso || undefined,
+          initialMileageMi: parsedInitialMileageMi,
           notes: notes.trim() || undefined,
         });
       } else {
@@ -416,6 +431,7 @@ function AddPartForm({ instanceId, onClose }: AddPartFormProps) {
             label: label.trim() || undefined,
             status,
             acquiredDateIso: acquiredDateIso || undefined,
+            initialMileageMi: parsedInitialMileageMi,
             notes: notes.trim() || undefined,
           });
         }
@@ -431,6 +447,7 @@ function AddPartForm({ instanceId, onClose }: AddPartFormProps) {
       quantity: parsedQuantity,
       labelPrefix: label.trim() || undefined,
       acquiredDateIso: acquiredDateIso || undefined,
+      initialMileageMi: parsedInitialMileageMi,
       notes: notes.trim() || undefined,
     });
     if (status !== 'spare') {
@@ -702,6 +719,17 @@ function AddPartForm({ instanceId, onClose }: AddPartFormProps) {
             onChange={(event) => setAcquiredDateIso(event.target.value)}
           />
         )}
+        <Input
+          id="add-part-initial-mileage"
+          label="Starting mileage (mi)"
+          type="number"
+          min="0"
+          step="1"
+          placeholder="Miles already on the part before tracking"
+          value={initialMileageMi}
+          onChange={(event) => setInitialMileageMi(event.target.value)}
+          error={errors.initialMileageMi}
+        />
         <Input
           id="add-part-label"
           label={isEdit ? 'Label' : 'Label prefix'}

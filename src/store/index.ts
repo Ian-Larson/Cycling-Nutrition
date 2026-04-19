@@ -161,6 +161,7 @@ export interface AppState {
     quantity: number;
     labelPrefix?: string;
     acquiredDateIso?: string;
+    initialMileageMi?: number;
     notes?: string;
   }) => string[];
   updateGearPartInstance: (
@@ -954,6 +955,7 @@ export const useStore = create<AppState>()(
                 : undefined,
               status: 'spare',
               acquiredDateIso: input.acquiredDateIso,
+              initialMileageMi: input.initialMileageMi,
               notes: input.notes,
               createdAt: now,
               updatedAt: now,
