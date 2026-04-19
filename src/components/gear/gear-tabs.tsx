@@ -5,18 +5,11 @@ interface GearTabsProps {
   onChange: (v: GearTabValue) => void;
 }
 
-export type GearTabValue =
-  | 'active'
-  | 'due'
-  | 'inventory'
-  | 'parts'
-  | 'history';
+export type GearTabValue = 'active' | 'due' | 'history';
 
 const TABS: Array<{ id: GearTabValue; label: string }> = [
   { id: 'active', label: 'Active setup' },
   { id: 'due', label: 'Due' },
-  { id: 'inventory', label: 'Inventory' },
-  { id: 'parts', label: 'Parts' },
   { id: 'history', label: 'History' },
 ];
 

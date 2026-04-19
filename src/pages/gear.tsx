@@ -8,10 +8,6 @@ import { ActiveSetupList } from '@/components/gear/active-setup-list';
 import { GearDueList } from '@/components/gear/gear-due-list';
 import { InstallPartSheet } from '@/components/gear/install-part-sheet';
 import { LogGearServiceSheet } from '@/components/gear/log-gear-service-sheet';
-import { GearInventory } from '@/components/gear/gear-inventory';
-import { PartCatalogForm } from '@/components/gear/part-catalog-form';
-import { PartInstanceForm } from '@/components/gear/part-instance-form';
-import { PartsInventory } from '@/components/gear/parts-inventory';
 import { RemovePartSheet } from '@/components/gear/remove-part-sheet';
 import { GearHistoryList } from '@/components/gear/gear-history-list';
 import { deriveActiveSetup } from '@/lib/gear/derive-active-setup';
@@ -35,8 +31,6 @@ export function GearPage() {
   const gearPartInstances = useStore((s) => s.gearPartInstances);
   const gearInstallRecords = useStore((s) => s.gearInstallRecords);
   const gearServiceEvents = useStore((s) => s.gearServiceEvents);
-  const addGearPartCatalogItem = useStore((s) => s.addGearPartCatalogItem);
-  const addGearPartInstances = useStore((s) => s.addGearPartInstances);
   const installGearPart = useStore((s) => s.installGearPart);
   const removeGearPart = useStore((s) => s.removeGearPart);
   const logGearServiceEvent = useStore((s) => s.logGearServiceEvent);
@@ -58,8 +52,6 @@ export function GearPage() {
   );
   const [hasUserSelectedBike, setHasUserSelectedBike] = useState(false);
   const [tab, setTab] = useState<GearTabValue>('active');
-  const [partsMode, setPartsMode] = useState<'list' | 'catalog'>('list');
-  const [inventoryMode, setInventoryMode] = useState<'list' | 'add'>('list');
   const [installSlotKey, setInstallSlotKey] = useState<BikeSlotKey | null>(null);
   const [removeInstallId, setRemoveInstallId] = useState<string | null>(null);
   const [serviceContext, setServiceContext] = useState<{
@@ -137,8 +129,6 @@ export function GearPage() {
   const activeInstalledCount = activeRows.filter(
     (row) => row.installRecord !== null
   ).length;
-  const inventoryCount = gearPartInstances.length;
-  const catalogCount = gearPartCatalog.length;
   const activeCountLabel = {
     active: selectedBike
       ? `${activeInstalledCount} ${activeInstalledCount === 1 ? 'part' : 'parts'} installed`
@@ -146,12 +136,6 @@ export function GearPage() {
     due: `${filteredDueItems.length} ${
       filteredDueItems.length === 1 ? 'item' : 'items'
     } due`,
-    inventory: `${inventoryCount} ${
-      inventoryCount === 1 ? 'physical part' : 'physical parts'
-    }`,
-    parts: `${catalogCount} ${
-      catalogCount === 1 ? 'catalog part' : 'catalog parts'
-    }`,
     history: `${filteredServiceEvents.length} ${
       filteredServiceEvents.length === 1 ? 'service' : 'services'
     } logged`,
@@ -175,12 +159,6 @@ export function GearPage() {
 
   const handleTabChange = (nextTab: GearTabValue) => {
     setTab(nextTab);
-    if (nextTab !== 'parts') {
-      setPartsMode('list');
-    }
-    if (nextTab !== 'inventory') {
-      setInventoryMode('list');
-    }
   };
 
   const handleQueueService = (context: {
@@ -303,73 +281,6 @@ export function GearPage() {
               bikes={bikes}
               onLogService={handleQueueDueService}
             />
-          ) : null}
-
-          {tab === 'inventory' && inventoryMode === 'list' ? (
-            <GearInventory
-              catalog={gearPartCatalog}
-              instances={gearPartInstances}
-              installRecords={gearInstallRecords}
-              bikes={bikes}
-              onAddInstance={() => setInventoryMode('add')}
-              onAddCatalog={() => {
-                setTab('parts');
-                setPartsMode('catalog');
-              }}
-            />
-          ) : null}
-
-          {tab === 'inventory' && inventoryMode === 'add' ? (
-            <Card>
-              <CardContent className="space-y-4 py-4 md:py-5">
-                <div>
-                  <p className="text-base font-semibold leading-6 text-ink-900">
-                    Add inventory part
-                  </p>
-                  <p className="text-sm leading-5 text-ink-600">
-                    Log a spare or newly acquired part ready to pair with a bike.
-                  </p>
-                </div>
-                <PartInstanceForm
-                  catalog={gearPartCatalog}
-                  onSubmit={(input) => {
-                    addGearPartInstances(input);
-                    setInventoryMode('list');
-                  }}
-                  onCancel={() => setInventoryMode('list')}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {tab === 'parts' && partsMode === 'list' ? (
-            <PartsInventory
-              catalog={gearPartCatalog}
-              instances={gearPartInstances}
-              onAddCatalog={() => setPartsMode('catalog')}
-            />
-          ) : null}
-
-          {tab === 'parts' && partsMode === 'catalog' ? (
-            <Card>
-              <CardContent className="space-y-4 py-4 md:py-5">
-                <div>
-                  <p className="text-base font-semibold leading-6 text-ink-900">
-                    Add catalog part
-                  </p>
-                  <p className="text-sm leading-5 text-ink-600">
-                    Save specs for a reusable part type.
-                  </p>
-                </div>
-                <PartCatalogForm
-                  onSubmit={(payload) => {
-                    addGearPartCatalogItem(payload);
-                    setPartsMode('list');
-                  }}
-                  onCancel={() => setPartsMode('list')}
-                />
-              </CardContent>
-            </Card>
           ) : null}
 
           {tab === 'history' ? (
