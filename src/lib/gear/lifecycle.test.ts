@@ -55,6 +55,23 @@ describe('lifecycle validation', () => {
     });
   });
 
+  it('rejects installs missing date and negative mileage', () => {
+    expect(
+      validateInstallDraft(
+        {
+          bikeId: 'bike-1',
+          partInstanceId: 'part-1',
+          slotKey: 'chain',
+          installedAtMileageMi: -1,
+        },
+        today
+      )
+    ).toMatchObject({
+      installedAtMileageMi: 'Mileage must be a finite number greater than or equal to 0.',
+      installedDateIso: 'Install date is required.',
+    });
+  });
+
   it('rejects removes missing an install record id', () => {
     expect(
       validateRemoveDraft(
@@ -83,6 +100,53 @@ describe('lifecycle validation', () => {
       )
     ).toMatchObject({
       activeRecord: 'Active install record is required.',
+    });
+  });
+
+  it('rejects removes missing a removal date', () => {
+    expect(
+      validateRemoveDraft(
+        {
+          installRecordId: 'install-1',
+          removedAtMileageMi: 500,
+        },
+        activeRecord(),
+        today
+      )
+    ).toMatchObject({
+      removedDateIso: 'Remove date is required.',
+    });
+  });
+
+  it('rejects negative and non-finite removal mileage', () => {
+    expect(
+      validateRemoveDraft(
+        {
+          installRecordId: 'install-1',
+          removedAtMileageMi: -1,
+          removedDateIso: '2026-04-18',
+        },
+        activeRecord(),
+        today
+      )
+    ).toMatchObject({
+      removedAtMileageMi:
+        'Removal mileage must be a finite number greater than or equal to 0.',
+    });
+
+    expect(
+      validateRemoveDraft(
+        {
+          installRecordId: 'install-1',
+          removedAtMileageMi: Number.POSITIVE_INFINITY,
+          removedDateIso: '2026-04-18',
+        },
+        activeRecord(),
+        today
+      )
+    ).toMatchObject({
+      removedAtMileageMi:
+        'Removal mileage must be a finite number greater than or equal to 0.',
     });
   });
 
@@ -145,6 +209,20 @@ describe('lifecycle validation', () => {
     ).toMatchObject({
       bikeId: 'Bike is required.',
       typeKey: 'Service type is required.',
+    });
+  });
+
+  it('rejects services missing date', () => {
+    expect(
+      validateServiceDraft(
+        {
+          bikeId: 'bike-1',
+          typeKey: 'chain_wax',
+        },
+        today
+      )
+    ).toMatchObject({
+      dateIso: 'Service date is required.',
     });
   });
 

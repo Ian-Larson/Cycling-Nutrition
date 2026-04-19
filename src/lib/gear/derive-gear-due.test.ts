@@ -134,6 +134,83 @@ describe('deriveGearDue', () => {
     });
   });
 
+  it('suppresses an older due row when the latest target event has no due fields', () => {
+    const items = deriveGearDue({
+      bikes: [bike({ cachedOdometerMi: 1000 })],
+      installRecords: [installRecord()],
+      serviceEvents: [
+        serviceEvent({
+          id: 'old-due',
+          partInstanceId: 'part-1',
+          dateIso: '2026-04-01',
+          nextDueMileageMi: 900,
+        }),
+        serviceEvent({
+          id: 'new-no-due',
+          partInstanceId: 'part-1',
+          dateIso: '2026-04-10',
+          nextDueMileageMi: undefined,
+          nextDueDateIso: undefined,
+        }),
+      ],
+      today,
+    });
+
+    expect(items).toEqual([]);
+  });
+
+  it('uses createdAt descending when latest target event dates tie', () => {
+    const items = deriveGearDue({
+      bikes: [bike({ cachedOdometerMi: 1000 })],
+      installRecords: [installRecord()],
+      serviceEvents: [
+        serviceEvent({
+          id: 'older-created',
+          partInstanceId: 'part-1',
+          dateIso: '2026-04-10',
+          createdAt: 1,
+          nextDueMileageMi: 900,
+        }),
+        serviceEvent({
+          id: 'newer-created',
+          partInstanceId: 'part-1',
+          dateIso: '2026-04-10',
+          createdAt: 2,
+          nextDueMileageMi: 1300,
+        }),
+      ],
+      today,
+    });
+
+    expect(items.map((item) => item.id)).toEqual(['newer-created']);
+  });
+
+  it('uses id descending when latest target event dates and createdAt tie', () => {
+    const items = deriveGearDue({
+      bikes: [bike({ cachedOdometerMi: 1000 })],
+      installRecords: [installRecord()],
+      serviceEvents: [
+        serviceEvent({
+          id: 'a-service',
+          partInstanceId: 'part-1',
+          dateIso: '2026-04-10',
+          createdAt: 1,
+          nextDueMileageMi: 900,
+        }),
+        serviceEvent({
+          id: 'z-service',
+          partInstanceId: 'part-1',
+          dateIso: '2026-04-10',
+          createdAt: 1,
+          nextDueMileageMi: 1300,
+        }),
+      ],
+      today,
+    });
+
+    expect(items.map((item) => item.id)).toEqual(['z-service']);
+  });
+
   it('excludes part-specific events for removed install records', () => {
     const items = deriveGearDue({
       bikes: [bike({ cachedOdometerMi: 1000 })],
@@ -154,5 +231,60 @@ describe('deriveGearDue', () => {
     });
 
     expect(items).toEqual([]);
+  });
+
+  it('includes slot-specific events only when that bike slot has an active install', () => {
+    const withoutActiveSlot = deriveGearDue({
+      bikes: [bike({ cachedOdometerMi: 1000 })],
+      installRecords: [],
+      serviceEvents: [
+        serviceEvent({
+          id: 'slot-without-install',
+          slotKey: 'front_tire',
+          typeKey: 'tire_inspection',
+          nextDueMileageMi: 900,
+        }),
+      ],
+      today,
+    });
+
+    const withActiveSlot = deriveGearDue({
+      bikes: [bike({ cachedOdometerMi: 1000 })],
+      installRecords: [
+        installRecord({
+          id: 'front-tire-install',
+          partInstanceId: 'front-tire-part',
+          slotKey: 'front_tire',
+        }),
+      ],
+      serviceEvents: [
+        serviceEvent({
+          id: 'slot-with-install',
+          slotKey: 'front_tire',
+          typeKey: 'tire_inspection',
+          nextDueMileageMi: 900,
+        }),
+      ],
+      today,
+    });
+
+    expect(withoutActiveSlot).toEqual([]);
+    expect(withActiveSlot.map((item) => item.id)).toEqual(['slot-with-install']);
+  });
+
+  it('includes bike-only due rows without install records', () => {
+    const items = deriveGearDue({
+      bikes: [bike({ cachedOdometerMi: 1000 })],
+      installRecords: [],
+      serviceEvents: [
+        serviceEvent({
+          id: 'bike-only-service',
+          nextDueMileageMi: 900,
+        }),
+      ],
+      today,
+    });
+
+    expect(items.map((item) => item.id)).toEqual(['bike-only-service']);
   });
 });
