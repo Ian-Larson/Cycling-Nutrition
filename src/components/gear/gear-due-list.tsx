@@ -1,5 +1,6 @@
 import { clsx } from 'clsx';
 import { Button, Card, CardContent } from '@/components/ui';
+import { GearLifeBar } from './gear-life-bar';
 import type { GearDueItem } from '@/lib/gear/derive-gear-due';
 import type { Bike } from '@/types/gear';
 
@@ -85,6 +86,16 @@ export function GearDueList({ items, bikes, onLogService }: GearDueListProps) {
                   <span>{formatMi(item.remainingMi)}</span>
                   <span>{formatDays(item.remainingDays)}</span>
                 </div>
+                <GearLifeBar
+                  remainingMi={item.remainingMi}
+                  remainingDays={item.remainingDays}
+                  intervalMi={item.intervalMi}
+                  intervalDays={item.intervalDays}
+                  nextDueMileageMi={item.event.nextDueMileageMi}
+                  nextDueDateIso={item.event.nextDueDateIso}
+                  lastServiceMileageMi={item.event.mileageMi}
+                  lastServiceDateIso={item.event.dateIso}
+                />
               </div>
 
               <Button
