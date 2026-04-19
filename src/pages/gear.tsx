@@ -6,6 +6,7 @@ import { BikePillRow } from '@/components/gear/bike-pill-row';
 import { GearTabs, type GearTabValue } from '@/components/gear/gear-tabs';
 import { ActiveSetupList } from '@/components/gear/active-setup-list';
 import { GearDueList } from '@/components/gear/gear-due-list';
+import { GearDuePreviewBand } from '@/components/gear/gear-due-preview-band';
 import { InstallPartSheet } from '@/components/gear/install-part-sheet';
 import { LogGearServiceSheet } from '@/components/gear/log-gear-service-sheet';
 import { RemovePartSheet } from '@/components/gear/remove-part-sheet';
@@ -242,6 +243,15 @@ export function GearPage() {
         </aside>
 
         <section className="min-w-0 space-y-3 md:space-y-4">
+          {tab !== 'due' ? (
+            <GearDuePreviewBand
+              items={filteredDueItems}
+              bikes={bikes}
+              onLogService={handleQueueDueService}
+              onViewAll={() => setTab('due')}
+              selectedBikeId={selectedBikeIdForView}
+            />
+          ) : null}
           <div className="flex flex-col gap-2 border-b border-[color:var(--border-soft)] pb-3 sm:flex-row sm:items-center sm:justify-between md:pb-4">
             <GearTabs value={tab} onChange={handleTabChange} />
             <p className="section-kicker text-[0.68rem] text-ink-500">

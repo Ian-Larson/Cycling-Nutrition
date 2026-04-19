@@ -10,6 +10,13 @@ interface GearDueListProps {
   onLogService: (item: GearDueItem) => void;
 }
 
+interface GearDueRowProps {
+  item: GearDueItem;
+  bikes: Bike[];
+  showBikeName?: boolean;
+  onLogService: (item: GearDueItem) => void;
+}
+
 function formatMi(value: number | null): string {
   if (value === null) return 'Mileage unavailable';
   const abs = Math.abs(Math.round(value)).toLocaleString();
@@ -40,12 +47,75 @@ function urgencyClass(urgency: GearDueItem['urgency']): string {
   return 'border-[color:var(--border-soft)] bg-shell-50 text-ink-600';
 }
 
-export function GearDueList({ items, bikes, onLogService }: GearDueListProps) {
-  const bikeName = (item: GearDueItem) =>
+function resolveBikeName(item: GearDueItem, bikes: Bike[]): string {
+  return (
     item.bike?.name ??
     bikes.find((bike) => bike.id === item.bikeId)?.name ??
-    'Unknown bike';
+    'Unknown bike'
+  );
+}
 
+export function GearDueRow({
+  item,
+  bikes,
+  showBikeName = true,
+  onLogService,
+}: GearDueRowProps) {
+  return (
+    <Card>
+      <CardContent className="py-3.5 md:py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <p className="min-w-0 max-w-full truncate text-base font-semibold leading-6 text-ink-900">
+                {item.label}
+              </p>
+              <span
+                className={clsx(
+                  'shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold',
+                  urgencyClass(item.urgency)
+                )}
+              >
+                {urgencyLabel(item.urgency)}
+              </span>
+            </div>
+            {showBikeName ? (
+              <p className="truncate text-sm leading-5 text-ink-600">
+                {resolveBikeName(item, bikes)}
+              </p>
+            ) : null}
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm leading-5 text-ink-700">
+              <span>{formatMi(item.remainingMi)}</span>
+              <span>{formatDays(item.remainingDays)}</span>
+            </div>
+            <GearLifeBar
+              remainingMi={item.remainingMi}
+              remainingDays={item.remainingDays}
+              intervalMi={item.intervalMi}
+              intervalDays={item.intervalDays}
+              nextDueMileageMi={item.event.nextDueMileageMi}
+              nextDueDateIso={item.event.nextDueDateIso}
+              lastServiceMileageMi={item.event.mileageMi}
+              lastServiceDateIso={item.event.dateIso}
+            />
+          </div>
+
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => onLogService(item)}
+            className="sm:w-[9.5rem]"
+          >
+            Log service
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function GearDueList({ items, bikes, onLogService }: GearDueListProps) {
   if (items.length === 0) {
     return (
       <Card>
@@ -62,54 +132,12 @@ export function GearDueList({ items, bikes, onLogService }: GearDueListProps) {
   return (
     <div className="flex flex-col gap-3">
       {items.map((item) => (
-        <Card key={item.id}>
-          <CardContent className="py-3.5 md:py-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0 flex-1 space-y-2">
-                <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <p className="min-w-0 max-w-full truncate text-base font-semibold leading-6 text-ink-900">
-                    {item.label}
-                  </p>
-                  <span
-                    className={clsx(
-                      'shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold',
-                      urgencyClass(item.urgency)
-                    )}
-                  >
-                    {urgencyLabel(item.urgency)}
-                  </span>
-                </div>
-                <p className="truncate text-sm leading-5 text-ink-600">
-                  {bikeName(item)}
-                </p>
-                <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm leading-5 text-ink-700">
-                  <span>{formatMi(item.remainingMi)}</span>
-                  <span>{formatDays(item.remainingDays)}</span>
-                </div>
-                <GearLifeBar
-                  remainingMi={item.remainingMi}
-                  remainingDays={item.remainingDays}
-                  intervalMi={item.intervalMi}
-                  intervalDays={item.intervalDays}
-                  nextDueMileageMi={item.event.nextDueMileageMi}
-                  nextDueDateIso={item.event.nextDueDateIso}
-                  lastServiceMileageMi={item.event.mileageMi}
-                  lastServiceDateIso={item.event.dateIso}
-                />
-              </div>
-
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => onLogService(item)}
-                className="sm:w-[9.5rem]"
-              >
-                Log service
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <GearDueRow
+          key={item.id}
+          item={item}
+          bikes={bikes}
+          onLogService={onLogService}
+        />
       ))}
     </div>
   );
