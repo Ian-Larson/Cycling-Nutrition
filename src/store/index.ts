@@ -82,6 +82,7 @@ export interface AppDataSnapshot {
   gearPartInstances: GearPartInstance[];
   gearInstallRecords: GearInstallRecord[];
   gearServiceEvents: GearServiceEvent[];
+  gearSelectedBikeId: string | null;
 }
 
 export interface AppReadiness {
@@ -106,6 +107,7 @@ export interface AppState {
   gearPartInstances: GearPartInstance[];
   gearInstallRecords: GearInstallRecord[];
   gearServiceEvents: GearServiceEvent[];
+  gearSelectedBikeId: string | null;
   _initialized: boolean;
 
   setBottleCount: (size: BottleSize, count: number) => void;
@@ -138,6 +140,7 @@ export interface AppState {
     }[]
   ) => void;
   setBikeOdometer: (bikeId: string, odometerMi: number) => void;
+  setGearSelectedBikeId: (bikeId: string | null) => void;
 
   addServiceEntry: (
     entry: Omit<
@@ -523,6 +526,7 @@ export function getAppDataFromState(
     | 'gearPartInstances'
     | 'gearInstallRecords'
     | 'gearServiceEvents'
+    | 'gearSelectedBikeId'
   >
 ): AppDataSnapshot {
   return {
@@ -537,6 +541,7 @@ export function getAppDataFromState(
     gearPartInstances: state.gearPartInstances,
     gearInstallRecords: state.gearInstallRecords,
     gearServiceEvents: state.gearServiceEvents,
+    gearSelectedBikeId: state.gearSelectedBikeId,
   };
 }
 
@@ -591,6 +596,12 @@ export function normalizeAppData(
       incoming?.gearServiceEvents === undefined
         ? fallback.gearServiceEvents
         : normalizeGearServiceEvents(incoming.gearServiceEvents),
+    gearSelectedBikeId:
+      typeof incoming?.gearSelectedBikeId === 'string'
+        ? incoming.gearSelectedBikeId
+        : incoming?.gearSelectedBikeId === null
+          ? null
+          : fallback.gearSelectedBikeId,
   };
 }
 
@@ -658,6 +669,7 @@ export const useStore = create<AppState>()(
       gearPartInstances: [],
       gearInstallRecords: [],
       gearServiceEvents: [],
+      gearSelectedBikeId: null,
       _initialized: false,
 
       setBottleCount: (size, count) =>
@@ -834,6 +846,11 @@ export const useStore = create<AppState>()(
           bike.cachedOdometerMi = odometerMi;
           bike.odometerSyncedAtIso = new Date().toISOString();
           bike.updatedAt = Date.now();
+        }),
+
+      setGearSelectedBikeId: (bikeId) =>
+        set((state) => {
+          state.gearSelectedBikeId = bikeId;
         }),
 
       addServiceEntry: (entry) =>
@@ -1265,6 +1282,7 @@ export const useStore = create<AppState>()(
           state.gearPartInstances = normalized.gearPartInstances;
           state.gearInstallRecords = normalized.gearInstallRecords;
           state.gearServiceEvents = normalized.gearServiceEvents;
+          state.gearSelectedBikeId = normalized.gearSelectedBikeId;
           state._initialized = true;
         }),
 
@@ -1353,6 +1371,12 @@ export const useStore = create<AppState>()(
           gearServiceEvents: normalizeGearServiceEvents(
             incoming.gearServiceEvents ?? currentState.gearServiceEvents
           ),
+          gearSelectedBikeId:
+            typeof incoming.gearSelectedBikeId === 'string'
+              ? incoming.gearSelectedBikeId
+              : incoming.gearSelectedBikeId === null
+                ? null
+                : currentState.gearSelectedBikeId,
         };
       },
     }

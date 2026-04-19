@@ -396,3 +396,17 @@ describe('gear hub v2 slice', () => {
     ]);
   });
 });
+
+describe('gearSelectedBikeId', () => {
+  beforeEach(() => {
+    useStore.setState({ gearSelectedBikeId: null });
+  });
+
+  it('defaults to null and is updated via setGearSelectedBikeId', () => {
+    expect(useStore.getState().gearSelectedBikeId).toBe(null);
+    useStore.getState().setGearSelectedBikeId('bike-123');
+    expect(useStore.getState().gearSelectedBikeId).toBe('bike-123');
+    useStore.getState().setGearSelectedBikeId(null);
+    expect(useStore.getState().gearSelectedBikeId).toBe(null);
+  });
+});

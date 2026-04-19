@@ -50,10 +50,8 @@ export function GearPage() {
     () => bikes.find((b) => b.isPrimary)?.id ?? null,
     [bikes]
   );
-  const [selectedBikeId, setSelectedBikeId] = useState<string | null>(
-    primaryBikeId
-  );
-  const [hasUserSelectedBike, setHasUserSelectedBike] = useState(false);
+  const selectedBikeId = useStore((s) => s.gearSelectedBikeId);
+  const setGearSelectedBikeId = useStore((s) => s.setGearSelectedBikeId);
   const [tab, setTab] = useState<GearTabValue>('active');
   const [installSlotKey, setInstallSlotKey] = useState<BikeSlotKey | null>(null);
   const [removeInstallId, setRemoveInstallId] = useState<string | null>(null);
@@ -69,17 +67,9 @@ export function GearPage() {
     if (selectedBikeId && bikes.some((bike) => bike.id === selectedBikeId)) {
       return selectedBikeId;
     }
-
-    if (!hasUserSelectedBike && primaryBikeId) {
-      return primaryBikeId;
-    }
-
-    if (selectedBikeId && primaryBikeId) {
-      return primaryBikeId;
-    }
-
-    return null;
-  }, [bikes, hasUserSelectedBike, primaryBikeId, selectedBikeId]);
+    if (selectedBikeId === null) return null;
+    return primaryBikeId;
+  }, [bikes, primaryBikeId, selectedBikeId]);
   const selectedBike = useMemo(
     () => bikes.find((bike) => bike.id === selectedBikeIdForView) ?? null,
     [bikes, selectedBikeIdForView]
@@ -152,13 +142,23 @@ export function GearPage() {
     }
   }, [stravaBikes, upsertBikesFromStrava]);
 
+  // Seed the selection with the primary bike on first mount so a brand-new
+  // user doesn't land on "All bikes". Only seed when nothing is stored yet;
+  // a user who explicitly picks "All bikes" stays on null.
+  useEffect(() => {
+    if (selectedBikeId !== null) return;
+    if (primaryBikeId === null) return;
+    const stored = useStore.getState().gearSelectedBikeId;
+    if (stored === null && !bikes.some((b) => b.id === primaryBikeId)) return;
+    if (stored === null) setGearSelectedBikeId(primaryBikeId);
+  }, [bikes, primaryBikeId, selectedBikeId, setGearSelectedBikeId]);
+
   const handleRefresh = () => {
     void refresh();
   };
 
   const handleSelectBike = (bikeId: string | null) => {
-    setHasUserSelectedBike(true);
-    setSelectedBikeId(bikeId);
+    setGearSelectedBikeId(bikeId);
   };
 
   const handleTabChange = (nextTab: GearTabValue) => {
