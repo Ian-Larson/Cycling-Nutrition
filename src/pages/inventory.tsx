@@ -28,9 +28,9 @@ function BottleCounter({
   onDecrement: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-[1.1rem] border border-[color:var(--border-soft)] bg-white px-4 py-5">
+    <div className="flex flex-col items-center gap-2 rounded-[1rem] border border-[color:var(--border-soft)] bg-white px-3 py-3">
       <p className="font-semibold text-ink-900">{size}ml</p>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <button
           type="button"
           disabled={count <= 0}
@@ -52,7 +52,6 @@ function BottleCounter({
           +
         </button>
       </div>
-      <p className="text-xs text-ink-500">{count === 1 ? '1 bottle' : `${count} bottles`}</p>
     </div>
   );
 }
