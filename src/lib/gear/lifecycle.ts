@@ -18,7 +18,7 @@ export interface RemoveDraft {
   removedAtMileageMi?: number | null;
   removedDateIso?: string | null;
   removeReason?: GearInstallRecord['removeReason'];
-  nextStatus?: Extract<GearPartInstanceStatus, 'removed' | 'retired'>;
+  nextStatus: Extract<GearPartInstanceStatus, 'removed' | 'retired'>;
 }
 
 export interface ServiceDraft {
@@ -95,6 +95,9 @@ export function validateRemoveDraft(
     errors.installRecordId = 'Install record is required.';
   }
   if (!activeRecord) errors.activeRecord = 'Active install record is required.';
+  if (draft.nextStatus !== 'removed' && draft.nextStatus !== 'retired') {
+    errors.nextStatus = 'Choose whether to remove or retire this part.';
+  }
   if (
     !isFiniteNumber(draft.removedAtMileageMi) ||
     draft.removedAtMileageMi < 0

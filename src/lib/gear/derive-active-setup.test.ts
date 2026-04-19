@@ -145,6 +145,75 @@ describe('deriveActiveSetup', () => {
     expect(chainRow?.urgency).toBe('soon');
   });
 
+  it('ignores slot service before the active replacement install', () => {
+    const baseInput = {
+      bike: bike({ cachedOdometerMi: 1500 }),
+      catalog: [
+        chainCatalog({
+          id: 'catalog-tire',
+          category: 'tire',
+          model: 'Racing tire',
+          attributes: { category: 'tire', widthMm: 28 },
+        }),
+      ],
+      instances: [
+        instance({
+          id: 'rear-tire-current',
+          catalogItemId: 'catalog-tire',
+          label: 'Current rear tire',
+        }),
+      ],
+      installRecords: [
+        installRecord({
+          id: 'rear-tire-install',
+          partInstanceId: 'rear-tire-current',
+          slotKey: 'rear_tire',
+          installedAtMileageMi: 1300,
+          installedDateIso: '2026-04-01',
+        }),
+      ],
+      today,
+    };
+    const oldSlotService = serviceEvent({
+      id: 'old-rear-tire-service',
+      partInstanceId: undefined,
+      slotKey: 'rear_tire',
+      typeKey: 'tire_inspection',
+      dateIso: '2026-03-20',
+      mileageMi: 1200,
+      nextDueMileageMi: 1400,
+    });
+
+    const rowsWithOldServiceOnly = deriveActiveSetup({
+      ...baseInput,
+      serviceEvents: [oldSlotService],
+    });
+
+    expect(
+      rowsWithOldServiceOnly.find((row) => row.slotKey === 'rear_tire')?.latestService
+    ).toBeNull();
+
+    const rows = deriveActiveSetup({
+      ...baseInput,
+      serviceEvents: [
+        oldSlotService,
+        serviceEvent({
+          id: 'post-install-rear-tire-service',
+          partInstanceId: undefined,
+          slotKey: 'rear_tire',
+          typeKey: 'tire_inspection',
+          dateIso: '2026-04-10',
+          mileageMi: 1400,
+          nextDueMileageMi: 1700,
+        }),
+      ],
+    });
+
+    const rearTireRow = rows.find((row) => row.slotKey === 'rear_tire');
+
+    expect(rearTireRow?.latestService?.id).toBe('post-install-rear-tire-service');
+  });
+
   it('returns null part details for empty slots', () => {
     const rows = deriveActiveSetup({
       bike: bike(),

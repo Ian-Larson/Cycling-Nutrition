@@ -43,6 +43,17 @@ function activeInstallKey(bikeId: string, value: string): string {
   return `${bikeId}\u0000${value}`;
 }
 
+function eventIsAtOrAfterInstall(
+  event: GearServiceEvent,
+  installRecord: GearInstallRecord
+): boolean {
+  if (event.dateIso < installRecord.installedDateIso) return false;
+  return (
+    event.mileageMi === undefined ||
+    event.mileageMi >= installRecord.installedAtMileageMi
+  );
+}
+
 function logicalTargetKey(event: GearServiceEvent): string {
   if (event.partInstanceId) {
     return `part\u0000${event.bikeId}\u0000${event.partInstanceId}\u0000${event.typeKey}`;
@@ -62,13 +73,18 @@ function compareServiceRecency(a: GearServiceEvent, b: GearServiceEvent): number
 function hasActiveTarget(
   event: GearServiceEvent,
   activePartKeys: ReadonlySet<string>,
-  activeSlotKeys: ReadonlySet<string>
+  activeRecords: readonly GearInstallRecord[]
 ): boolean {
   if (event.partInstanceId) {
     return activePartKeys.has(activeInstallKey(event.bikeId, event.partInstanceId));
   }
   if (event.slotKey) {
-    return activeSlotKeys.has(activeInstallKey(event.bikeId, event.slotKey));
+    return activeRecords.some(
+      (record) =>
+        record.bikeId === event.bikeId &&
+        record.slotKey === event.slotKey &&
+        eventIsAtOrAfterInstall(event, record)
+    );
   }
   return true;
 }
@@ -112,13 +128,10 @@ export function deriveGearDue(input: DeriveGearDueInput): GearDueItem[] {
       activeInstallKey(record.bikeId, record.partInstanceId)
     )
   );
-  const activeSlotKeys = new Set(
-    activeRecords.map((record) => activeInstallKey(record.bikeId, record.slotKey))
-  );
   const latestByTarget = new Map<string, GearServiceEvent>();
 
   for (const event of input.serviceEvents) {
-    if (!hasActiveTarget(event, activePartKeys, activeSlotKeys)) continue;
+    if (!hasActiveTarget(event, activePartKeys, activeRecords)) continue;
 
     const targetKey = logicalTargetKey(event);
     const previous = latestByTarget.get(targetKey);

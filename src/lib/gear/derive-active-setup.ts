@@ -41,6 +41,17 @@ function daysBetween(startIso: string, endIso: string): number {
   return Math.round((end - start) / msPerDay);
 }
 
+function eventIsAtOrAfterInstall(
+  event: GearServiceEvent,
+  installRecord: GearInstallRecord
+): boolean {
+  if (event.dateIso < installRecord.installedDateIso) return false;
+  return (
+    event.mileageMi === undefined ||
+    event.mileageMi >= installRecord.installedAtMileageMi
+  );
+}
+
 function serviceMatchesSlot(
   event: GearServiceEvent,
   bike: Bike,
@@ -49,7 +60,11 @@ function serviceMatchesSlot(
 ): boolean {
   if (event.bikeId !== bike.id) return false;
   if (event.partInstanceId === installRecord.partInstanceId) return true;
-  return !event.partInstanceId && event.slotKey === slotKey;
+  return (
+    !event.partInstanceId &&
+    event.slotKey === slotKey &&
+    eventIsAtOrAfterInstall(event, installRecord)
+  );
 }
 
 function compareServiceRecency(a: GearServiceEvent, b: GearServiceEvent): number {

@@ -272,6 +272,35 @@ describe('deriveGearDue', () => {
     expect(withActiveSlot.map((item) => item.id)).toEqual(['slot-with-install']);
   });
 
+  it('ignores slot-level due events before a replacement install', () => {
+    const items = deriveGearDue({
+      bikes: [bike({ cachedOdometerMi: 1500 })],
+      installRecords: [
+        installRecord({
+          id: 'rear-tire-install',
+          partInstanceId: 'rear-tire-current',
+          slotKey: 'rear_tire',
+          installedAtMileageMi: 1300,
+          installedDateIso: '2026-04-01',
+        }),
+      ],
+      serviceEvents: [
+        serviceEvent({
+          id: 'old-rear-tire-due',
+          partInstanceId: undefined,
+          slotKey: 'rear_tire',
+          typeKey: 'tire_inspection',
+          dateIso: '2026-03-20',
+          mileageMi: 1200,
+          nextDueMileageMi: 1400,
+        }),
+      ],
+      today,
+    });
+
+    expect(items).toEqual([]);
+  });
+
   it('includes bike-only due rows without install records', () => {
     const items = deriveGearDue({
       bikes: [bike({ cachedOdometerMi: 1000 })],

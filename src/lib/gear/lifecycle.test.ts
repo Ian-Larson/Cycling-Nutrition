@@ -78,12 +78,46 @@ describe('lifecycle validation', () => {
         {
           removedAtMileageMi: 500,
           removedDateIso: '2026-04-18',
+          nextStatus: 'removed',
         },
         activeRecord(),
         today
       )
     ).toMatchObject({
       installRecordId: 'Install record is required.',
+    });
+  });
+
+  it('rejects removes missing a next part status', () => {
+    expect(
+      validateRemoveDraft(
+        {
+          installRecordId: 'install-1',
+          removedAtMileageMi: 500,
+          removedDateIso: '2026-04-18',
+        } as Parameters<typeof validateRemoveDraft>[0],
+        activeRecord(),
+        today
+      )
+    ).toMatchObject({
+      nextStatus: 'Choose whether to remove or retire this part.',
+    });
+  });
+
+  it('rejects removes with an invalid next part status', () => {
+    expect(
+      validateRemoveDraft(
+        {
+          installRecordId: 'install-1',
+          removedAtMileageMi: 500,
+          removedDateIso: '2026-04-18',
+          nextStatus: 'installed',
+        } as unknown as Parameters<typeof validateRemoveDraft>[0],
+        activeRecord(),
+        today
+      )
+    ).toMatchObject({
+      nextStatus: 'Choose whether to remove or retire this part.',
     });
   });
 
@@ -94,6 +128,7 @@ describe('lifecycle validation', () => {
           installRecordId: 'install-1',
           removedAtMileageMi: 500,
           removedDateIso: '2026-04-18',
+          nextStatus: 'removed',
         },
         undefined,
         today
@@ -109,6 +144,7 @@ describe('lifecycle validation', () => {
         {
           installRecordId: 'install-1',
           removedAtMileageMi: 500,
+          nextStatus: 'removed',
         },
         activeRecord(),
         today
@@ -125,6 +161,7 @@ describe('lifecycle validation', () => {
           installRecordId: 'install-1',
           removedAtMileageMi: -1,
           removedDateIso: '2026-04-18',
+          nextStatus: 'removed',
         },
         activeRecord(),
         today
@@ -140,6 +177,7 @@ describe('lifecycle validation', () => {
           installRecordId: 'install-1',
           removedAtMileageMi: Number.POSITIVE_INFINITY,
           removedDateIso: '2026-04-18',
+          nextStatus: 'removed',
         },
         activeRecord(),
         today
@@ -157,6 +195,7 @@ describe('lifecycle validation', () => {
           installRecordId: 'install-1',
           removedAtMileageMi: 499,
           removedDateIso: '2026-04-18',
+          nextStatus: 'removed',
         },
         activeRecord(),
         today
@@ -173,6 +212,7 @@ describe('lifecycle validation', () => {
           installRecordId: 'install-1',
           removedAtMileageMi: 500,
           removedDateIso: '2026-02-28',
+          nextStatus: 'removed',
         },
         activeRecord({ installedDateIso: '2026-03-01' }),
         today
@@ -189,6 +229,7 @@ describe('lifecycle validation', () => {
           installRecordId: 'install-1',
           removedAtMileageMi: 500,
           removedDateIso: '2026-04-19',
+          nextStatus: 'removed',
         },
         activeRecord(),
         today
