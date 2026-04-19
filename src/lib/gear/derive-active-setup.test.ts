@@ -236,6 +236,33 @@ describe('deriveActiveSetup', () => {
     });
   });
 
+  it('classifies a 100 mi remaining chain wax on a 250 mi interval as soon, not ok', () => {
+    const rows = deriveActiveSetup({
+      bike: bike({ cachedOdometerMi: 900 }),
+      catalog: [chainCatalog()],
+      instances: [instance()],
+      installRecords: [
+        installRecord({
+          installedAtMileageMi: 500,
+          installedDateIso: '2026-03-01',
+        }),
+      ],
+      serviceEvents: [
+        serviceEvent({
+          typeKey: 'chain_wax',
+          intervalMi: 250,
+          mileageMi: 750,
+          nextDueMileageMi: 1000,
+        }),
+      ],
+      today,
+    });
+
+    const chainRow = rows.find((row) => row.slotKey === 'chain');
+
+    expect(chainRow?.urgency).toBe('soon');
+  });
+
   it('keeps empty slots unknown when stale slot-level service exists', () => {
     const rows = deriveActiveSetup({
       bike: bike({ cachedOdometerMi: 1200 }),
