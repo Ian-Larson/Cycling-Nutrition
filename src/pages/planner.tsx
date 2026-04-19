@@ -69,7 +69,8 @@ function isPlannerDraftShape(value: unknown): value is PlannerDraft {
   const draft = value as Partial<PlannerDraft>;
   const ride = draft.ride as Partial<RideCharacteristics> | undefined;
 
-  if (!ride || typeof ride !== 'object') return false;
+  if (ride === undefined) return true;
+  if (typeof ride !== 'object') return false;
   if (
     typeof ride.durationMinutes !== 'number' ||
     !Number.isFinite(ride.durationMinutes) ||
@@ -188,14 +189,14 @@ export function PlannerPage() {
   const bottleCounts = useStore((s) => s.bottleCounts);
   const products = useStore((s) => s.products);
   const saveFuelPlan = useStore((s) => s.saveFuelPlan);
-  const plannerDraft = useStore((s) => s.plannerDraft);
   const setPlannerDraft = useStore((s) => s.setPlannerDraft);
-  const [initialDraft] = useState<PlannerDraft | null>(() =>
-    isPlannerDraftShape(plannerDraft) ? plannerDraft : null
-  );
+  const [initialDraft] = useState<PlannerDraft | null>(() => {
+    const current = useStore.getState().plannerDraft;
+    return isPlannerDraftShape(current) ? current : null;
+  });
 
   const [step, setStep] = useState<PlannerStep>(
-    initialDraft ? 2 : parseInitialStep(searchParams.get('step'))
+    initialDraft?.ride ? 2 : parseInitialStep(searchParams.get('step'))
   );
   const [resultTab, setResultTab] = useState<ResultTab>('pack');
   const [plan, setPlan] = useState<Omit<FuelPlan, 'id' | 'createdAt'> | null>(
@@ -220,19 +221,33 @@ export function PlannerPage() {
   const [selectedSolidIds, setSelectedSolidIds] = useState<string[]>(
     getDefaultSelectedSolidIds(products, initialDraft)
   );
+  const [persistedRide, setPersistedRide] = useState<
+    RideCharacteristics | undefined
+  >(initialDraft?.ride);
 
   const [rideFormInitialSnapshot, setRideFormInitialSnapshot] = useState<
     Partial<RideFormSnapshot> | undefined
-  >(initialDraft ? getRideFormSnapshotFromRide(initialDraft.ride) : undefined);
+  >(initialDraft?.ride ? getRideFormSnapshotFromRide(initialDraft.ride) : undefined);
   const [rideFormInstanceKey, setRideFormInstanceKey] = useState(0);
 
   const lastInputRef = useRef<CalculatorInput | null>(null);
 
   useEffect(() => {
-    if (plannerDraft) {
-      setPlannerDraft(null);
-    }
-  }, [plannerDraft, setPlannerDraft]);
+    setPlannerDraft({
+      ride: persistedRide,
+      selectedBottleCounts,
+      selectedDrinkMixId,
+      selectedSolidIds,
+      title: planTitle || undefined,
+    });
+  }, [
+    persistedRide,
+    selectedBottleCounts,
+    selectedDrinkMixId,
+    selectedSolidIds,
+    planTitle,
+    setPlannerDraft,
+  ]);
 
   const handleBottleCountChange = (size: BottleSize, count: number) => {
     setSelectedBottleCounts((prev) => ({
@@ -355,6 +370,7 @@ export function PlannerPage() {
     const result = calculateFuelPlan(input);
     lastInputRef.current = input;
     setPlan(result);
+    setPersistedRide(ride);
 
     if (isV3) {
       const prescription = fuelingEngine.buildV3({

@@ -62,7 +62,7 @@ type SettingsUpdate = Partial<Omit<Settings, 'athleteProfile'>> & {
 };
 
 export interface PlannerDraft {
-  ride: RideCharacteristics;
+  ride?: RideCharacteristics;
   selectedBottleCounts?: BottleInventory;
   selectedDrinkMixId?: string | null;
   selectedSolidIds?: string[];
@@ -453,37 +453,41 @@ export function normalizeFuelPlans(
 export function normalizePlannerDraft(value: unknown): PlannerDraft | null {
   if (!value || typeof value !== 'object') return null;
   const draft = value as Partial<PlannerDraft>;
-  const ride = draft.ride as Partial<RideCharacteristics> | undefined;
+  const rawRide = draft.ride as Partial<RideCharacteristics> | undefined;
 
-  if (!ride || typeof ride !== 'object') return null;
-  if (
-    typeof ride.durationMinutes !== 'number' ||
-    !Number.isFinite(ride.durationMinutes) ||
-    ride.durationMinutes <= 0
-  ) {
-    return null;
-  }
-  if (
-    typeof ride.carbTargetGramsPerHour !== 'number' ||
-    !Number.isFinite(ride.carbTargetGramsPerHour) ||
-    ride.carbTargetGramsPerHour < 0
-  ) {
-    return null;
-  }
-  if (
-    !['recovery', 'endurance', 'tempo', 'threshold', 'race'].includes(
-      String(ride.intensity)
-    )
-  ) {
-    return null;
-  }
-  if (!['cool', 'moderate', 'warm', 'hot'].includes(String(ride.heatFactor))) {
-    return null;
+  let normalizedRide: RideCharacteristics | undefined;
+  if (rawRide !== undefined) {
+    if (!rawRide || typeof rawRide !== 'object') return null;
+    if (
+      typeof rawRide.durationMinutes !== 'number' ||
+      !Number.isFinite(rawRide.durationMinutes) ||
+      rawRide.durationMinutes <= 0
+    ) {
+      return null;
+    }
+    if (
+      typeof rawRide.carbTargetGramsPerHour !== 'number' ||
+      !Number.isFinite(rawRide.carbTargetGramsPerHour) ||
+      rawRide.carbTargetGramsPerHour < 0
+    ) {
+      return null;
+    }
+    if (
+      !['recovery', 'endurance', 'tempo', 'threshold', 'race'].includes(
+        String(rawRide.intensity)
+      )
+    ) {
+      return null;
+    }
+    if (!['cool', 'moderate', 'warm', 'hot'].includes(String(rawRide.heatFactor))) {
+      return null;
+    }
+    normalizedRide = rawRide as RideCharacteristics;
   }
 
   return {
     ...draft,
-    ride: ride as RideCharacteristics,
+    ride: normalizedRide,
     selectedBottleCounts: normalizeBottleCounts(
       (draft as { selectedBottleCounts?: unknown }).selectedBottleCounts
     ),

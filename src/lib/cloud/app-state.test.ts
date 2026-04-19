@@ -207,7 +207,7 @@ describe('cloud app-state snapshots', () => {
       expect(parsed.snapshot.data.bottleCounts).toEqual({ 550: 0, 750: 1, 950: 0 });
       expect(parsed.snapshot.data.products[0].name).toBe('Mix');
       expect(parsed.snapshot.data.settings.athleteProfile.ftpWatts).toBe(280);
-      expect(parsed.snapshot.data.plannerDraft?.ride.durationMinutes).toBe(120);
+      expect(parsed.snapshot.data.plannerDraft?.ride?.durationMinutes).toBe(120);
       expect(parsed.snapshot.data.bikes).toMatchObject([
         {
           id: 'bike-1',
