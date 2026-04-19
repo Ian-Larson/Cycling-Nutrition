@@ -1,5 +1,7 @@
 import { Card, CardContent } from '@/components/ui';
 import { getBikeSlot, getGearServiceType } from '@/lib/gear/constants';
+import { OverflowMenu } from './overflow-menu';
+import { useStore } from '@/store';
 import type {
   Bike,
   GearInstallRecord,
@@ -14,6 +16,7 @@ interface GearHistoryListProps {
   bikes: Bike[];
   catalog: GearPartCatalogItem[];
   instances: GearPartInstance[];
+  onEditEvent?: (eventId: string) => void;
 }
 
 interface HistoryRow {
@@ -25,6 +28,7 @@ interface HistoryRow {
   context: string;
   details: string[];
   notes: string[];
+  eventId?: string;
 }
 
 function formatDate(dateIso: string): string {
@@ -85,7 +89,9 @@ export function GearHistoryList({
   bikes,
   catalog,
   instances,
+  onEditEvent,
 }: GearHistoryListProps) {
+  const deleteGearServiceEvent = useStore((s) => s.deleteGearServiceEvent);
   if (events.length === 0 && installRecords.length === 0) {
     return (
       <Card>
@@ -115,6 +121,7 @@ export function GearHistoryList({
         event.materialsNote ? `Materials: ${event.materialsNote}` : null,
         event.notes ? `Notes: ${event.notes}` : null,
       ].filter((note): note is string => note !== null),
+      eventId: event.id,
     };
   });
   const installRows: HistoryRow[] = installRecords.map((record) => {
@@ -156,6 +163,14 @@ export function GearHistoryList({
   });
   const rows = [...serviceRows, ...installRows, ...removeRows].sort(compareRows);
 
+  const handleDelete = (eventId: string) => {
+    const confirmed = window.confirm(
+      'Delete this service event? This cannot be undone.'
+    );
+    if (!confirmed) return;
+    deleteGearServiceEvent(eventId);
+  };
+
   return (
     <div className="flex flex-col gap-3">
       {rows.map((row) => (
@@ -171,6 +186,21 @@ export function GearHistoryList({
                   {row.context ? ` - ${row.context}` : ''}
                 </p>
               </div>
+              {row.eventId && onEditEvent ? (
+                <OverflowMenu
+                  items={[
+                    {
+                      label: 'Edit',
+                      onSelect: () => onEditEvent(row.eventId as string),
+                    },
+                    {
+                      label: 'Delete',
+                      tone: 'danger',
+                      onSelect: () => handleDelete(row.eventId as string),
+                    },
+                  ]}
+                />
+              ) : null}
             </div>
 
             {row.details.length > 0 ? (

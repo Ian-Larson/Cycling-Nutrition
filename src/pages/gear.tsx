@@ -11,6 +11,7 @@ import { InstallPartSheet } from '@/components/gear/install-part-sheet';
 import { LogGearServiceSheet } from '@/components/gear/log-gear-service-sheet';
 import { RemovePartSheet } from '@/components/gear/remove-part-sheet';
 import { GearHistoryList } from '@/components/gear/gear-history-list';
+import { EditServiceEventSheet } from '@/components/gear/edit-service-event-sheet';
 import { deriveActiveSetup } from '@/lib/gear/derive-active-setup';
 import { deriveGearDue } from '@/lib/gear/derive-gear-due';
 import { Button, Card, CardContent } from '@/components/ui';
@@ -61,6 +62,7 @@ export function GearPage() {
     partInstanceId?: string;
     typeKey?: GearServiceTypeKey;
   } | null>(null);
+  const [editEventId, setEditEventId] = useState<string | null>(null);
 
   const selectedBikeIdForView = useMemo(() => {
     if (selectedBikeId && bikes.some((bike) => bike.id === selectedBikeId)) {
@@ -306,6 +308,7 @@ export function GearPage() {
               bikes={bikes}
               catalog={gearPartCatalog}
               instances={gearPartInstances}
+              onEditEvent={(id) => setEditEventId(id)}
             />
           ) : null}
         </section>
@@ -352,6 +355,20 @@ export function GearPage() {
           logGearServiceEvent(event);
           setServiceContext(null);
         }}
+      />
+
+      <EditServiceEventSheet
+        open={editEventId !== null}
+        event={
+          editEventId
+            ? gearServiceEvents.find((e) => e.id === editEventId) ?? null
+            : null
+        }
+        bikes={bikes}
+        catalog={gearPartCatalog}
+        instances={gearPartInstances}
+        installRecords={gearInstallRecords}
+        onClose={() => setEditEventId(null)}
       />
     </div>
   );
