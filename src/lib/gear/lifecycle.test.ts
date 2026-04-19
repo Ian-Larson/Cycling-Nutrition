@@ -102,6 +102,22 @@ describe('lifecycle validation', () => {
     });
   });
 
+  it('rejects removal dates before the active install date', () => {
+    expect(
+      validateRemoveDraft(
+        {
+          installRecordId: 'install-1',
+          removedAtMileageMi: 500,
+          removedDateIso: '2026-02-28',
+        },
+        activeRecord({ installedDateIso: '2026-03-01' }),
+        today
+      )
+    ).toMatchObject({
+      removedDateIso: 'Remove date cannot be before install date.',
+    });
+  });
+
   it('rejects future remove dates', () => {
     expect(
       validateRemoveDraft(

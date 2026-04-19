@@ -115,7 +115,15 @@ export function validateRemoveDraft(
     'Remove date is required.',
     'Remove date cannot be in the future.'
   );
-  if (dateError) errors.removedDateIso = dateError;
+  if (dateError) {
+    errors.removedDateIso = dateError;
+  } else if (
+    activeRecord &&
+    hasText(draft.removedDateIso) &&
+    draft.removedDateIso < activeRecord.installedDateIso
+  ) {
+    errors.removedDateIso = 'Remove date cannot be before install date.';
+  }
 
   return errors;
 }

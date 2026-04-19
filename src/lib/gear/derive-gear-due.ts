@@ -1,4 +1,4 @@
-import type { Bike, GearServiceEvent } from '@/types/gear';
+import type { Bike, GearInstallRecord, GearServiceEvent } from '@/types/gear';
 import { getGearServiceType } from './constants';
 import type { GearUrgency } from './derive-active-setup';
 
@@ -16,6 +16,7 @@ export interface GearDueItem {
 
 interface DeriveGearDueInput {
   bikes: readonly Bike[];
+  installRecords: readonly GearInstallRecord[];
   serviceEvents: readonly GearServiceEvent[];
   today: string;
 }
@@ -32,6 +33,44 @@ function daysBetween(startIso: string, endIso: string): number {
   const start = Date.parse(`${startIso}T00:00:00.000Z`);
   const end = Date.parse(`${endIso}T00:00:00.000Z`);
   return Math.round((end - start) / msPerDay);
+}
+
+function isActiveInstall(record: GearInstallRecord): boolean {
+  return record.removedAtMileageMi === undefined && record.removedDateIso === undefined;
+}
+
+function activeInstallKey(bikeId: string, value: string): string {
+  return `${bikeId}\u0000${value}`;
+}
+
+function logicalTargetKey(event: GearServiceEvent): string {
+  if (event.partInstanceId) {
+    return `part\u0000${event.bikeId}\u0000${event.partInstanceId}\u0000${event.typeKey}`;
+  }
+  if (event.slotKey) {
+    return `slot\u0000${event.bikeId}\u0000${event.slotKey}\u0000${event.typeKey}`;
+  }
+  return `bike\u0000${event.bikeId}\u0000${event.typeKey}`;
+}
+
+function compareServiceRecency(a: GearServiceEvent, b: GearServiceEvent): number {
+  if (a.dateIso !== b.dateIso) return a.dateIso > b.dateIso ? -1 : 1;
+  if (a.createdAt !== b.createdAt) return b.createdAt - a.createdAt;
+  return b.id.localeCompare(a.id);
+}
+
+function hasActiveTarget(
+  event: GearServiceEvent,
+  activePartKeys: ReadonlySet<string>,
+  activeSlotKeys: ReadonlySet<string>
+): boolean {
+  if (event.partInstanceId) {
+    return activePartKeys.has(activeInstallKey(event.bikeId, event.partInstanceId));
+  }
+  if (event.slotKey) {
+    return activeSlotKeys.has(activeInstallKey(event.bikeId, event.slotKey));
+  }
+  return true;
 }
 
 function deriveUrgency(
@@ -67,8 +106,28 @@ function nearestDueValue(item: GearDueItem): number {
 
 export function deriveGearDue(input: DeriveGearDueInput): GearDueItem[] {
   const bikesById = new Map(input.bikes.map((bike) => [bike.id, bike]));
+  const activeRecords = input.installRecords.filter(isActiveInstall);
+  const activePartKeys = new Set(
+    activeRecords.map((record) =>
+      activeInstallKey(record.bikeId, record.partInstanceId)
+    )
+  );
+  const activeSlotKeys = new Set(
+    activeRecords.map((record) => activeInstallKey(record.bikeId, record.slotKey))
+  );
+  const latestByTarget = new Map<string, GearServiceEvent>();
 
-  return input.serviceEvents
+  for (const event of input.serviceEvents) {
+    if (!hasActiveTarget(event, activePartKeys, activeSlotKeys)) continue;
+
+    const targetKey = logicalTargetKey(event);
+    const previous = latestByTarget.get(targetKey);
+    if (!previous || compareServiceRecency(event, previous) < 0) {
+      latestByTarget.set(targetKey, event);
+    }
+  }
+
+  return [...latestByTarget.values()]
     .filter(
       (event) =>
         event.nextDueMileageMi !== undefined || event.nextDueDateIso !== undefined

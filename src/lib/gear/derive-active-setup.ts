@@ -45,18 +45,17 @@ function serviceMatchesSlot(
   event: GearServiceEvent,
   bike: Bike,
   slotKey: BikeSlotKey,
-  installRecord: GearInstallRecord | null
+  installRecord: GearInstallRecord
 ): boolean {
   if (event.bikeId !== bike.id) return false;
-  if (installRecord && event.partInstanceId === installRecord.partInstanceId) {
-    return true;
-  }
+  if (event.partInstanceId === installRecord.partInstanceId) return true;
   return !event.partInstanceId && event.slotKey === slotKey;
 }
 
 function compareServiceRecency(a: GearServiceEvent, b: GearServiceEvent): number {
   if (a.dateIso !== b.dateIso) return a.dateIso > b.dateIso ? -1 : 1;
-  return b.createdAt - a.createdAt;
+  if (a.createdAt !== b.createdAt) return b.createdAt - a.createdAt;
+  return b.id.localeCompare(a.id);
 }
 
 function deriveUrgency(
@@ -117,7 +116,7 @@ export function deriveActiveSetup(input: DeriveActiveSetupInput): ActiveSetupRow
         ? null
         : input.catalog.find((item) => item.id === instance.catalogItemId) ?? null;
     const latestService =
-      bike === null
+      bike === null || installRecord === null
         ? null
         : [...input.serviceEvents]
             .filter((event) =>

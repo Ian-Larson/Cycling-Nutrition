@@ -166,4 +166,31 @@ describe('deriveActiveSetup', () => {
       urgency: 'unknown',
     });
   });
+
+  it('keeps empty slots unknown when stale slot-level service exists', () => {
+    const rows = deriveActiveSetup({
+      bike: bike({ cachedOdometerMi: 1200 }),
+      catalog: [chainCatalog()],
+      instances: [instance()],
+      installRecords: [installRecord()],
+      serviceEvents: [
+        serviceEvent({
+          id: 'stale-front-tire-service',
+          partInstanceId: undefined,
+          slotKey: 'front_tire',
+          typeKey: 'tire_inspection',
+          nextDueMileageMi: 1100,
+        }),
+      ],
+      today,
+    });
+
+    const frontTireRow = rows.find((row) => row.slotKey === 'front_tire');
+
+    expect(frontTireRow).toMatchObject({
+      installRecord: null,
+      latestService: null,
+      urgency: 'unknown',
+    });
+  });
 });

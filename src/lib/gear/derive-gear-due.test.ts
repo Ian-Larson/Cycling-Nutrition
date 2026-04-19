@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { deriveGearDue } from './derive-gear-due';
-import type { Bike, GearServiceEvent } from '@/types/gear';
+import type { Bike, GearInstallRecord, GearServiceEvent } from '@/types/gear';
 
 const today = '2026-04-18';
 
@@ -31,10 +31,25 @@ const serviceEvent = (
   ...overrides,
 });
 
+const installRecord = (
+  overrides: Partial<GearInstallRecord> = {}
+): GearInstallRecord => ({
+  id: 'install-1',
+  bikeId: 'bike-1',
+  partInstanceId: 'part-1',
+  slotKey: 'chain',
+  installedAtMileageMi: 750,
+  installedDateIso: '2026-03-01',
+  createdAt: 0,
+  updatedAt: 0,
+  ...overrides,
+});
+
 describe('deriveGearDue', () => {
   it('derives overdue, soon, and ok mileage due items in urgency order', () => {
     const items = deriveGearDue({
       bikes: [bike({ cachedOdometerMi: 1000 })],
+      installRecords: [],
       serviceEvents: [
         serviceEvent({
           id: 'ok',
@@ -67,6 +82,7 @@ describe('deriveGearDue', () => {
   it('derives overdue date due items', () => {
     const items = deriveGearDue({
       bikes: [bike()],
+      installRecords: [],
       serviceEvents: [
         serviceEvent({
           id: 'overdue-date',
@@ -86,5 +102,57 @@ describe('deriveGearDue', () => {
         urgency: 'overdue',
       },
     ]);
+  });
+
+  it('uses only the latest event for the same bike, part, and type', () => {
+    const items = deriveGearDue({
+      bikes: [bike({ cachedOdometerMi: 1000 })],
+      installRecords: [installRecord()],
+      serviceEvents: [
+        serviceEvent({
+          id: 'old-overdue',
+          partInstanceId: 'part-1',
+          dateIso: '2026-04-01',
+          createdAt: 1,
+          nextDueMileageMi: 900,
+        }),
+        serviceEvent({
+          id: 'new-ok',
+          partInstanceId: 'part-1',
+          dateIso: '2026-04-10',
+          createdAt: 1,
+          nextDueMileageMi: 1300,
+        }),
+      ],
+      today,
+    });
+
+    expect(items.map((item) => item.id)).toEqual(['new-ok']);
+    expect(items[0]).toMatchObject({
+      remainingMi: 300,
+      urgency: 'ok',
+    });
+  });
+
+  it('excludes part-specific events for removed install records', () => {
+    const items = deriveGearDue({
+      bikes: [bike({ cachedOdometerMi: 1000 })],
+      installRecords: [
+        installRecord({
+          removedAtMileageMi: 900,
+          removedDateIso: '2026-04-01',
+        }),
+      ],
+      serviceEvents: [
+        serviceEvent({
+          id: 'removed-part-service',
+          partInstanceId: 'part-1',
+          nextDueMileageMi: 900,
+        }),
+      ],
+      today,
+    });
+
+    expect(items).toEqual([]);
   });
 });
