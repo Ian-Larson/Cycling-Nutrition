@@ -106,7 +106,7 @@ function deriveUrgency(
   const mileageIsSoon =
     remainingMi !== null &&
     event.intervalMi !== undefined &&
-    remainingMi <= event.intervalMi * 0.1;
+    remainingMi <= Math.max(event.intervalMi * 0.2, 100);
   const dateIsSoon = remainingDays !== null && remainingDays <= 14;
   if (mileageIsSoon || dateIsSoon) return 'soon';
 

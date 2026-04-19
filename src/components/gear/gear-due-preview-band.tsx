@@ -17,27 +17,47 @@ export function GearDuePreviewBand({
   onViewAll,
   selectedBikeId,
 }: GearDuePreviewBandProps) {
-  if (items.length === 0) {
+  const attention = items.filter(
+    (item) => item.urgency === 'overdue' || item.urgency === 'soon'
+  );
+  if (attention.length === 0) {
     return (
-      <p className="text-sm leading-5 text-ink-500">Nothing due.</p>
+      <p className="text-sm leading-5 text-ink-500">Nothing due soon.</p>
     );
   }
 
-  const top = items.slice(0, 2);
+  const overdueCount = attention.filter((i) => i.urgency === 'overdue').length;
+  const soonCount = attention.length - overdueCount;
+  const top = attention.slice(0, 2);
 
   return (
-    <section aria-label="Due now" className="surface-note space-y-2 p-3 md:p-4">
-      <header className="flex items-center justify-between">
-        <p className="section-kicker text-[0.68rem] text-ink-700">
-          Due now · {items.length}
-        </p>
-        {items.length > 2 ? (
+    <section
+      aria-label="Service attention"
+      className="surface-note space-y-2 p-3 md:p-4"
+    >
+      <header className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.68rem]">
+          {overdueCount > 0 ? (
+            <span className="section-kicker text-rose-700">
+              Overdue · {overdueCount}
+            </span>
+          ) : null}
+          {overdueCount > 0 && soonCount > 0 ? (
+            <span aria-hidden className="text-ink-400">·</span>
+          ) : null}
+          {soonCount > 0 ? (
+            <span className="section-kicker text-amber-700">
+              Due soon · {soonCount}
+            </span>
+          ) : null}
+        </div>
+        {attention.length > 2 ? (
           <button
             type="button"
             onClick={onViewAll}
             className="text-xs font-medium text-brand-700 hover:underline"
           >
-            View all {items.length}
+            View all {attention.length}
           </button>
         ) : null}
       </header>

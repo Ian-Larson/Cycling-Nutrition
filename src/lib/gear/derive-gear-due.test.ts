@@ -321,6 +321,26 @@ describe('deriveGearDue', () => {
     expect(items).toEqual([]);
   });
 
+  it('classifies a 100 mi remaining chain wax on a 250 mi interval as soon, not ok', () => {
+    const items = deriveGearDue({
+      bikes: [bike({ cachedOdometerMi: 900 })],
+      installRecords: [],
+      serviceEvents: [
+        serviceEvent({
+          typeKey: 'chain_wax',
+          intervalMi: 250,
+          mileageMi: 750,
+          nextDueMileageMi: 1000,
+        }),
+      ],
+      today,
+    });
+
+    expect(items).toHaveLength(1);
+    expect(items[0].remainingMi).toBe(100);
+    expect(items[0].urgency).toBe('soon');
+  });
+
   it('includes bike-only due rows without install records', () => {
     const items = deriveGearDue({
       bikes: [bike({ cachedOdometerMi: 1000 })],
