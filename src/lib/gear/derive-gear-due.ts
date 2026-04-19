@@ -11,6 +11,8 @@ export interface GearDueItem {
   label: string;
   remainingMi: number | null;
   remainingDays: number | null;
+  intervalMi: number | null;
+  intervalDays: number | null;
   urgency: GearUrgency;
 }
 
@@ -164,6 +166,8 @@ export function deriveGearDue(input: DeriveGearDueInput): GearDueItem[] {
         label: getGearServiceType(event.typeKey).label,
         remainingMi,
         remainingDays,
+        intervalMi: event.intervalMi ?? null,
+        intervalDays: event.intervalDays ?? null,
         urgency: deriveUrgency(event, remainingMi, remainingDays),
       };
     })

@@ -46,6 +46,26 @@ const installRecord = (
 });
 
 describe('deriveGearDue', () => {
+  it('surfaces intervalMi and intervalDays on the due item', () => {
+    const items = deriveGearDue({
+      bikes: [bike({ cachedOdometerMi: 1000 })],
+      installRecords: [],
+      serviceEvents: [
+        serviceEvent({
+          intervalMi: 200,
+          intervalDays: 30,
+          nextDueMileageMi: 1100,
+          nextDueDateIso: '2026-05-01',
+        }),
+      ],
+      today,
+    });
+
+    expect(items).toHaveLength(1);
+    expect(items[0].intervalMi).toBe(200);
+    expect(items[0].intervalDays).toBe(30);
+  });
+
   it('derives overdue, soon, and ok mileage due items in urgency order', () => {
     const items = deriveGearDue({
       bikes: [bike({ cachedOdometerMi: 1000 })],
