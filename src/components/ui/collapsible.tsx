@@ -104,7 +104,7 @@ export function CollapsibleTrigger({
       {showChevron && (
         <svg
           className={clsx(
-            'h-4 w-4 shrink-0 text-gray-500 transition-transform',
+            'h-4 w-4 shrink-0 text-ink-500 transition-transform',
             open && 'rotate-180'
           )}
           viewBox="0 0 20 20"

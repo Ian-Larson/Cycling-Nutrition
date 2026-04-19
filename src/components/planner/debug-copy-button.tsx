@@ -221,7 +221,7 @@ export function DebugCopyButton({
       variant="ghost"
       onClick={handleCopy}
     >
-      <span className="text-gray-400 text-sm">
+      <span className="text-ink-500 text-sm">
         {copied ? 'Copied!' : copyFailed ? 'Copy failed' : 'Copy Debug Info'}
       </span>
     </Button>

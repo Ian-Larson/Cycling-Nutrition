@@ -22,7 +22,7 @@ export function MobileNav() {
               className={clsx(
                 'flex min-h-11 items-center justify-center rounded-md px-1 text-center text-[0.75rem] font-semibold leading-none transition-[background-color,color,box-shadow,transform] duration-200 motion-safe:active:scale-[0.98]',
                 isActive
-                  ? 'bg-info-100 text-info-800 shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-info-300)_62%,white)]'
+                  ? 'bg-brand-50 text-brand-700 shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-brand-200)_62%,white)]'
                   : 'text-ink-700 hover:bg-shell-50 hover:text-ink-900'
               )}
             >

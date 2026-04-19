@@ -182,7 +182,7 @@ export function FuelResult({
                   return (
                     <div
                       key={i}
-                      className="grid gap-3 rounded-[1.15rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:rounded-[1.25rem] md:px-4 md:py-4"
+                      className="grid gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:px-4 md:py-4"
                     >
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900 md:h-10 md:w-10">
                         {String(i + 1).padStart(2, '0')}
@@ -238,7 +238,7 @@ export function FuelResult({
                   return (
                     <div
                       key={`${alloc.productId}-${i}`}
-                      className="grid gap-3 rounded-[1.15rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:rounded-[1.25rem] md:px-4 md:py-4"
+                      className="grid gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:px-4 md:py-4"
                     >
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900 md:h-10 md:w-10">
                         {String(i + 1).padStart(2, '0')}
@@ -299,7 +299,7 @@ export function FuelResult({
             {plan.consumptionGuide.map((item, i) => (
               <div
                 key={`${item.timeOffsetMinutes}-${i}`}
-                className="grid gap-2.5 rounded-[1.15rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-start md:gap-3 md:rounded-[1.25rem] md:px-4 md:py-4"
+                className="grid gap-2.5 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-start md:gap-3 md:px-4 md:py-4"
               >
                 <div className="rounded-lg border border-brand-200 bg-brand-100 px-3 py-2 font-sans text-sm font-semibold text-brand-800">
                   {formatTime(item.timeOffsetMinutes)}

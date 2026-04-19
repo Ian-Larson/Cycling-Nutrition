@@ -28,7 +28,7 @@ function BottleCounter({
   onDecrement: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-[1rem] border border-[color:var(--border-soft)] bg-white px-3 py-3">
+    <div className="flex flex-col items-center gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3">
       <p className="font-semibold text-ink-900">{size}ml</p>
       <div className="flex items-center gap-3">
         <button
@@ -293,7 +293,7 @@ export function InventoryPage() {
         )}
 
         {products.length > 0 && (
-          <div className="mb-2.5 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-3 md:mb-3 md:p-4">
+          <div className="mb-2.5 rounded-2xl border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-3 md:mb-3 md:p-4">
             <div className="space-y-2.5 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
               <div className="space-y-1.5">
                 <p className="section-kicker text-[0.68rem]">Type</p>

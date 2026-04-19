@@ -44,10 +44,10 @@ function severityClasses(severity: WarningSeverity): {
       };
     default:
       return {
-        border: 'border-sky-200',
-        bg: 'bg-sky-50',
-        text: 'text-sky-900',
-        badge: 'bg-sky-200 text-sky-900',
+        border: 'border-[color:var(--border-soft)]',
+        bg: 'bg-[var(--surface-soft)]',
+        text: 'text-ink-800',
+        badge: 'bg-shell-200 text-ink-800',
       };
   }
 }
@@ -99,7 +99,7 @@ function WarningsCard({ warnings }: { warnings: Warning[] }) {
           return (
             <div
               key={`${w.code}-${i}`}
-              className={`flex items-start gap-2.5 rounded-[1rem] border ${s.border} ${s.bg} ${s.text} px-3 py-2.5 md:rounded-[1.05rem] md:px-4 md:py-3`}
+              className={`flex items-start gap-2.5 rounded-2xl border ${s.border} ${s.bg} ${s.text} px-3 py-2.5 md:px-4 md:py-3`}
             >
               <span
                 className={`mt-0.5 inline-flex shrink-0 items-center rounded-full ${s.badge} px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide`}
@@ -180,7 +180,7 @@ function PreRideCard({ prescription }: { prescription: FuelingPrescription }) {
       </CardHeader>
       <CardContent className="space-y-3">
         {carbLoad && (
-          <div className="rounded-[1rem] border border-brand-200 bg-[color:color-mix(in_oklch,var(--color-brand-50)_58%,white)] px-3 py-3 md:rounded-[1.05rem] md:px-4 md:py-4">
+          <div className="rounded-2xl border border-brand-200 bg-[color:color-mix(in_oklch,var(--color-brand-50)_58%,white)] px-3 py-3 md:px-4 md:py-4">
             <p className="section-kicker text-[0.68rem] text-brand-700">
               Carb load
             </p>
@@ -320,7 +320,7 @@ function DuringCard({
               return (
                 <div
                   key={i}
-                  className="grid gap-2 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:rounded-[1.15rem] md:px-4"
+                  className="grid gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:px-4"
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900">
                     {String(i + 1).padStart(2, '0')}
@@ -377,7 +377,7 @@ function DuringCard({
               return (
                 <div
                   key={`${alloc.productId}-${i}`}
-                  className="grid gap-2 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:rounded-[1.15rem] md:px-4"
+                  className="grid gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:px-4"
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900">
                     {String(i + 1).padStart(2, '0')}
@@ -521,14 +521,14 @@ function TimelineCard({ items }: { items: TimelineItem[] | undefined }) {
               : formatTime(offset);
           const phaseBadge =
             item.phase === 'pre'
-              ? 'bg-sky-100 text-sky-800 border-sky-200'
+              ? 'bg-shell-100 text-ink-700 border-[color:var(--border-soft)]'
               : item.phase === 'post'
                 ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
                 : 'bg-brand-100 text-brand-800 border-brand-200';
           return (
             <div
               key={`${offset}-${i}`}
-              className="grid gap-2.5 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-start md:gap-3 md:rounded-[1.15rem] md:px-4 md:py-4"
+              className="grid gap-2.5 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-start md:gap-3 md:px-4 md:py-4"
             >
               <div
                 className={`rounded-lg border px-3 py-2 font-sans text-sm font-semibold ${phaseBadge}`}

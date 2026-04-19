@@ -699,7 +699,7 @@ export function RideForm({
 
           <div className="lg:pt-1">
             {!hasFtp ? (
-              <div className="rounded-[1.2rem] border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800 md:rounded-[1.35rem] md:p-5">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800 md:p-5">
                 Add FTP in{' '}
                 <Link className="font-medium underline" to="/athlete?return=planner-step2">
                   Athlete
@@ -707,7 +707,7 @@ export function RideForm({
                 to use auto mode.
               </div>
             ) : autoPreview.result && previewAutoMetrics ? (
-              <div className="rounded-[1.2rem] border border-brand-300 bg-[color:color-mix(in_oklch,var(--color-brand-100)_72%,white)] p-4 text-brand-900 md:rounded-[1.35rem] md:p-5">
+              <div className="rounded-2xl border border-brand-300 bg-[color:color-mix(in_oklch,var(--color-brand-100)_72%,white)] p-4 text-brand-900 md:p-5">
                 <p className="section-kicker text-[0.68rem] text-brand-700">
                   Recommended
                 </p>
@@ -786,7 +786,7 @@ export function RideForm({
                 </Collapsible>
               </div>
             ) : (
-              <div className="rounded-[1.2rem] border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-4 md:rounded-[1.35rem] md:p-5">
+              <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-4 md:p-5">
                 <p className="section-kicker text-[0.68rem]">Auto result</p>
                 <p className="mt-2 text-sm leading-6 text-ink-700">
                   {autoPreview.error ?? 'Enter both selected inputs.'}

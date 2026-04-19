@@ -33,11 +33,11 @@ export function NeedsIntensityBar({
   return (
     <div className={clsx('space-y-2', compact && 'space-y-1')}>
       <div className="flex items-center justify-between">
-        <p className={clsx('font-medium text-gray-700', compact ? 'text-xs' : 'text-sm')}>
+        <p className={clsx('font-medium text-ink-700', compact ? 'text-xs' : 'text-sm')}>
           {label}
         </p>
         <div className="flex items-center gap-2">
-          <span className={clsx('text-gray-500', compact ? 'text-xs' : 'text-sm')}>
+          <span className={clsx('text-ink-500', compact ? 'text-xs' : 'text-sm')}>
             {clampedScore}/100
           </span>
           <span
@@ -55,13 +55,13 @@ export function NeedsIntensityBar({
       <div className={clsx('relative rounded-full overflow-hidden', compact ? 'h-2.5' : 'h-3')}>
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-amber-400 via-orange-500 to-red-500" />
         <div
-          className="absolute top-1/2 h-4 w-4 -translate-y-1/2 -translate-x-1/2 rounded-full border-2 border-white bg-gray-900 shadow"
+          className="absolute top-1/2 h-4 w-4 -translate-y-1/2 -translate-x-1/2 rounded-full border-2 border-white bg-ink-900 shadow"
           style={{ left: `${clampedScore}%` }}
           aria-hidden
         />
       </div>
 
-      <div className={clsx('grid grid-cols-4 text-gray-500', compact ? 'text-[11px]' : 'text-xs')}>
+      <div className={clsx('grid grid-cols-4 text-ink-500', compact ? 'text-[11px]' : 'text-xs')}>
         <span>Low</span>
         <span className="text-center">Moderate</span>
         <span className="text-center">High</span>

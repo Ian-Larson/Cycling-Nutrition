@@ -33,7 +33,7 @@ export function SectionNav({ section }: SectionNavProps) {
             className={clsx(
               'inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border px-3.5 py-2 text-sm font-semibold transition-colors md:min-h-10',
               isActive
-                ? 'border-info-300 bg-info-100 text-info-800'
+                ? 'border-brand-200 bg-brand-50 text-brand-700'
                 : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50 hover:text-ink-900'
             )}
           >

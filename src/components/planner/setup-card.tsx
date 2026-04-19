@@ -43,7 +43,7 @@ function SelectionRow({
     <label
       htmlFor={id}
       className={clsx(
-        'flex cursor-pointer items-center justify-between gap-3 rounded-[0.95rem] border px-3 py-3 transition-colors',
+        'flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-3 py-3 transition-colors',
         checked
           ? 'border-brand-300 bg-brand-50/60'
           : 'border-[color:var(--border-soft)] bg-white hover:bg-shell-50'
@@ -81,7 +81,7 @@ function BottleSizeCounter({
   return (
     <div
       className={clsx(
-        'flex flex-col items-center gap-2 rounded-[0.95rem] border px-3 py-3 transition-colors',
+        'flex flex-col items-center gap-2 rounded-xl border px-3 py-3 transition-colors',
         disabled
           ? 'border-[color:var(--border-soft)] bg-shell-50 opacity-40'
           : count > 0
@@ -167,7 +167,7 @@ export function SetupCard({
         <Collapsible
           open={bottlesOpen}
           onOpenChange={setBottlesOpen}
-          className="overflow-hidden rounded-[1.1rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_82%,white)]"
+          className="overflow-hidden rounded-2xl border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_82%,white)]"
         >
           <CollapsibleTrigger className="px-4 py-3.5 md:px-5 md:py-4">
             <div className="min-w-0">
@@ -207,7 +207,7 @@ export function SetupCard({
         <Collapsible
           open={fuelOpen}
           onOpenChange={setFuelOpen}
-          className="overflow-hidden rounded-[1.1rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_82%,white)]"
+          className="overflow-hidden rounded-2xl border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_82%,white)]"
         >
           <CollapsibleTrigger className="px-4 py-3.5 md:px-5 md:py-4">
             <div className="min-w-0">

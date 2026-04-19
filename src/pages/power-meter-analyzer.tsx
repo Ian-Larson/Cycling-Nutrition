@@ -446,7 +446,7 @@ export function PowerMeterAnalyzerPage() {
                         className={clsx(
                           'min-h-11 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors md:w-full',
                           activeReferenceId === file.id
-                            ? 'border-info-400 bg-info-100 text-info-800'
+                            ? 'border-brand-300 bg-brand-100 text-brand-800'
                             : 'border-[color:var(--border-soft)] bg-white text-ink-600'
                         )}
                       >
@@ -489,7 +489,7 @@ export function PowerMeterAnalyzerPage() {
                     onChange={(event) =>
                       setSmoothingSeconds(Number(event.target.value))
                     }
-                    className="block min-h-12 w-full rounded-[0.95rem] border border-[color:var(--border-soft)] bg-white px-3.5 py-2.5 text-base text-ink-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 md:min-h-11 md:rounded-xl"
+                    className="block min-h-12 w-full rounded-xl border border-[color:var(--border-soft)] bg-white px-3.5 py-2.5 text-base text-ink-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 md:min-h-11"
                   >
                     {SMOOTHING_OPTIONS.map((seconds) => (
                       <option key={seconds} value={seconds}>
@@ -552,7 +552,7 @@ export function PowerMeterAnalyzerPage() {
                         <span className="truncate">{summary.name}</span>
                       </p>
                       {summary.id === activeReferenceId && (
-                        <span className="rounded-full bg-info-100 px-2 py-1 text-xs font-semibold text-info-800">
+                        <span className="rounded-full bg-brand-100 px-2 py-1 text-xs font-semibold text-brand-800">
                           reference
                         </span>
                       )}

@@ -566,7 +566,7 @@ export function PlannerPage() {
               </p>
             </div>
             {!canCalculate && (
-              <div className="rounded-[1rem] border border-amber-200 bg-amber-50 px-4 py-3.5 text-sm leading-6 text-amber-800 md:rounded-[1.15rem] md:px-5 md:py-4">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-sm leading-6 text-amber-800 md:px-5 md:py-4">
                 Select at least one bottle and one mix in setup.
               </div>
             )}
@@ -635,7 +635,7 @@ export function PlannerPage() {
                     </div>
 
                     {fuelBreakdown && (
-                      <div className="rounded-[1rem] border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_90%,white)] p-3 md:rounded-[1.05rem] md:p-4">
+                      <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_90%,white)] p-3 md:p-4">
                         <div className="mb-2.5 md:mb-3">
                           <h3 className="section-title text-lg">Fuel breakdown</h3>
                         </div>

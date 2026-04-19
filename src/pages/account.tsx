@@ -24,12 +24,12 @@ function getSyncLabel(status: string): string {
 
 function getSyncBadgeClass(status: string): string {
   if (status === 'synced') return 'bg-emerald-100 text-emerald-800';
-  if (status === 'syncing') return 'bg-blue-100 text-blue-800';
+  if (status === 'syncing') return 'bg-brand-100 text-brand-800';
   if (status === 'offline') return 'bg-amber-100 text-amber-800';
   if (status === 'error' || status === 'conflict') {
     return 'bg-rose-100 text-rose-800';
   }
-  return 'bg-gray-100 text-gray-700';
+  return 'bg-shell-100 text-ink-700';
 }
 
 export function AccountPage() {
@@ -100,7 +100,7 @@ export function AccountPage() {
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="section-title text-lg">Sign in</h2>
-                <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                <span className="rounded-full bg-shell-100 px-2.5 py-1 text-xs font-medium text-ink-700">
                   {signedIn ? 'Signed in' : 'Guest'}
                 </span>
               </div>
