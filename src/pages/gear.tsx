@@ -3,17 +3,30 @@ import { PageIntro } from '@/components/layout/page-intro';
 import { useStore } from '@/store';
 import { useStravaGear } from '@/hooks/use-strava-gear';
 import { BikePillRow } from '@/components/gear/bike-pill-row';
-import { GearTabs } from '@/components/gear/gear-tabs';
-import { DueList } from '@/components/gear/due-list';
-import { HistoryList } from '@/components/gear/history-list';
-import { LogServiceSheet } from '@/components/gear/log-service-sheet';
-import { deriveDue } from '@/lib/gear/derive-due';
-import { Button } from '@/components/ui';
-import type { ServiceTypeKey } from '@/types/gear';
+import { GearTabs, type GearTabValue } from '@/components/gear/gear-tabs';
+import { ActiveSetupList } from '@/components/gear/active-setup-list';
+import { GearDueList } from '@/components/gear/gear-due-list';
+import { PartsInventory } from '@/components/gear/parts-inventory';
+import { GearHistoryList } from '@/components/gear/gear-history-list';
+import { deriveActiveSetup } from '@/lib/gear/derive-active-setup';
+import { deriveGearDue } from '@/lib/gear/derive-gear-due';
+import { Button, Card, CardContent } from '@/components/ui';
+import type { BikeSlotKey, GearServiceTypeKey } from '@/types/gear';
+
+function todayIso(): string {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export function GearPage() {
   const bikes = useStore((s) => s.bikes);
-  const serviceEntries = useStore((s) => s.serviceEntries);
+  const gearPartCatalog = useStore((s) => s.gearPartCatalog);
+  const gearPartInstances = useStore((s) => s.gearPartInstances);
+  const gearInstallRecords = useStore((s) => s.gearInstallRecords);
+  const gearServiceEvents = useStore((s) => s.gearServiceEvents);
   const upsertBikesFromStrava = useStore((s) => s.upsertBikesFromStrava);
   const {
     bikes: stravaBikes,
@@ -30,37 +43,100 @@ export function GearPage() {
   const [selectedBikeId, setSelectedBikeId] = useState<string | null>(
     primaryBikeId
   );
-  const [tab, setTab] = useState<'due' | 'history'>('due');
-  const [sheetState, setSheetState] = useState<{
-    open: boolean;
-    preselectedTypeKey?: ServiceTypeKey;
-    preselectedBikeId?: string;
-  }>({ open: false });
+  const [hasUserSelectedBike, setHasUserSelectedBike] = useState(false);
+  const [tab, setTab] = useState<GearTabValue>('active');
+  const [installSlotKey, setInstallSlotKey] = useState<BikeSlotKey | null>(null);
+  const [removeInstallId, setRemoveInstallId] = useState<string | null>(null);
+  const [serviceContext, setServiceContext] = useState<{
+    bikeId?: string;
+    slotKey?: BikeSlotKey;
+    partInstanceId?: string;
+    typeKey?: GearServiceTypeKey;
+  } | null>(null);
 
+  const selectedBikeIdForView = useMemo(() => {
+    if (selectedBikeId && bikes.some((bike) => bike.id === selectedBikeId)) {
+      return selectedBikeId;
+    }
+
+    if (!hasUserSelectedBike && primaryBikeId) {
+      return primaryBikeId;
+    }
+
+    if (selectedBikeId && primaryBikeId) {
+      return primaryBikeId;
+    }
+
+    return null;
+  }, [bikes, hasUserSelectedBike, primaryBikeId, selectedBikeId]);
+  const selectedBike = useMemo(
+    () => bikes.find((bike) => bike.id === selectedBikeIdForView) ?? null,
+    [bikes, selectedBikeIdForView]
+  );
+  const currentTodayIso = useMemo(() => todayIso(), []);
+  const activeRows = useMemo(
+    () =>
+      selectedBike
+        ? deriveActiveSetup({
+            bike: selectedBike,
+            catalog: gearPartCatalog,
+            instances: gearPartInstances,
+            installRecords: gearInstallRecords,
+            serviceEvents: gearServiceEvents,
+            today: currentTodayIso,
+          })
+        : [],
+    [
+      currentTodayIso,
+      gearInstallRecords,
+      gearPartCatalog,
+      gearPartInstances,
+      gearServiceEvents,
+      selectedBike,
+    ]
+  );
   const dueItems = useMemo(
-    () => deriveDue(bikes, serviceEntries),
-    [bikes, serviceEntries]
+    () =>
+      deriveGearDue({
+        bikes,
+        installRecords: gearInstallRecords,
+        serviceEvents: gearServiceEvents,
+        today: currentTodayIso,
+      }),
+    [bikes, currentTodayIso, gearInstallRecords, gearServiceEvents]
   );
   const filteredDueItems = useMemo(
     () =>
-      selectedBikeId
-        ? dueItems.filter((d) => d.bikeId === selectedBikeId)
+      selectedBikeIdForView
+        ? dueItems.filter((d) => d.bikeId === selectedBikeIdForView)
         : dueItems,
-    [dueItems, selectedBikeId]
+    [dueItems, selectedBikeIdForView]
   );
-  const filteredEntries = useMemo(
+  const filteredServiceEvents = useMemo(
     () =>
-      selectedBikeId
-        ? serviceEntries.filter((e) => e.bikeId === selectedBikeId)
-        : serviceEntries,
-    [serviceEntries, selectedBikeId]
+      selectedBikeIdForView
+        ? gearServiceEvents.filter((event) => event.bikeId === selectedBikeIdForView)
+        : gearServiceEvents,
+    [gearServiceEvents, selectedBikeIdForView]
   );
-  const activeCount =
-    tab === 'due' ? filteredDueItems.length : filteredEntries.length;
-  const activeCountLabel =
-    tab === 'due'
-      ? `${activeCount} ${activeCount === 1 ? 'item' : 'items'} due`
-      : `${activeCount} ${activeCount === 1 ? 'service' : 'services'} logged`;
+  const activeInstalledCount = activeRows.filter(
+    (row) => row.installRecord !== null
+  ).length;
+  const inventoryCount = gearPartInstances.length;
+  const activeCountLabel = {
+    active: selectedBike
+      ? `${activeInstalledCount} ${activeInstalledCount === 1 ? 'part' : 'parts'} installed`
+      : 'Choose a bike',
+    due: `${filteredDueItems.length} ${
+      filteredDueItems.length === 1 ? 'item' : 'items'
+    } due`,
+    parts: `${inventoryCount} ${
+      inventoryCount === 1 ? 'physical part' : 'physical parts'
+    }`,
+    history: `${filteredServiceEvents.length} ${
+      filteredServiceEvents.length === 1 ? 'service' : 'services'
+    } logged`,
+  }[tab];
 
   // Mirror fresh Strava bikes into the store whenever they arrive.
   useEffect(() => {
@@ -73,16 +149,33 @@ export function GearPage() {
     void refresh();
   };
 
+  const handleSelectBike = (bikeId: string | null) => {
+    setHasUserSelectedBike(true);
+    setSelectedBikeId(bikeId);
+  };
+
   return (
-    <div className="page-shell max-w-6xl space-y-4 md:space-y-6">
+    <div
+      className="page-shell max-w-6xl space-y-4 md:space-y-6"
+      data-install-slot-key={installSlotKey ?? undefined}
+      data-remove-install-id={removeInstallId ?? undefined}
+      data-service-bike-id={serviceContext?.bikeId ?? undefined}
+      data-service-slot-key={serviceContext?.slotKey ?? undefined}
+      data-service-part-instance-id={serviceContext?.partInstanceId ?? undefined}
+      data-service-type-key={serviceContext?.typeKey ?? undefined}
+    >
       <PageIntro
         title="Gear"
-        description="Track maintenance and service intervals for your bikes."
+        description="Track installed parts, due service, spare inventory, and maintenance history."
         actions={
           <Button
             variant="primary"
             size="sm"
-            onClick={() => setSheetState({ open: true })}
+            onClick={() =>
+              setServiceContext(
+                selectedBikeIdForView ? { bikeId: selectedBikeIdForView } : {}
+              )
+            }
           >
             + Log service
           </Button>
@@ -93,8 +186,8 @@ export function GearPage() {
         <aside className="surface-note p-3 md:p-4 lg:sticky lg:top-20">
           <BikePillRow
             bikes={bikes}
-            selectedBikeId={selectedBikeId}
-            onSelect={setSelectedBikeId}
+            selectedBikeId={selectedBikeIdForView}
+            onSelect={handleSelectBike}
             onRefresh={handleRefresh}
             isRefreshing={isFetching}
             lastSyncedAt={lastSyncedAt}
@@ -110,36 +203,64 @@ export function GearPage() {
             </p>
           </div>
 
-          {tab === 'due' ? (
-            <DueList
-              items={filteredDueItems}
-              bikes={bikes}
-              onLog={(bikeId, typeKey) =>
-                setSheetState({
-                  open: true,
-                  preselectedTypeKey: typeKey,
-                  preselectedBikeId: bikeId,
+          {tab === 'active' && !selectedBike ? (
+            <Card>
+              <CardContent className="py-5 md:py-6">
+                <p className="text-sm leading-5 text-ink-600">
+                  Choose a bike to view its active setup.
+                </p>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {tab === 'active' && selectedBike ? (
+            <ActiveSetupList
+              rows={activeRows}
+              onInstall={(slotKey) => setInstallSlotKey(slotKey)}
+              onRemove={(row) => setRemoveInstallId(row.installRecord?.id ?? null)}
+              onService={(row) =>
+                setServiceContext({
+                  bikeId: selectedBike.id,
+                  slotKey: row.slotKey,
+                  partInstanceId: row.instance?.id,
+                  typeKey: row.latestService?.typeKey,
                 })
               }
             />
-          ) : (
-            <HistoryList entries={filteredEntries} bikes={bikes} />
-          )}
+          ) : null}
+
+          {tab === 'due' ? (
+            <GearDueList
+              items={filteredDueItems}
+              bikes={bikes}
+              onLogService={(item) =>
+                setServiceContext({
+                  bikeId: item.event.bikeId,
+                  slotKey: item.event.slotKey,
+                  partInstanceId: item.event.partInstanceId,
+                  typeKey: item.event.typeKey,
+                })
+              }
+            />
+          ) : null}
+
+          {tab === 'parts' ? (
+            <PartsInventory
+              catalog={gearPartCatalog}
+              instances={gearPartInstances}
+            />
+          ) : null}
+
+          {tab === 'history' ? (
+            <GearHistoryList
+              events={filteredServiceEvents}
+              bikes={bikes}
+              catalog={gearPartCatalog}
+              instances={gearPartInstances}
+            />
+          ) : null}
         </section>
       </div>
-
-      <LogServiceSheet
-        open={sheetState.open}
-        onClose={() => setSheetState({ open: false })}
-        bikes={bikes}
-        entries={serviceEntries}
-        preselectedTypeKey={sheetState.preselectedTypeKey}
-        preselectedBikeId={sheetState.preselectedBikeId}
-        stravaBikes={stravaBikes}
-        onRefreshStrava={handleRefresh}
-        isStravaRefreshing={isFetching}
-        stravaLastSyncedAt={lastSyncedAt}
-      />
     </div>
   );
 }
