@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { getReadinessFromState, normalizeProducts, type Settings } from './index';
-import type { Bottle, Product } from '@/types';
+import type { Product } from '@/types';
 import { useStore } from './index';
 
 const baseSettings: Settings = {
@@ -38,16 +38,7 @@ describe('normalizeProducts', () => {
 
 describe('getReadinessFromState', () => {
   it('reports setup and profile readiness fields', () => {
-    const bottles: Bottle[] = [
-      {
-        id: 'b1',
-        name: '750',
-        capacityMl: 750,
-        isAvailable: true,
-        createdAt: 0,
-        updatedAt: 0,
-      },
-    ];
+    const bottleCounts = { 550: 0, 750: 1, 950: 0 };
     const products: Product[] = [
       {
         id: 'mix',
@@ -81,7 +72,7 @@ describe('getReadinessFromState', () => {
       },
     };
 
-    const readiness = getReadinessFromState({ bottles, products, settings });
+    const readiness = getReadinessFromState({ bottleCounts, products, settings });
 
     expect(readiness.kitReady).toBe(true);
     expect(readiness.autoReady).toBe(true);
@@ -91,16 +82,7 @@ describe('getReadinessFromState', () => {
   });
 
   it('flags missing setup and profile requirements', () => {
-    const bottles: Bottle[] = [
-      {
-        id: 'b1',
-        name: '750',
-        capacityMl: 750,
-        isAvailable: false,
-        createdAt: 0,
-        updatedAt: 0,
-      },
-    ];
+    const bottleCounts = { 550: 0, 750: 0, 950: 0 };
     const products: Product[] = [
       {
         id: 'mix',
@@ -115,7 +97,7 @@ describe('getReadinessFromState', () => {
     ];
 
     const readiness = getReadinessFromState({
-      bottles,
+      bottleCounts,
       products,
       settings: baseSettings,
     });

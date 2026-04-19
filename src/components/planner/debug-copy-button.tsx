@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
-import type { FuelPlan, Bottle, Product } from '@/types';
+import { BOTTLE_SIZES } from '@/types/bottle';
+import type { BottleInventory } from '@/types/bottle';
+import type { FuelPlan, Product } from '@/types';
 
 interface DebugCopyButtonProps {
   plan: Omit<FuelPlan, 'id' | 'createdAt'>;
-  bottles: Bottle[];
   products: Product[];
-  selectedBottleIds: string[];
+  selectedBottleCounts: BottleInventory;
   selectedDrinkMixId: string | null;
   selectedSolidIds: string[];
 }
@@ -20,9 +21,8 @@ function formatDuration(mins: number): string {
 
 function buildDebugText(
   plan: Omit<FuelPlan, 'id' | 'createdAt'>,
-  bottles: Bottle[],
   products: Product[],
-  selectedBottleIds: string[],
+  selectedBottleCounts: BottleInventory,
   selectedDrinkMixId: string | null,
   selectedSolidIds: string[]
 ): string {
@@ -113,12 +113,15 @@ function buildDebugText(
 
   // Selected Bottles
   lines.push('--- Selected Bottles ---');
-  const availableBottles = bottles.filter((b) => selectedBottleIds.includes(b.id));
-  if (availableBottles.length === 0) {
+  const anyBottles = BOTTLE_SIZES.some((s) => selectedBottleCounts[s] > 0);
+  if (!anyBottles) {
     lines.push('  (none)');
   } else {
-    for (const b of availableBottles) {
-      lines.push(`  ${b.name}: ${b.capacityMl}ml`);
+    for (const size of BOTTLE_SIZES) {
+      const count = selectedBottleCounts[size];
+      if (count > 0) {
+        lines.push(`  ${size}ml × ${count}`);
+      }
     }
   }
   lines.push('');
@@ -129,17 +132,15 @@ function buildDebugText(
     lines.push('  (none)');
   } else {
     for (const alloc of plan.bottles) {
-      const bottle = bottles.find((b) => b.id === alloc.bottleId);
       const product = products.find((p) => p.id === alloc.productId);
       if (alloc.isWaterOnly) {
-        lines.push(`  ${bottle?.name || 'Bottle'}: water only`);
+        lines.push(`  ${alloc.capacityMl}ml bottle: water only`);
       } else {
-        const concentration =
-          bottle && bottle.capacityMl > 0
-            ? alloc.carbsTotal / bottle.capacityMl
-            : 0;
+        const concentration = alloc.capacityMl > 0
+          ? alloc.carbsTotal / alloc.capacityMl
+          : 0;
         lines.push(
-          `  ${bottle?.name || 'Bottle'}: ${alloc.mixGrams}g ${product?.name || '?'} (~${alloc.mixScoops} scoops, ${alloc.carbsTotal}g carbs, ${concentration.toFixed(3)} g/ml)`
+          `  ${alloc.capacityMl}ml bottle: ${alloc.mixGrams}g ${product?.name || '?'} (~${alloc.mixScoops} scoops, ${alloc.carbsTotal}g carbs, ${concentration.toFixed(3)} g/ml)`
         );
       }
     }
@@ -188,22 +189,19 @@ function buildDebugText(
 
 export function DebugCopyButton({
   plan,
-  bottles,
   products,
-  selectedBottleIds,
+  selectedBottleCounts,
   selectedDrinkMixId,
   selectedSolidIds,
 }: DebugCopyButtonProps) {
   const [copied, setCopied] = useState(false);
-
   const [copyFailed, setCopyFailed] = useState(false);
 
   const handleCopy = async () => {
     const text = buildDebugText(
       plan,
-      bottles,
       products,
-      selectedBottleIds,
+      selectedBottleCounts,
       selectedDrinkMixId,
       selectedSolidIds
     );

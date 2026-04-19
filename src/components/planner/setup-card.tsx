@@ -10,16 +10,18 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui';
-import type { Bottle, Product } from '@/types';
+import { BOTTLE_SIZES, totalBottleCount } from '@/types/bottle';
+import type { BottleInventory, BottleSize } from '@/types/bottle';
+import type { Product } from '@/types';
 
 interface SetupCardProps {
-  bottles: Bottle[];
+  bottleCounts: BottleInventory;
+  selectedBottleCounts: BottleInventory;
   drinkMixes: Product[];
   solidProducts: Product[];
-  selectedBottleIds: string[];
   selectedDrinkMixId: string | null;
   selectedSolidIds: string[];
-  onBottleIdsChange: (ids: string[]) => void;
+  onBottleCountChange: (size: BottleSize, count: number) => void;
   onDrinkMixChange: (id: string | null) => void;
   onSolidChange: (ids: string[]) => void;
 }
@@ -63,6 +65,59 @@ function SelectionRow({
   );
 }
 
+function BottleSizeCounter({
+  size,
+  count,
+  max,
+  onChange,
+}: {
+  size: BottleSize;
+  count: number;
+  max: number;
+  onChange: (value: number) => void;
+}) {
+  const disabled = max === 0;
+
+  return (
+    <div
+      className={clsx(
+        'flex flex-col items-center gap-2 rounded-[0.95rem] border px-3 py-3 transition-colors',
+        disabled
+          ? 'border-[color:var(--border-soft)] bg-shell-50 opacity-40'
+          : count > 0
+            ? 'border-brand-300 bg-brand-50/60'
+            : 'border-[color:var(--border-soft)] bg-white'
+      )}
+    >
+      <p className="font-semibold text-ink-900">{size}ml</p>
+      <p className="text-xs text-ink-500">max {max}</p>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={disabled || count <= 0}
+          onClick={() => onChange(count - 1)}
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-white text-ink-700 transition-colors hover:bg-shell-100 disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label={`Remove one ${size}ml bottle`}
+        >
+          −
+        </button>
+        <span className="w-4 text-center font-semibold tabular-nums text-ink-900">
+          {count}
+        </span>
+        <button
+          type="button"
+          disabled={disabled || count >= max}
+          onClick={() => onChange(count + 1)}
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-white text-ink-700 transition-colors hover:bg-shell-100 disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label={`Add one ${size}ml bottle`}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function getFuelSummary(
   selectedDrinkMix: Product | null,
   selectedSolidCount: number
@@ -76,37 +131,29 @@ function getFuelSummary(
 }
 
 export function SetupCard({
-  bottles,
+  bottleCounts,
+  selectedBottleCounts,
   drinkMixes,
   solidProducts,
-  selectedBottleIds,
   selectedDrinkMixId,
   selectedSolidIds,
-  onBottleIdsChange,
+  onBottleCountChange,
   onDrinkMixChange,
   onSolidChange,
 }: SetupCardProps) {
-  const [bottlesOpen, setBottlesOpen] = useState(selectedBottleIds.length === 0);
+  const selectedCount = totalBottleCount(selectedBottleCounts);
+  const inventoryTotal = totalBottleCount(bottleCounts);
+  const [bottlesOpen, setBottlesOpen] = useState(selectedCount === 0);
   const [fuelOpen, setFuelOpen] = useState(selectedDrinkMixId === null);
 
   const selectedDrinkMix =
     drinkMixes.find((mix) => mix.id === selectedDrinkMixId) ?? null;
-
-  const toggleBottle = (bottleId: string) => {
-    if (selectedBottleIds.includes(bottleId)) {
-      onBottleIdsChange(selectedBottleIds.filter((id) => id !== bottleId));
-      return;
-    }
-
-    onBottleIdsChange([...selectedBottleIds, bottleId]);
-  };
 
   const toggleSolid = (productId: string) => {
     if (selectedSolidIds.includes(productId)) {
       onSolidChange(selectedSolidIds.filter((id) => id !== productId));
       return;
     }
-
     onSolidChange([...selectedSolidIds, productId]);
   };
 
@@ -126,31 +173,30 @@ export function SetupCard({
             <div className="min-w-0">
               <p className="section-title text-base">Bottles</p>
               <p className="mt-1 text-sm leading-5 text-brand-800">
-                {selectedBottleIds.length === 0
+                {selectedCount === 0
                   ? 'Select bottles'
-                  : `${selectedBottleIds.length} selected`}
+                  : `${selectedCount} selected`}
               </p>
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent className="border-t border-[color:var(--border-soft)] px-4 py-4 md:px-5">
-            {bottles.length === 0 ? (
+            {inventoryTotal === 0 ? (
               <p className="text-sm leading-6 text-ink-600">
-                No bottles saved.{' '}
+                No bottles in inventory.{' '}
                 <Link to="/inventory" className="font-semibold text-brand-700 underline">
                   Add bottles
                 </Link>
                 .
               </p>
             ) : (
-              <div className="space-y-2">
-                {bottles.map((bottle) => (
-                  <SelectionRow
-                    key={bottle.id}
-                    id={`planner-bottle-${bottle.id}`}
-                    title={bottle.name}
-                    subtitle={`${bottle.capacityMl}ml`}
-                    checked={selectedBottleIds.includes(bottle.id)}
-                    onChange={() => toggleBottle(bottle.id)}
+              <div className="grid grid-cols-3 gap-2">
+                {BOTTLE_SIZES.map((size) => (
+                  <BottleSizeCounter
+                    key={size}
+                    size={size}
+                    count={selectedBottleCounts[size]}
+                    max={bottleCounts[size]}
+                    onChange={(value) => onBottleCountChange(size, value)}
                   />
                 ))}
               </div>

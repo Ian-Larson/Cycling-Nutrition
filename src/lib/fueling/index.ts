@@ -1,4 +1,5 @@
-import type { Bottle, Product } from '@/types';
+import type { Product } from '@/types';
+import type { BottleSlot } from '@/lib/calculator/bottles';
 import type {
   RiderProfile,
   SessionPlan,
@@ -31,7 +32,7 @@ export interface FuelingInput {
   rider: RiderProfile;
   session: SessionPlan;
   environment?: Environment;
-  bottles: Bottle[];
+  bottles: BottleSlot[];
   products: Product[];
   todaysTotalSessionMinutes?: number;
 }

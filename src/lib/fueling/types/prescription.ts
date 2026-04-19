@@ -81,7 +81,7 @@ export interface DailyTargets {
 // --- Pack list ---
 
 export interface BottleAllocation {
-  bottleId: string;
+  capacityMl: number;
   productId: string | null;       // null = water-only
   mixGrams: number;
   mixScoops?: number;

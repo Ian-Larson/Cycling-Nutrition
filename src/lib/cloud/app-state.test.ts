@@ -8,7 +8,7 @@ import {
 
 const baseState: Pick<
   AppState,
-  | 'bottles'
+  | 'bottleCounts'
   | 'products'
   | 'fuelPlans'
   | 'settings'
@@ -20,16 +20,7 @@ const baseState: Pick<
   | 'gearInstallRecords'
   | 'gearServiceEvents'
 > = {
-  bottles: [
-    {
-      id: 'bottle-1',
-      name: '750ml',
-      capacityMl: 750,
-      isAvailable: true,
-      createdAt: 1,
-      updatedAt: 2,
-    },
-  ],
+  bottleCounts: { 550: 0, 750: 1, 950: 0 },
   products: [
     {
       id: 'mix-1',
@@ -66,7 +57,7 @@ describe('cloud app-state snapshots', () => {
 
     expect(snapshot.schemaVersion).toBe(APP_STATE_SCHEMA_VERSION);
     expect(snapshot.clientUpdatedAt).toBe('2026-04-16T12:00:00.000Z');
-    expect(snapshot.data.bottles[0].name).toBe('750ml');
+    expect(snapshot.data.bottleCounts).toEqual({ 550: 0, 750: 1, 950: 0 });
     expect(snapshot.data.products[0].nutrition.calories).toBe(240);
     expect(snapshot.data.settings.athleteProfile.ftpWatts).toBe(280);
   });
@@ -163,7 +154,7 @@ describe('cloud app-state snapshots', () => {
         schemaVersion: 1,
         clientUpdatedAt: '2026-04-16T12:00:00.000Z',
         data: {
-          bottles: baseState.bottles,
+          bottleCounts: { 550: 0, 750: 1, 950: 0 },
           products: baseState.products,
           fuelPlans: baseState.fuelPlans,
           settings: baseState.settings,
@@ -174,10 +165,9 @@ describe('cloud app-state snapshots', () => {
               heatFactor: 'moderate',
               carbTargetGramsPerHour: 75,
             },
-            selectedBottleIds: ['bottle-1'],
+            selectedBottleCounts: { 550: 0, 750: 1, 950: 0 },
             selectedDrinkMixId: 'mix-1',
             selectedSolidIds: [],
-            includeUnavailableBottles: false,
             includeUnavailableProducts: false,
           },
           bikes: [
@@ -214,7 +204,7 @@ describe('cloud app-state snapshots', () => {
     if (parsed.ok) {
       expect(parsed.snapshot.schemaVersion).toBe(APP_STATE_SCHEMA_VERSION);
       expect(parsed.snapshot.clientUpdatedAt).toBe('2026-04-16T12:00:00.000Z');
-      expect(parsed.snapshot.data.bottles[0].name).toBe('750ml');
+      expect(parsed.snapshot.data.bottleCounts).toEqual({ 550: 0, 750: 1, 950: 0 });
       expect(parsed.snapshot.data.products[0].name).toBe('Mix');
       expect(parsed.snapshot.data.settings.athleteProfile.ftpWatts).toBe(280);
       expect(parsed.snapshot.data.plannerDraft?.ride.durationMinutes).toBe(120);

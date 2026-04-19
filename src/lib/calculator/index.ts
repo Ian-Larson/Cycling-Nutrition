@@ -1,6 +1,10 @@
-import type { Bottle, Product, FuelPlan, FuelPlanWarning, RideCharacteristics, SolidAllocation } from '@/types';
+import type { Product, FuelPlan, FuelPlanWarning, RideCharacteristics, SolidAllocation } from '@/types';
 import { calculateTotalCarbsNeeded, calculateHydrationNeeds } from './carbs';
-import { selectBottlesForHydration, allocateMixToBottles } from './bottles';
+import {
+  selectBottlesForHydration,
+  allocateMixToBottles,
+  type BottleSlot,
+} from './bottles';
 import { recommendSolids } from './solids';
 import { generateConsumptionGuide } from './timing';
 import {
@@ -11,7 +15,7 @@ import {
 
 export interface CalculatorInput {
   ride: RideCharacteristics;
-  availableBottles: Bottle[];
+  availableBottles: BottleSlot[];
   drinkMix: Product;
   availableSolids: Product[];
 }
@@ -117,7 +121,6 @@ export function calculateFuelPlan(
     bottles,
     solidAllocations,
     input.ride,
-    input.availableBottles,
     allProducts
   );
 
@@ -208,11 +211,14 @@ export function recalculatePlan(
   const refuelMultiplier = refuelStops + 1;
 
   // Resolve bottles (possibly with count override)
-  const selectedBottles = adjustments.bottleCount !== undefined
-    ? selectBottlesForHydration(originalInput.availableBottles, currentPlan.rideCharacteristics, adjustments.bottleCount)
-    : originalInput.availableBottles.filter((b) =>
-        currentPlan.bottles.some((alloc) => alloc.bottleId === b.id)
-      );
+  const selectedBottles: BottleSlot[] =
+    adjustments.bottleCount !== undefined
+      ? selectBottlesForHydration(
+          originalInput.availableBottles,
+          currentPlan.rideCharacteristics,
+          adjustments.bottleCount
+        )
+      : currentPlan.bottles.map((alloc) => ({ capacityMl: alloc.capacityMl }));
 
   const totalBottleCapacityMl = selectedBottles.reduce((sum, b) => sum + b.capacityMl, 0);
   const { min: minConc, max: maxConc } = getTargetConcentration(originalInput.drinkMix);
@@ -272,7 +278,6 @@ export function recalculatePlan(
     bottles,
     solidAllocations,
     currentPlan.rideCharacteristics,
-    selectedBottles,
     allProducts
   );
 

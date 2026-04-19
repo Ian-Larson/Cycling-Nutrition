@@ -3,7 +3,6 @@ import type {
   SolidAllocation,
   ConsumptionGuideItem,
   RideCharacteristics,
-  Bottle,
   Product,
 } from '@/types';
 import { PREFERRED_SOLIDS_PER_HOUR, MAX_SOLIDS_PER_HOUR } from './constants';
@@ -32,7 +31,6 @@ export function generateConsumptionGuide(
   bottles: BottleAllocation[],
   solids: SolidAllocation[],
   ride: RideCharacteristics,
-  bottleData: Bottle[],
   productData: Product[]
 ): ConsumptionGuideItem[] {
   const guide: ConsumptionGuideItem[] = [];
@@ -163,14 +161,12 @@ export function generateConsumptionGuide(
 
         const currentBottle = bottles[currentBottleIndex];
         if (currentBottle) {
-          const bottle = bottleData.find((b) => b.id === currentBottle.bottleId);
-          const bottleName = bottle?.name || `bottle ${currentBottleIndex + 1}`;
           const carbsPerSip = Math.round(currentBottle.carbsTotal / sipsPerBottle);
           cumulativeCarbs += carbsPerSip;
 
           const fraction = snapToFraction(1 / sipsPerBottle);
           const waterSuffix = currentBottle.isWaterOnly ? ' (water)' : '';
-          const action = `Drink ${fraction} of ${bottle?.capacityMl || '?'}ml ${bottleName}${waterSuffix}`;
+          const action = `Drink ${fraction} of ${currentBottle.capacityMl}ml bottle ${currentBottleIndex + 1}${waterSuffix}`;
 
           guide.push({
             timeOffsetMinutes: eventTime,

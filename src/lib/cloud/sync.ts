@@ -39,7 +39,7 @@ interface InitialCloudSyncOptions {
   repository: CloudStateRepository;
   getLocalState: () => Pick<
     AppState,
-    | 'bottles'
+    | 'bottleCounts'
     | 'products'
     | 'fuelPlans'
     | 'settings'

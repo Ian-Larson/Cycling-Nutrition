@@ -11,7 +11,7 @@ export interface FuelPlanWarning {
 }
 
 export interface BottleAllocation {
-  bottleId: string;
+  capacityMl: number;
   productId: string;
   mixGrams: number;
   mixScoops?: number;

@@ -19,7 +19,6 @@ export function HistoryPage() {
   const fuelPlans = useStore((s) => s.fuelPlans);
   const deleteFuelPlan = useStore((s) => s.deleteFuelPlan);
   const setPlannerDraft = useStore((s) => s.setPlannerDraft);
-  const bottles = useStore((s) => s.bottles);
   const products = useStore((s) => s.products);
 
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
@@ -74,17 +73,16 @@ export function HistoryPage() {
   };
 
   const handleReusePlan = (plan: FuelPlan) => {
-    const selectedBottleIds = Array.from(
-      new Set(plan.bottles.map((allocation) => allocation.bottleId))
-    );
+    // Derive bottle counts from the saved allocation's capacityMl
+    const selectedBottleCounts = { 550: 0, 750: 0, 950: 0 } as Record<number, number>;
+    for (const alloc of plan.bottles) {
+      const cap = alloc.capacityMl;
+      selectedBottleCounts[cap] = (selectedBottleCounts[cap] ?? 0) + 1;
+    }
+
     const selectedDrinkMixId =
       plan.bottles.find((allocation) => !allocation.isWaterOnly)?.productId ?? null;
     const selectedSolidIds = plan.solids.map((solid) => solid.productId);
-
-    const includeUnavailableBottles = plan.bottles.some((allocation) => {
-      const bottle = bottles.find((candidate) => candidate.id === allocation.bottleId);
-      return bottle ? !bottle.isAvailable : false;
-    });
 
     const usedProductIds = [
       ...(selectedDrinkMixId ? [selectedDrinkMixId] : []),
@@ -97,10 +95,13 @@ export function HistoryPage() {
 
     setPlannerDraft({
       ride: plan.rideCharacteristics,
-      selectedBottleIds,
+      selectedBottleCounts: {
+        550: selectedBottleCounts[550] ?? 0,
+        750: selectedBottleCounts[750] ?? 0,
+        950: selectedBottleCounts[950] ?? 0,
+      },
       selectedDrinkMixId,
       selectedSolidIds,
-      includeUnavailableBottles,
       includeUnavailableProducts,
       title: plan.title,
     });
@@ -139,8 +140,7 @@ export function HistoryPage() {
               plan.summary.totalCaloriesPlanned ??
               Math.round(plan.summary.totalCarbsPlanned * 4);
             const bottleNames = plan.bottles
-              .map((b) => bottles.find((bt) => bt.id === b.bottleId)?.name)
-              .filter(Boolean)
+              .map((b, i) => `Bottle ${i + 1} (${b.capacityMl}ml)`)
               .join(', ');
 
             const isConfirming = confirmingDeleteId === plan.id;
@@ -320,7 +320,6 @@ export function HistoryPage() {
                     <div className="border-t border-[color:var(--border-soft)] pt-3 md:pt-4">
                       <FuelResult
                         plan={planDetails}
-                        bottles={bottles}
                         products={products}
                       />
                     </div>

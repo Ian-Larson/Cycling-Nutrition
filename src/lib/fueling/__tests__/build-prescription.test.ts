@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { buildPrescription } from '../index';
 import type { RiderProfile, SessionPlan } from '../types';
-import type { Bottle, Product } from '@/types';
+import type { Product } from '@/types';
+import type { BottleSlot } from '@/lib/calculator/bottles';
 
 const baseRider: RiderProfile = {
   sex: 'male',
@@ -16,9 +17,9 @@ const baseRider: RiderProfile = {
   ftpWatts: 250,
 };
 
-const bottles: Bottle[] = [
-  { id: 'b1', name: '550ml', capacityMl: 550, isAvailable: true, createdAt: 0, updatedAt: 0 },
-  { id: 'b2', name: '750ml', capacityMl: 750, isAvailable: true, createdAt: 0, updatedAt: 0 },
+const bottles: BottleSlot[] = [
+  { capacityMl: 550 },
+  { capacityMl: 750 },
 ];
 
 const products: Product[] = [

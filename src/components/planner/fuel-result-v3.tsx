@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader } from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
-import type { Bottle, Product } from '@/types';
+import type { Product } from '@/types';
 import type {
   FuelingPrescription,
   Warning,
@@ -11,7 +11,6 @@ import type {
 
 interface FuelResultV3Props {
   prescription: FuelingPrescription;
-  bottles: Bottle[];
   products: Product[];
   section?: 'all' | 'pack' | 'guide' | 'metrics';
 }
@@ -240,11 +239,9 @@ function PreRideCard({ prescription }: { prescription: FuelingPrescription }) {
 
 function DuringCard({
   prescription,
-  bottles,
   products,
 }: {
   prescription: FuelingPrescription;
-  bottles: Bottle[];
   products: Product[];
 }) {
   const { during, packList } = prescription;
@@ -317,13 +314,12 @@ function DuringCard({
               </div>
             ) : null}
             {packList.bottles.map((alloc, i) => {
-              const bottle = bottles.find((b) => b.id === alloc.bottleId);
               const product = alloc.productId
                 ? products.find((p) => p.id === alloc.productId)
                 : null;
               return (
                 <div
-                  key={`${alloc.bottleId}-${i}`}
+                  key={i}
                   className="grid gap-2 rounded-[1.05rem] border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:rounded-[1.15rem] md:px-4"
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900">
@@ -331,10 +327,10 @@ function DuringCard({
                   </div>
                   <div>
                     <p className="font-semibold text-ink-900">
-                      {bottle?.name ?? `Bottle ${i + 1}`}
+                      Bottle {i + 1}
                     </p>
                     <p className="mt-1 text-sm leading-6 text-ink-600">
-                      {bottle?.capacityMl ?? '?'} ml •{' '}
+                      {alloc.capacityMl} ml •{' '}
                       {alloc.isWaterOnly
                         ? 'Water only'
                         : (product?.name ?? 'Mix')}
@@ -553,7 +549,6 @@ function TimelineCard({ items }: { items: TimelineItem[] | undefined }) {
 
 export function FuelResultV3({
   prescription,
-  bottles,
   products,
   section = 'all',
 }: FuelResultV3Props) {
@@ -569,7 +564,6 @@ export function FuelResultV3({
       {showPack && (
         <DuringCard
           prescription={prescription}
-          bottles={bottles}
           products={products}
         />
       )}
