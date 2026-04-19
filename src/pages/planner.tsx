@@ -440,7 +440,7 @@ export function PlannerPage() {
 
   return (
     <>
-      <div className="page-shell space-y-5 md:space-y-6">
+      <div className="page-shell max-w-6xl space-y-5 md:space-y-6">
         <PageIntro
           title="Fuel plan"
           description={
@@ -511,17 +511,34 @@ export function PlannerPage() {
         </section>
 
         {step === 1 && (
-          <SetupCard
-            bottleCounts={bottleCounts}
-            selectedBottleCounts={selectedBottleCounts}
-            drinkMixes={drinkMixOptions}
-            solidProducts={solidOptions}
-            selectedDrinkMixId={effectiveSelectedDrinkMixId}
-            selectedSolidIds={effectiveSelectedSolidIds}
-            onBottleCountChange={handleBottleCountChange}
-            onDrinkMixChange={setSelectedDrinkMixId}
-            onSolidChange={setSelectedSolidIds}
-          />
+          <>
+            <SetupCard
+              bottleCounts={bottleCounts}
+              selectedBottleCounts={selectedBottleCounts}
+              drinkMixes={drinkMixOptions}
+              solidProducts={solidOptions}
+              selectedDrinkMixId={effectiveSelectedDrinkMixId}
+              selectedSolidIds={effectiveSelectedSolidIds}
+              onBottleCountChange={handleBottleCountChange}
+              onDrinkMixChange={setSelectedDrinkMixId}
+              onSolidChange={setSelectedSolidIds}
+            />
+            {canCalculate && (
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => handleStepSelect(2)}
+                  aria-label="Go to ride data"
+                >
+                  Next
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden className="h-4 w-4">
+                    <path d="M7.5 5 13 10l-5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Button>
+              </div>
+            )}
+          </>
         )}
 
         {step === 2 && (
@@ -547,6 +564,21 @@ export function PlannerPage() {
               submitTrigger={rideFormSubmitTrigger}
               disabled={!canCalculate}
             />
+            {canCalculate && rideFormCanCalculate && (
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => handleStepSelect(3)}
+                  aria-label="Build plan"
+                >
+                  Next
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden className="h-4 w-4">
+                    <path d="M7.5 5 13 10l-5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Button>
+              </div>
+            )}
           </section>
         )}
 
@@ -591,37 +623,73 @@ export function PlannerPage() {
                         <div className="mb-2.5 md:mb-3">
                           <h3 className="section-title text-lg">Fuel breakdown</h3>
                         </div>
-                        <div className="grid grid-cols-[1fr_auto_auto] gap-x-2 gap-y-2 text-[0.82rem] md:gap-x-4 md:text-sm">
-                          <p className="page-stat-label">Source</p>
-                          <p className="page-stat-label text-right">Carbs</p>
-                          <p className="page-stat-label text-right">Calories</p>
-
-                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">Drinks</p>
-                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
-                            {fuelBreakdown.drinks.carbs} g
-                          </p>
-                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
-                            {fuelBreakdown.drinks.calories} kcal
-                          </p>
-
-                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">Solids</p>
-                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
-                            {fuelBreakdown.solids.carbs} g
-                          </p>
-                          <p className="rounded-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
-                            {fuelBreakdown.solids.calories} kcal
-                          </p>
-                        </div>
-                        <div className="my-3 border-t border-[color:var(--border-soft)]" />
-                        <div className="grid grid-cols-[1fr_auto_auto] items-center gap-x-2 rounded-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] text-[0.82rem] font-semibold text-ink-900 md:gap-x-4 md:text-sm">
-                          <p className="px-2.5 py-2.5 md:px-3 md:py-3">Total</p>
-                          <p className="px-2.5 py-2.5 text-right tabular-nums md:px-3 md:py-3">
-                            {fuelBreakdown.total.carbs} g
-                          </p>
-                          <p className="px-2.5 py-2.5 text-right tabular-nums md:px-3 md:py-3">
-                            {fuelBreakdown.total.calories} kcal
-                          </p>
-                        </div>
+                        <table className="w-full table-fixed border-collapse text-[0.82rem] md:text-sm">
+                          <colgroup>
+                            <col />
+                            <col className="w-[5.5rem] md:w-[6.5rem]" />
+                            <col className="w-[6rem] md:w-[7rem]" />
+                          </colgroup>
+                          <thead>
+                            <tr>
+                              <th scope="col" className="page-stat-label px-2.5 pb-2 text-left md:px-3">
+                                Source
+                              </th>
+                              <th scope="col" className="page-stat-label px-2.5 pb-2 text-right md:px-3">
+                                Carbs
+                              </th>
+                              <th scope="col" className="page-stat-label px-2.5 pb-2 text-right md:px-3">
+                                Calories
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td className="rounded-l-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">
+                                Drinks
+                              </td>
+                              <td className="bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
+                                {fuelBreakdown.drinks.carbs} g
+                              </td>
+                              <td className="rounded-r-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
+                                {fuelBreakdown.drinks.calories} kcal
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="pt-2" />
+                              <td className="pt-2" />
+                              <td className="pt-2" />
+                            </tr>
+                            <tr>
+                              <td className="rounded-l-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">
+                                Solids
+                              </td>
+                              <td className="bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
+                                {fuelBreakdown.solids.carbs} g
+                              </td>
+                              <td className="rounded-r-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
+                                {fuelBreakdown.solids.calories} kcal
+                              </td>
+                            </tr>
+                          </tbody>
+                          <tfoot>
+                            <tr>
+                              <td colSpan={3} className="pt-3">
+                                <div className="border-t border-[color:var(--border-soft)]" />
+                              </td>
+                            </tr>
+                            <tr className="font-semibold text-ink-900">
+                              <td className="rounded-l-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 md:px-3 md:py-3">
+                                Total
+                              </td>
+                              <td className="bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 text-right tabular-nums md:px-3 md:py-3">
+                                {fuelBreakdown.total.carbs} g
+                              </td>
+                              <td className="rounded-r-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 text-right tabular-nums md:px-3 md:py-3">
+                                {fuelBreakdown.total.calories} kcal
+                              </td>
+                            </tr>
+                          </tfoot>
+                        </table>
                       </div>
                     )}
 

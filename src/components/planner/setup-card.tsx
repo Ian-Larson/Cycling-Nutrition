@@ -43,7 +43,7 @@ function SelectionRow({
     <label
       htmlFor={id}
       className={clsx(
-        'flex cursor-pointer items-start justify-between gap-3 rounded-[0.95rem] border px-3 py-3 transition-colors',
+        'flex cursor-pointer items-center justify-between gap-3 rounded-[0.95rem] border px-3 py-3 transition-colors',
         checked
           ? 'border-brand-300 bg-brand-50/60'
           : 'border-[color:var(--border-soft)] bg-white hover:bg-shell-50'

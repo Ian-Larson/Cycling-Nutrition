@@ -8,15 +8,37 @@ interface CheckboxProps
 
 export function Checkbox({ className, onChange, ...props }: CheckboxProps) {
   return (
-    <input
-      type="checkbox"
+    <span
       className={clsx(
-        'h-5 w-5 rounded border-[color:var(--border-soft)] text-brand-600 md:h-[1.125rem] md:w-[1.125rem]',
-        'focus:ring-2 focus:ring-brand-200 focus:ring-offset-1 focus:ring-offset-shell-100',
+        'relative inline-flex h-5 w-5 shrink-0 items-center justify-center',
         className
       )}
-      onChange={(event) => onChange?.(event.target.checked)}
-      {...props}
-    />
+    >
+      <input
+        type="checkbox"
+        onChange={(event) => onChange?.(event.target.checked)}
+        className={clsx(
+          'peer absolute inset-0 h-full w-full cursor-pointer appearance-none rounded-md border bg-white transition-colors',
+          'border-[color:var(--border-soft)] hover:border-brand-300',
+          'checked:border-brand-500 checked:bg-brand-500',
+          'focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-1 focus:ring-offset-shell-100',
+          'disabled:cursor-not-allowed disabled:opacity-50'
+        )}
+        {...props}
+      />
+      <svg
+        viewBox="0 0 16 16"
+        fill="none"
+        aria-hidden="true"
+        className="pointer-events-none relative h-3 w-3 stroke-white opacity-0 peer-checked:opacity-100"
+      >
+        <path
+          d="M3 8.5 6.5 12 13 5"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
   );
 }
