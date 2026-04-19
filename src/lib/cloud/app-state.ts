@@ -86,7 +86,10 @@ export function parseSerializedAppState(
   }
 
   const incoming = value as Partial<SerializedAppState>;
-  if (incoming.schemaVersion !== APP_STATE_SCHEMA_VERSION) {
+  if (
+    incoming.schemaVersion !== APP_STATE_SCHEMA_VERSION &&
+    incoming.schemaVersion !== 1
+  ) {
     return {
       ok: false,
       error: `Unsupported cloud snapshot version: ${String(incoming.schemaVersion)}`,

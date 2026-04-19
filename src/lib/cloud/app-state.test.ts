@@ -157,6 +157,82 @@ describe('cloud app-state snapshots', () => {
     }
   });
 
+  it('migrates schema version 1 snapshots to version 2 with empty gear arrays', () => {
+    const parsed = parseSerializedAppState(
+      {
+        schemaVersion: 1,
+        clientUpdatedAt: '2026-04-16T12:00:00.000Z',
+        data: {
+          bottles: baseState.bottles,
+          products: baseState.products,
+          fuelPlans: baseState.fuelPlans,
+          settings: baseState.settings,
+          plannerDraft: {
+            ride: {
+              durationMinutes: 120,
+              intensity: 'endurance',
+              heatFactor: 'moderate',
+              carbTargetGramsPerHour: 75,
+            },
+            selectedBottleIds: ['bottle-1'],
+            selectedDrinkMixId: 'mix-1',
+            selectedSolidIds: [],
+            includeUnavailableBottles: false,
+            includeUnavailableProducts: false,
+          },
+          bikes: [
+            {
+              id: 'bike-1',
+              name: 'Force E1',
+              stravaGearId: null,
+              cachedOdometerMi: 1800,
+              odometerSyncedAtIso: null,
+              isPrimary: true,
+              createdAt: 1,
+              updatedAt: 1,
+            },
+          ],
+          serviceEntries: [
+            {
+              id: 'service-entry-1',
+              bikeId: 'bike-1',
+              typeKey: 'chain_wax',
+              dateIso: '2026-04-16',
+              mileageMi: 1800,
+              intervalMi: 250,
+              serviceAtMi: 2050,
+              createdAt: 1,
+              updatedAt: 1,
+            },
+          ],
+        },
+      },
+      baseState
+    );
+
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.snapshot.schemaVersion).toBe(APP_STATE_SCHEMA_VERSION);
+      expect(parsed.snapshot.clientUpdatedAt).toBe('2026-04-16T12:00:00.000Z');
+      expect(parsed.snapshot.data.bottles[0].name).toBe('750ml');
+      expect(parsed.snapshot.data.products[0].name).toBe('Mix');
+      expect(parsed.snapshot.data.settings.athleteProfile.ftpWatts).toBe(280);
+      expect(parsed.snapshot.data.plannerDraft?.ride.durationMinutes).toBe(120);
+      expect(parsed.snapshot.data.bikes).toMatchObject([
+        {
+          id: 'bike-1',
+          name: 'Force E1',
+          cachedOdometerMi: 1800,
+        },
+      ]);
+      expect(parsed.snapshot.data.serviceEntries).toEqual([]);
+      expect(parsed.snapshot.data.gearPartCatalog).toEqual([]);
+      expect(parsed.snapshot.data.gearPartInstances).toEqual([]);
+      expect(parsed.snapshot.data.gearInstallRecords).toEqual([]);
+      expect(parsed.snapshot.data.gearServiceEvents).toEqual([]);
+    }
+  });
+
   it('rejects unsupported snapshot versions', () => {
     const snapshot = serializeAppState(baseState);
     const parsed = parseSerializedAppState(
