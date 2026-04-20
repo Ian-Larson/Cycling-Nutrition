@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Card, CardContent } from '@/components/ui';
-import { SystemSpecRow } from './system-spec-row';
+import { Card, CardContent, SpecRow } from '@/components/ui';
 import { EditBikeWeightDialog } from './edit-bike-weight-dialog';
 import { EditBikeNameDialog } from './edit-bike-name-dialog';
 import {
@@ -78,29 +77,29 @@ export function BikeSystemCard({ bike, installRecords, instances, catalog }: Bik
             ) : null}
           </div>
           <div className="space-y-1.5 pt-0.5">
-            <SystemSpecRow
+            <SpecRow
               label="Odometer"
               value={odometer ?? '—'}
               muted={odometer === null}
             />
-            <SystemSpecRow
+            <SpecRow
               label="Weight"
               value={weight ?? 'Set'}
               muted={weight === null}
               onEdit={() => setWeightOpen(true)}
               editAriaLabel="Edit bike weight"
             />
-            <SystemSpecRow
+            <SpecRow
               label="Gear range"
               value={ratio ?? '—'}
               muted={ratio === null}
             />
-            <SystemSpecRow
+            <SpecRow
               label="Crankset"
               value={crankset ?? '—'}
               muted={crankset === null}
             />
-            <SystemSpecRow
+            <SpecRow
               label="Cassette"
               value={cassette ?? '—'}
               muted={cassette === null}

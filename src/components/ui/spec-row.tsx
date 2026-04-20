@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import type { ReactNode } from 'react';
 
-interface SystemSpecRowProps {
+interface SpecRowProps {
   label: string;
   value: ReactNode;
   /** When true, the value is rendered dimmer (for "—" placeholders). */
@@ -13,18 +13,21 @@ interface SystemSpecRowProps {
   onEdit?: () => void;
   /** Accessible label describing the edit action (required when onEdit is set). */
   editAriaLabel?: string;
+  /** Optional accent on the value (e.g., for hero stats). */
+  accent?: boolean;
 }
 
-export function SystemSpecRow({
+export function SpecRow({
   label,
   value,
   muted,
   onEdit,
   editAriaLabel,
-}: SystemSpecRowProps) {
+  accent,
+}: SpecRowProps) {
   const valueClasses = clsx(
     'shrink-0 font-medium tabular-nums',
-    muted ? 'text-ink-400' : 'text-ink-900'
+    muted ? 'text-ink-400' : accent ? 'text-brand-700' : 'text-ink-900'
   );
 
   return (
