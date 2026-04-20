@@ -1,30 +1,34 @@
 import { clsx } from 'clsx';
 import type { ReactNode } from 'react';
 
-interface SpecRowProps {
+interface SpecRowBase {
   label: string;
   value: ReactNode;
   /** When true, the value is rendered dimmer (for "—" placeholders). */
   muted?: boolean;
-  /**
-   * When provided, the value becomes a button that invokes onEdit on click.
-   * Used for inline-edit affordances without pushing the value off its axis.
-   */
-  onEdit?: () => void;
-  /** Accessible label describing the edit action (required when onEdit is set). */
-  editAriaLabel?: string;
   /** Optional accent on the value (e.g., for hero stats). */
   accent?: boolean;
 }
 
-export function SpecRow({
-  label,
-  value,
-  muted,
-  onEdit,
-  editAriaLabel,
-  accent,
-}: SpecRowProps) {
+type SpecRowStatic = SpecRowBase & {
+  onEdit?: undefined;
+  editAriaLabel?: undefined;
+};
+
+type SpecRowEditable = SpecRowBase & {
+  /**
+   * When provided, the value becomes a button that invokes onEdit on click.
+   * Used for inline-edit affordances without pushing the value off its axis.
+   */
+  onEdit: () => void;
+  /** Accessible label describing the edit action. Required when onEdit is set. */
+  editAriaLabel: string;
+};
+
+type SpecRowProps = SpecRowStatic | SpecRowEditable;
+
+export function SpecRow(props: SpecRowProps) {
+  const { label, value, muted, accent, onEdit, editAriaLabel } = props;
   const valueClasses = clsx(
     'shrink-0 font-medium tabular-nums',
     muted ? 'text-ink-400' : accent ? 'text-brand-700' : 'text-ink-900'

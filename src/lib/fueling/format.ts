@@ -3,7 +3,7 @@ function round(value: number): number {
 }
 
 function thousands(value: number): string {
-  return round(value).toLocaleString();
+  return round(value).toLocaleString('en-US');
 }
 
 export function formatCarbsGrams(grams: number): string {
