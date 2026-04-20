@@ -186,6 +186,8 @@ export interface AppState {
     removeReason?: GearInstallRecord['removeReason'];
     nextStatus: Extract<GearPartInstanceStatus, 'removed' | 'retired'>;
   }) => void;
+  deleteGearInstallRecord: (installRecordId: string) => void;
+  undoGearInstallRemoval: (installRecordId: string) => void;
   retireGearPart: (instanceId: string, retiredDateIso: string) => void;
   logGearServiceEvent: (
     event: Omit<
@@ -1149,6 +1151,75 @@ export const useStore = create<AppState>()(
             } else {
               draftInstance.retiredDateIso = undefined;
             }
+            draftInstance.updatedAt = now;
+          }
+        });
+      },
+
+      deleteGearInstallRecord: (installRecordId) => {
+        const current = get();
+        const record = current.gearInstallRecords.find(
+          (candidate) => candidate.id === installRecordId
+        );
+        if (!record) return;
+        const now = Date.now();
+        set((state) => {
+          state.gearInstallRecords = state.gearInstallRecords.filter(
+            (candidate) => candidate.id !== installRecordId
+          );
+          const hasOtherRecords = state.gearInstallRecords.some(
+            (candidate) => candidate.partInstanceId === record.partInstanceId
+          );
+          if (!hasOtherRecords) {
+            const draftInstance = state.gearPartInstances.find(
+              (candidate) => candidate.id === record.partInstanceId
+            );
+            if (draftInstance) {
+              draftInstance.status = 'spare';
+              draftInstance.retiredDateIso = undefined;
+              draftInstance.updatedAt = now;
+            }
+          }
+        });
+      },
+
+      undoGearInstallRemoval: (installRecordId) => {
+        const current = get();
+        const record = current.gearInstallRecords.find(
+          (candidate) => candidate.id === installRecordId
+        );
+        if (!record) return;
+        if (isActiveGearInstall(record)) return;
+
+        const conflict = current.gearInstallRecords.some(
+          (candidate) =>
+            candidate.id !== record.id &&
+            candidate.partInstanceId === record.partInstanceId &&
+            isActiveGearInstall(candidate)
+        );
+        if (conflict) {
+          throw new Error(
+            'Cannot restore this removal — the part already has an active install record.'
+          );
+        }
+
+        const now = Date.now();
+        set((state) => {
+          const draftRecord = state.gearInstallRecords.find(
+            (candidate) => candidate.id === installRecordId
+          );
+          if (draftRecord) {
+            draftRecord.removedAtMileageMi = undefined;
+            draftRecord.removedDateIso = undefined;
+            draftRecord.removeReason = undefined;
+            draftRecord.updatedAt = now;
+          }
+          const draftInstance = state.gearPartInstances.find(
+            (candidate) => candidate.id === record.partInstanceId
+          );
+          if (draftInstance) {
+            draftInstance.status = 'installed';
+            draftInstance.retiredDateIso = undefined;
             draftInstance.updatedAt = now;
           }
         });

@@ -15,7 +15,7 @@ import { GearHistoryTable } from '@/components/gear/gear-history-table';
 import { EditServiceEventSheet } from '@/components/gear/edit-service-event-sheet';
 import { deriveActiveSetup } from '@/lib/gear/derive-active-setup';
 import { deriveGearDue } from '@/lib/gear/derive-gear-due';
-import { Button, Card, CardContent } from '@/components/ui';
+import { Card, CardContent } from '@/components/ui';
 import type { BikeSlotKey, GearServiceTypeKey } from '@/types/gear';
 import type { ActiveSetupRow } from '@/lib/gear/derive-active-setup';
 import type { GearDueItem } from '@/lib/gear/derive-gear-due';
@@ -217,19 +217,6 @@ export function GearPage() {
       <PageIntro
         title="Gear"
         description="Track installed parts, due service, spare inventory, and maintenance history."
-        actions={
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() =>
-              handleQueueService({
-                ...(selectedBikeIdForView ? { bikeId: selectedBikeIdForView } : {}),
-              })
-            }
-          >
-            + Log service
-          </Button>
-        }
       />
 
       <GearSubNav />

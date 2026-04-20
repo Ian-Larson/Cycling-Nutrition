@@ -33,6 +33,7 @@ interface HistoryRow {
   mileageMi: number | null;
   notes: string[];
   eventId?: string;
+  installRecordId?: string;
 }
 
 type SortColumn = 'date' | 'kind' | 'item' | 'bike' | 'mileage';
@@ -104,6 +105,7 @@ function buildRows(
     part: partLabel(record.partInstanceId, instances, catalog),
     mileageMi: record.installedAtMileageMi,
     notes: [],
+    installRecordId: record.id,
   }));
 
   const removeRows: HistoryRow[] = installRecords.flatMap((record) => {
@@ -121,6 +123,7 @@ function buildRows(
         part: partLabel(record.partInstanceId, instances, catalog),
         mileageMi: record.removedAtMileageMi,
         notes: record.removeReason ? [`Reason: ${record.removeReason}`] : [],
+        installRecordId: record.id,
       },
     ];
   });
@@ -153,6 +156,8 @@ export function GearHistoryTable({
   onEditEvent,
 }: GearHistoryTableProps) {
   const deleteGearServiceEvent = useStore((s) => s.deleteGearServiceEvent);
+  const deleteGearInstallRecord = useStore((s) => s.deleteGearInstallRecord);
+  const undoGearInstallRemoval = useStore((s) => s.undoGearInstallRemoval);
   const [sort, setSort] = useState<{ column: SortColumn; direction: SortDirection }>({
     column: 'date',
     direction: 'desc',
@@ -191,12 +196,34 @@ export function GearHistoryTable({
     );
   };
 
-  const handleDelete = (eventId: string) => {
+  const handleDeleteService = (eventId: string) => {
     const confirmed = window.confirm(
       'Delete this service event? This cannot be undone.'
     );
     if (!confirmed) return;
     deleteGearServiceEvent(eventId);
+  };
+
+  const handleDeleteInstall = (installRecordId: string) => {
+    const confirmed = window.confirm(
+      'Delete this install entry? Any matching Remove entry will also disappear and the part will be reset to spare if it has no other history.'
+    );
+    if (!confirmed) return;
+    deleteGearInstallRecord(installRecordId);
+  };
+
+  const handleDeleteRemoval = (installRecordId: string) => {
+    const confirmed = window.confirm(
+      'Delete this Remove entry? The part will be marked installed again.'
+    );
+    if (!confirmed) return;
+    try {
+      undoGearInstallRemoval(installRecordId);
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : 'Unable to undo removal.'
+      );
+    }
   };
 
   const sortIndicator = (column: SortColumn) =>
@@ -290,28 +317,13 @@ export function GearHistoryTable({
                 {formatMi(row.mileageMi)}
               </td>
               <td className="whitespace-nowrap px-3 py-2 text-right">
-                {row.eventId ? (
-                  <div className="flex justify-end gap-1">
-                    {onEditEvent ? (
-                      <button
-                        type="button"
-                        onClick={() => onEditEvent(row.eventId as string)}
-                        className="rounded-md px-2 py-1 text-xs font-medium text-ink-700 hover:bg-shell-100"
-                        aria-label="Edit service event"
-                      >
-                        Edit
-                      </button>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(row.eventId as string)}
-                      className="rounded-md px-2 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50"
-                      aria-label="Delete service event"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                ) : null}
+                <RowActions
+                  row={row}
+                  onEditEvent={onEditEvent}
+                  onDeleteService={handleDeleteService}
+                  onDeleteInstall={handleDeleteInstall}
+                  onDeleteRemoval={handleDeleteRemoval}
+                />
               </td>
             </tr>
           ))}
@@ -319,4 +331,80 @@ export function GearHistoryTable({
       </table>
     </div>
   );
+}
+
+interface RowActionsProps {
+  row: HistoryRow;
+  onEditEvent?: (eventId: string) => void;
+  onDeleteService: (eventId: string) => void;
+  onDeleteInstall: (installRecordId: string) => void;
+  onDeleteRemoval: (installRecordId: string) => void;
+}
+
+function RowActions({
+  row,
+  onEditEvent,
+  onDeleteService,
+  onDeleteInstall,
+  onDeleteRemoval,
+}: RowActionsProps) {
+  if (row.kind === 'Service' && row.eventId) {
+    const eventId = row.eventId;
+    return (
+      <div className="flex justify-end gap-1">
+        {onEditEvent ? (
+          <button
+            type="button"
+            onClick={() => onEditEvent(eventId)}
+            className="rounded-md px-2 py-1 text-xs font-medium text-ink-700 hover:bg-shell-100"
+            aria-label="Edit service event"
+          >
+            Edit
+          </button>
+        ) : null}
+        <button
+          type="button"
+          onClick={() => onDeleteService(eventId)}
+          className="rounded-md px-2 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50"
+          aria-label="Delete service event"
+        >
+          Delete
+        </button>
+      </div>
+    );
+  }
+
+  if (row.kind === 'Install' && row.installRecordId) {
+    const installRecordId = row.installRecordId;
+    return (
+      <div className="flex justify-end gap-1">
+        <button
+          type="button"
+          onClick={() => onDeleteInstall(installRecordId)}
+          className="rounded-md px-2 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50"
+          aria-label="Delete install entry"
+        >
+          Delete
+        </button>
+      </div>
+    );
+  }
+
+  if (row.kind === 'Remove' && row.installRecordId) {
+    const installRecordId = row.installRecordId;
+    return (
+      <div className="flex justify-end gap-1">
+        <button
+          type="button"
+          onClick={() => onDeleteRemoval(installRecordId)}
+          className="rounded-md px-2 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50"
+          aria-label="Delete remove entry"
+        >
+          Delete
+        </button>
+      </div>
+    );
+  }
+
+  return null;
 }
