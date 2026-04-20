@@ -9,7 +9,7 @@ export type GearTabValue = 'active' | 'due' | 'history';
 
 const TABS: Array<{ id: GearTabValue; label: string }> = [
   { id: 'active', label: 'Active setup' },
-  { id: 'due', label: 'Due' },
+  { id: 'due', label: 'Service' },
   { id: 'history', label: 'History' },
 ];
 
