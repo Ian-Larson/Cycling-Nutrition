@@ -490,42 +490,46 @@ function TimelineCard({ items }: { items: TimelineItem[] | undefined }) {
   if (!items || items.length === 0) return null;
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-        <h3 className="section-title">Ride guide</h3>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {items.map((item, i) => {
-          const offset = item.offsetMinutesFromStart;
-          const label =
-            offset < 0
-              ? `T-${formatTime(Math.abs(offset))}`
-              : formatTime(offset);
-          const phaseBadge =
-            item.phase === 'pre'
-              ? 'bg-shell-100 text-ink-700 border-[color:var(--border-soft)]'
-              : item.phase === 'post'
-                ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                : 'bg-brand-100 text-brand-800 border-brand-200';
-          return (
-            <div
-              key={`${offset}-${i}`}
-              className="grid gap-2.5 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-start md:gap-3 md:px-4 md:py-4"
+    <DividedRowList
+      items={items}
+      getKey={(item, i) => `${item.offsetMinutesFromStart}-${i}`}
+      header={
+        <div className="flex items-baseline justify-between gap-3">
+          <h3 className="section-title">Ride guide</h3>
+          <p className="text-xs leading-5 text-ink-500">
+            {items.length} {items.length === 1 ? 'cue' : 'cues'}
+          </p>
+        </div>
+      }
+      renderItem={(item) => {
+        const offset = item.offsetMinutesFromStart;
+        const label =
+          offset < 0
+            ? `T-${formatTime(Math.abs(offset))}`
+            : formatTime(offset);
+        const phaseBadge =
+          item.phase === 'pre'
+            ? 'bg-shell-100 text-ink-700 border-[color:var(--border-soft)]'
+            : item.phase === 'post'
+              ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+              : 'bg-brand-100 text-brand-800 border-brand-200';
+        return (
+          <div className="flex items-start gap-3 px-3 py-2 md:px-4 md:py-2.5">
+            <span
+              className={`shrink-0 rounded-md border px-2 py-1 font-sans text-xs font-semibold tabular-nums ${phaseBadge}`}
             >
-              <div
-                className={`rounded-lg border px-3 py-2 font-sans text-sm font-semibold ${phaseBadge}`}
-              >
-                {label}
-              </div>
-              <p className="text-sm leading-6 text-ink-900">{item.action}</p>
-              <p className="text-sm leading-6 text-ink-600 md:text-right">
-                {item.cumulativeCarbs} g total
-              </p>
-            </div>
-          );
-        })}
-      </CardContent>
-    </Card>
+              {label}
+            </span>
+            <p className="min-w-0 flex-1 text-sm leading-6 text-ink-900">
+              {item.action}
+            </p>
+            <p className="shrink-0 text-right text-xs font-semibold leading-6 tabular-nums text-ink-600">
+              {item.cumulativeCarbs} g
+            </p>
+          </div>
+        );
+      }}
+    />
   );
 }
 
