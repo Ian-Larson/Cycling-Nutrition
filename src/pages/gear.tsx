@@ -11,7 +11,7 @@ import { GearDuePreviewBand } from '@/components/gear/gear-due-preview-band';
 import { InstallPartSheet } from '@/components/gear/install-part-sheet';
 import { LogGearServiceSheet } from '@/components/gear/log-gear-service-sheet';
 import { RemovePartSheet } from '@/components/gear/remove-part-sheet';
-import { GearHistoryList } from '@/components/gear/gear-history-list';
+import { GearHistoryTable } from '@/components/gear/gear-history-table';
 import { EditServiceEventSheet } from '@/components/gear/edit-service-event-sheet';
 import { deriveActiveSetup } from '@/lib/gear/derive-active-setup';
 import { deriveGearDue } from '@/lib/gear/derive-gear-due';
@@ -299,7 +299,7 @@ export function GearPage() {
           ) : null}
 
           {tab === 'history' ? (
-            <GearHistoryList
+            <GearHistoryTable
               events={filteredServiceEvents}
               installRecords={
                 selectedBikeIdForView
