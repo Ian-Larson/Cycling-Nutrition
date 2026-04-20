@@ -37,9 +37,9 @@ export interface CassetteAttributes {
 
 export interface ChainringAttributes {
   category: 'chainring';
-  toothCount: number;
-  position?: string;
-  mount?: string;
+  drivetrainType: '1x' | '2x';
+  outerRing: number;
+  innerRing?: number;
 }
 
 export type GearPartAttributes =

@@ -30,7 +30,8 @@ type ErrorKey =
   | 'chainSpeedCount'
   | 'cassetteRange'
   | 'cassetteSpeedCount'
-  | 'chainringToothCount'
+  | 'chainringOuterRing'
+  | 'chainringInnerRing'
   | 'quantity'
   | 'initialMileageMi';
 
@@ -195,13 +196,15 @@ function AddPartForm({ instanceId, onClose }: AddPartFormProps) {
 
   const chainringAttrs =
     editingCatalog?.attributes.category === 'chainring' ? editingCatalog.attributes : null;
-  const [chainringToothCount, setChainringToothCount] = useState(
-    chainringAttrs?.toothCount !== undefined ? String(chainringAttrs.toothCount) : ''
+  const [chainringDrivetrainType, setChainringDrivetrainType] = useState<'1x' | '2x'>(
+    chainringAttrs?.drivetrainType ?? '1x'
   );
-  const [chainringPosition, setChainringPosition] = useState(
-    chainringAttrs?.position ?? ''
+  const [chainringOuterRing, setChainringOuterRing] = useState(
+    chainringAttrs?.outerRing !== undefined ? String(chainringAttrs.outerRing) : ''
   );
-  const [chainringMount, setChainringMount] = useState(chainringAttrs?.mount ?? '');
+  const [chainringInnerRing, setChainringInnerRing] = useState(
+    chainringAttrs?.innerRing !== undefined ? String(chainringAttrs.innerRing) : ''
+  );
 
   const [quantity, setQuantity] = useState('1');
   const [label, setLabel] = useState(editing?.label ?? '');
@@ -272,9 +275,9 @@ function AddPartForm({ instanceId, onClose }: AddPartFormProps) {
       );
     }
     if (hit.attributes.category === 'chainring') {
-      setChainringToothCount(String(hit.attributes.toothCount));
-      setChainringPosition(hit.attributes.position ?? '');
-      setChainringMount(hit.attributes.mount ?? '');
+      setChainringDrivetrainType(hit.attributes.drivetrainType);
+      setChainringOuterRing(String(hit.attributes.outerRing));
+      setChainringInnerRing(hit.attributes.innerRing !== undefined ? String(hit.attributes.innerRing) : '');
     }
   };
 
@@ -346,18 +349,28 @@ function AddPartForm({ instanceId, onClose }: AddPartFormProps) {
       };
     }
     if (category === 'chainring') {
-      const toothCount = parseRequiredNumber(
-        chainringToothCount,
-        'chainringToothCount',
-        'Tooth count',
+      const outerRing = parseRequiredNumber(
+        chainringOuterRing,
+        'chainringOuterRing',
+        chainringDrivetrainType === '1x' ? 'Ring size' : 'Outer ring',
         nextErrors,
         { integer: true, positive: true }
       );
+      const innerRing =
+        chainringDrivetrainType === '2x'
+          ? parseRequiredNumber(
+              chainringInnerRing,
+              'chainringInnerRing',
+              'Inner ring',
+              nextErrors,
+              { integer: true, positive: true }
+            )
+          : undefined;
       attributes = {
         category,
-        toothCount: toothCount ?? 0,
-        ...(chainringPosition.trim() ? { position: chainringPosition.trim() } : {}),
-        ...(chainringMount.trim() ? { mount: chainringMount.trim() } : {}),
+        drivetrainType: chainringDrivetrainType,
+        outerRing: outerRing ?? 0,
+        ...(innerRing ? { innerRing } : {}),
       };
     }
 
@@ -654,34 +667,60 @@ function AddPartForm({ instanceId, onClose }: AddPartFormProps) {
 
         {category === 'chainring' && (
           <div className="space-y-3">
-            <Input
-              id="add-part-chainring-teeth"
-              label="Tooth count"
-              type="number"
-              min="1"
-              step="1"
-              placeholder="e.g., 50"
-              value={chainringToothCount}
-              onChange={(event) => setChainringToothCount(event.target.value)}
-              error={errors.chainringToothCount}
-              required
+            <Select
+              id="add-part-chainring-drivetrain"
+              label="Drivetrain"
+              options={[
+                { value: '1x', label: '1× (single ring)' },
+                { value: '2x', label: '2× (double ring)' },
+              ]}
+              value={chainringDrivetrainType}
+              onChange={(event) => {
+                setChainringDrivetrainType(event.target.value as '1x' | '2x');
+                setChainringInnerRing('');
+              }}
             />
-            <div className="grid gap-3 sm:grid-cols-2">
+            {chainringDrivetrainType === '1x' ? (
               <Input
-                id="add-part-chainring-position"
-                label="Position"
-                placeholder="e.g., outer"
-                value={chainringPosition}
-                onChange={(event) => setChainringPosition(event.target.value)}
+                id="add-part-chainring-outer"
+                label="Ring size (T)"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="e.g., 40"
+                value={chainringOuterRing}
+                onChange={(event) => setChainringOuterRing(event.target.value)}
+                error={errors.chainringOuterRing}
+                required
               />
-              <Input
-                id="add-part-chainring-mount"
-                label="Mount"
-                placeholder="e.g., 110 BCD"
-                value={chainringMount}
-                onChange={(event) => setChainringMount(event.target.value)}
-              />
-            </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input
+                  id="add-part-chainring-outer"
+                  label="Outer ring (T)"
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="e.g., 48"
+                  value={chainringOuterRing}
+                  onChange={(event) => setChainringOuterRing(event.target.value)}
+                  error={errors.chainringOuterRing}
+                  required
+                />
+                <Input
+                  id="add-part-chainring-inner"
+                  label="Inner ring (T)"
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="e.g., 35"
+                  value={chainringInnerRing}
+                  onChange={(event) => setChainringInnerRing(event.target.value)}
+                  error={errors.chainringInnerRing}
+                  required
+                />
+              </div>
+            )}
           </div>
         )}
       </section>
