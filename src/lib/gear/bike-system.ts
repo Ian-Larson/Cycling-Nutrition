@@ -143,7 +143,7 @@ export function formatDrivetrainSpeeds(
 ): string | null {
   if (!chainring) return null;
   if (!cassetteSpeedCount || !Number.isFinite(cassetteSpeedCount)) return null;
-  const front = chainring.drivetrainType === '2x' && chainring.innerRing !== undefined ? 2 : 1;
+  const front = chainring.drivetrainType === '2x' ? 2 : 1;
   return `${front} × ${cassetteSpeedCount}`;
 }
 
