@@ -21,6 +21,7 @@ function makeAppData(bottleCount: number): AppDataSnapshot {
     gearPartInstances: [],
     gearInstallRecords: [],
     gearServiceEvents: [],
+    gearSelectedBikeId: null,
   };
 }
 

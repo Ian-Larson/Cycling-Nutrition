@@ -34,6 +34,7 @@ type SerializeAppStateInput = Pick<
       | 'gearPartInstances'
       | 'gearInstallRecords'
       | 'gearServiceEvents'
+      | 'gearSelectedBikeId'
     >
   >;
 
@@ -56,6 +57,7 @@ function withGearHubStateDefaults(
     | 'gearPartInstances'
     | 'gearInstallRecords'
     | 'gearServiceEvents'
+    | 'gearSelectedBikeId'
   > {
   return {
     ...state,
@@ -63,6 +65,7 @@ function withGearHubStateDefaults(
     gearPartInstances: state.gearPartInstances ?? [],
     gearInstallRecords: state.gearInstallRecords ?? [],
     gearServiceEvents: state.gearServiceEvents ?? [],
+    gearSelectedBikeId: state.gearSelectedBikeId ?? null,
   };
 }
 

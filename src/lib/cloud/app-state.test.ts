@@ -19,6 +19,7 @@ const baseState: Pick<
   | 'gearPartInstances'
   | 'gearInstallRecords'
   | 'gearServiceEvents'
+  | 'gearSelectedBikeId'
 > = {
   bottleCounts: { 550: 0, 750: 1, 950: 0 },
   products: [
@@ -49,6 +50,7 @@ const baseState: Pick<
   gearPartInstances: [],
   gearInstallRecords: [],
   gearServiceEvents: [],
+  gearSelectedBikeId: null,
 };
 
 describe('cloud app-state snapshots', () => {
