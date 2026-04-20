@@ -1,6 +1,15 @@
 import { Card, CardContent, CardHeader, SpecRow } from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
-import { formatPercent, formatCarbsGrams, formatGPerKg } from '@/lib/fueling/format';
+import {
+  formatPercent,
+  formatCarbsGrams,
+  formatCarbsPerHour,
+  formatFluidMl,
+  formatFluidPerHour,
+  formatGPerKg,
+  formatSodiumPerHour,
+  formatMgPerL,
+} from '@/lib/fueling/format';
 import type { Product } from '@/types';
 import type {
   FuelingPrescription,
@@ -254,42 +263,44 @@ function DuringCard({
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
-          <StatCard label="Carbs" value={`${during.carbsGPerHour} g/h`} accent />
-          <StatCard label="Fluid" value={`${during.hydrationMlPerHour} ml/h`} />
-          <StatCard label="Sodium" value={`${during.sodiumMgPerHour} mg/h`} />
-          <StatCard
-            label="Total carbs"
-            value={`${during.totalCarbsGrams} g`}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3">
-          <StatCard
-            label="Total fluid"
-            value={`${during.totalHydrationMl} ml`}
-          />
-          <StatCard
-            label="Bottle [Na]"
-            value={`${during.sodiumMgPerLiterTargetInBottles} mg/L`}
-          />
-          <StatCard
-            label="Concentration"
-            value={`${(during.bottleConcentrationGPerMl * 100).toFixed(1)} g/100ml`}
-          />
-        </div>
-        {during.usesMultiTransportableCarbs && (
-          <p className="text-sm leading-6 text-ink-700">
-            Glucose:fructose mix recommended above 60 g/h.
-          </p>
-        )}
-        {during.caffeineMg !== undefined && during.caffeineMg > 0 && (
-          <div className="surface-note p-3.5 md:p-4">
-            <p className="section-kicker text-[0.68rem]">In-ride caffeine</p>
-            <p className="mt-2 font-semibold text-ink-900">
-              {Math.round(during.caffeineMg)} mg from solids
+        <div className="space-y-3">
+          <div className="rounded-2xl border border-brand-200 bg-[color:color-mix(in_oklch,var(--color-brand-50)_55%,white)] px-4 py-3 md:px-5 md:py-4">
+            <p className="section-kicker text-[0.68rem] text-brand-700">Carbs / hour</p>
+            <p className="mt-1 font-heading text-3xl font-semibold leading-none text-brand-800 tabular-nums">
+              {formatCarbsPerHour(during.carbsGPerHour)}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-brand-700/80">
+              {formatCarbsGrams(during.totalCarbsGrams)} total over the ride
             </p>
           </div>
-        )}
+          <div className="space-y-1.5">
+            <SpecRow label="Fluid" value={formatFluidPerHour(during.hydrationMlPerHour)} />
+            <SpecRow
+              label="Total fluid"
+              value={formatFluidMl(during.totalHydrationMl)}
+            />
+            <SpecRow label="Sodium" value={formatSodiumPerHour(during.sodiumMgPerHour)} />
+            <SpecRow
+              label="Bottle [Na]"
+              value={formatMgPerL(during.sodiumMgPerLiterTargetInBottles)}
+            />
+            <SpecRow
+              label="Concentration"
+              value={`${(during.bottleConcentrationGPerMl * 100).toFixed(1)} g/100ml`}
+            />
+            {during.caffeineMg !== undefined && during.caffeineMg > 0 && (
+              <SpecRow
+                label="Caffeine (solids)"
+                value={`${Math.round(during.caffeineMg)} mg`}
+              />
+            )}
+          </div>
+          {during.usesMultiTransportableCarbs && (
+            <p className="text-xs leading-5 text-ink-600">
+              Glucose:fructose mix recommended above 60 g/h.
+            </p>
+          )}
+        </div>
 
         {packList && packList.bottles.length > 0 && (
           <div className="space-y-2">
