@@ -202,6 +202,13 @@ export function GearHistoryTable({
   const sortIndicator = (column: SortColumn) =>
     sort.column === column ? (sort.direction === 'asc' ? '▲' : '▼') : '';
 
+  const ariaSortFor = (column: SortColumn): 'ascending' | 'descending' | 'none' =>
+    sort.column === column
+      ? sort.direction === 'asc'
+        ? 'ascending'
+        : 'descending'
+      : 'none';
+
   const headerButton = (column: SortColumn, label: string, align: 'left' | 'right' = 'left') => (
     <button
       type="button"
@@ -223,19 +230,19 @@ export function GearHistoryTable({
       <table className="min-w-full border-separate border-spacing-0 text-sm">
         <thead className="bg-shell-50">
           <tr>
-            <th scope="col" className="px-3 py-2 text-left">
+            <th scope="col" aria-sort={ariaSortFor('date')} className="px-3 py-2 text-left">
               {headerButton('date', 'Date')}
             </th>
-            <th scope="col" className="px-3 py-2 text-left">
+            <th scope="col" aria-sort={ariaSortFor('kind')} className="px-3 py-2 text-left">
               {headerButton('kind', 'Type')}
             </th>
-            <th scope="col" className="px-3 py-2 text-left">
+            <th scope="col" aria-sort={ariaSortFor('item')} className="px-3 py-2 text-left">
               {headerButton('item', 'Item')}
             </th>
-            <th scope="col" className="px-3 py-2 text-left">
+            <th scope="col" aria-sort={ariaSortFor('bike')} className="px-3 py-2 text-left">
               {headerButton('bike', 'Bike')}
             </th>
-            <th scope="col" className="px-3 py-2 text-right">
+            <th scope="col" aria-sort={ariaSortFor('mileage')} className="px-3 py-2 text-right">
               {headerButton('mileage', 'Mileage', 'right')}
             </th>
             <th scope="col" className="px-3 py-2 text-right">
@@ -249,7 +256,7 @@ export function GearHistoryTable({
               key={row.id}
               className={clsx(
                 'align-top',
-                index % 2 === 1 ? 'bg-white' : 'bg-shell-50/30'
+                index % 2 === 1 ? 'bg-white' : 'bg-ink-50'
               )}
             >
               <td className="whitespace-nowrap px-3 py-2 text-ink-700 tabular-nums">
