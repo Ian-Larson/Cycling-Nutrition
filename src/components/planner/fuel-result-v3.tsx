@@ -7,6 +7,7 @@ import {
   formatFluidMl,
   formatFluidPerHour,
   formatGPerKg,
+  formatSodiumMg,
   formatSodiumPerHour,
   formatMgPerL,
 } from '@/lib/fueling/format';
@@ -410,48 +411,52 @@ function PostRideCard({ post }: { post: PostRidePrescription | undefined }) {
       <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="section-title">Post-ride</h3>
-          <span className="inline-flex items-center rounded-full bg-shell-100 px-2.5 py-1 text-xs font-medium capitalize text-ink-700">
+          <span className="inline-flex items-center rounded-full bg-shell-100 px-2.5 py-0.5 text-[0.7rem] font-medium capitalize text-ink-700">
             {post.mode}
           </span>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="space-y-2">
-          <h4 className="section-title text-lg">Window 1 · 0–2h</h4>
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
-            <StatCard label="Carbs" value={`${post.window1.carbsGrams} g`} accent />
-            <StatCard label="Protein" value={`${post.window1.proteinGrams} g`} />
-            {post.window1.fluidsMl !== undefined && (
-              <StatCard label="Fluid" value={`${post.window1.fluidsMl} ml`} />
-            )}
-            {post.window1.sodiumMg !== undefined && (
-              <StatCard label="Sodium" value={`${post.window1.sodiumMg} mg`} />
-            )}
-          </div>
+        <div className="space-y-1.5">
+          <p className="section-kicker text-[0.68rem]">Window 1 · 0–2h</p>
+          <SpecRow
+            label="Carbs"
+            value={formatCarbsGrams(post.window1.carbsGrams)}
+            accent
+          />
+          <SpecRow
+            label="Protein"
+            value={formatCarbsGrams(post.window1.proteinGrams)}
+          />
+          {post.window1.fluidsMl !== undefined && (
+            <SpecRow label="Fluid" value={formatFluidMl(post.window1.fluidsMl)} />
+          )}
+          {post.window1.sodiumMg !== undefined && (
+            <SpecRow
+              label="Sodium"
+              value={formatSodiumMg(post.window1.sodiumMg)}
+            />
+          )}
         </div>
         {post.window2 && (
-          <div className="space-y-2">
-            <h4 className="section-title text-lg">Window 2 · 2–4h</h4>
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
-              <StatCard
-                label="Carbs"
-                value={`${post.window2.carbsGrams} g`}
-                accent
-              />
-              <StatCard
-                label="Protein"
-                value={`${post.window2.proteinGrams} g`}
-              />
-            </div>
+          <div className="space-y-1.5 border-t border-[color:var(--border-soft)] pt-3">
+            <p className="section-kicker text-[0.68rem]">Window 2 · 2–4h</p>
+            <SpecRow
+              label="Carbs"
+              value={formatCarbsGrams(post.window2.carbsGrams)}
+              accent
+            />
+            <SpecRow
+              label="Protein"
+              value={formatCarbsGrams(post.window2.proteinGrams)}
+            />
           </div>
         )}
-        {post.recommendRecoveryDrink && (
-          <p className="text-sm leading-6 text-ink-700">
-            Recovery drink recommended.
-          </p>
-        )}
-        {post.notes.length > 0 && (
-          <ul className="space-y-1 text-sm leading-6 text-ink-700">
+        {(post.recommendRecoveryDrink || post.notes.length > 0) && (
+          <ul className="space-y-1 text-xs leading-5 text-ink-600">
+            {post.recommendRecoveryDrink && (
+              <li>• Recovery drink recommended.</li>
+            )}
             {post.notes.map((note, i) => (
               <li key={i}>• {note}</li>
             ))}
