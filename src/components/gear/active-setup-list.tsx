@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { Card } from '@/components/ui';
+import { DividedRowList } from '@/components/ui';
 import { OverflowMenu } from './overflow-menu';
 import type { ActiveSetupRow, GearUrgency } from '@/lib/gear/derive-active-setup';
 import type { BikeSlotKey } from '@/types/gear';
@@ -99,58 +99,49 @@ export function ActiveSetupList({
   onService,
 }: ActiveSetupListProps) {
   return (
-    <Card>
-      <ul className="divide-y divide-[color:var(--border-soft)] py-1">
-        {rows.map((row) => (
-          <li key={row.slotKey}>
-            {row.installRecord ? (
-              <div className="flex items-start justify-between gap-2 px-3 py-2 md:px-4 md:py-2.5">
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="text-sm font-semibold leading-6 text-ink-900">
-                      {row.slotLabel}
-                    </span>
-                    <UrgencyPill urgency={row.urgency} />
-                  </div>
-                  <p className="mt-0.5 truncate text-xs leading-5 text-ink-600">
-                    {formatPartSummary(row)}
-                  </p>
-                </div>
-                <div className="-mr-1 shrink-0 pt-0.5">
-                  <OverflowMenu
-                    label={`${row.slotLabel} actions`}
-                    items={[
-                      {
-                        label: 'Log service',
-                        onSelect: () => onService(row),
-                      },
-                      {
-                        label: 'Remove',
-                        onSelect: () => onRemove(row),
-                        tone: 'danger',
-                      },
-                    ]}
-                  />
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onInstall(row.slotKey)}
-                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left transition-colors hover:bg-shell-50 focus:outline-none focus-visible:bg-shell-50 md:px-4 md:py-2.5"
-              >
-                <span className="truncate text-sm font-medium leading-6 text-ink-500">
+    <DividedRowList
+      items={rows}
+      getKey={(row) => row.slotKey}
+      renderItem={(row) =>
+        row.installRecord ? (
+          <div className="flex items-start justify-between gap-2 px-3 py-2 md:px-4 md:py-2.5">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-sm font-semibold leading-6 text-ink-900">
                   {row.slotLabel}
                 </span>
-                <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold uppercase tracking-wide text-brand-700 transition-colors">
-                  Install
-                  <ChevronIcon />
-                </span>
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
-    </Card>
+                <UrgencyPill urgency={row.urgency} />
+              </div>
+              <p className="mt-0.5 truncate text-xs leading-5 text-ink-600">
+                {formatPartSummary(row)}
+              </p>
+            </div>
+            <div className="-mr-1 shrink-0 pt-0.5">
+              <OverflowMenu
+                label={`${row.slotLabel} actions`}
+                items={[
+                  { label: 'Log service', onSelect: () => onService(row) },
+                  { label: 'Remove', onSelect: () => onRemove(row), tone: 'danger' },
+                ]}
+              />
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onInstall(row.slotKey)}
+            className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left transition-colors hover:bg-shell-50 focus:outline-none focus-visible:bg-shell-50 md:px-4 md:py-2.5"
+          >
+            <span className="truncate text-sm font-medium leading-6 text-ink-500">
+              {row.slotLabel}
+            </span>
+            <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold uppercase tracking-wide text-brand-700 transition-colors">
+              Install
+              <ChevronIcon />
+            </span>
+          </button>
+        )
+      }
+    />
   );
 }
