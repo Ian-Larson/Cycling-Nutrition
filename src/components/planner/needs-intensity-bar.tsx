@@ -37,7 +37,7 @@ export function NeedsIntensityBar({
           {label}
         </p>
         <div className="flex items-center gap-2">
-          <span className={clsx('text-ink-500', compact ? 'text-xs' : 'text-sm')}>
+          <span className={clsx('tabular-nums text-ink-500', compact ? 'text-xs' : 'text-sm')}>
             {clampedScore}/100
           </span>
           <span
@@ -55,7 +55,7 @@ export function NeedsIntensityBar({
       <div className={clsx('relative rounded-full overflow-hidden', compact ? 'h-2.5' : 'h-3')}>
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-amber-400 via-orange-500 to-red-500" />
         <div
-          className="absolute top-1/2 h-4 w-4 -translate-y-1/2 -translate-x-1/2 rounded-full border-2 border-white bg-ink-900 shadow"
+          className="absolute top-1/2 h-4 w-4 -translate-y-1/2 -translate-x-1/2 rounded-full border-2 border-white bg-ink-900 shadow transition-[left] duration-500 ease-out motion-reduce:transition-none"
           style={{ left: `${clampedScore}%` }}
           aria-hidden
         />

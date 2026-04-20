@@ -32,18 +32,18 @@ function TargetBar({ planned, needed }: { planned: number; needed: number }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="section-kicker text-[0.68rem]">Target</p>
-          <p className="mt-2 text-sm leading-6 text-ink-700">
+          <p className="mt-2 text-sm leading-6 text-ink-700 tabular-nums">
             Planned {planned}g • target {needed}g
           </p>
         </div>
-        <p className={`font-sans text-[1.15rem] font-semibold leading-none ${textColor}`}>
+        <p className={`font-sans text-[1.15rem] font-semibold leading-none tabular-nums ${textColor}`}>
           {sign}
           {delta}g
         </p>
       </div>
       <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-shell-200">
         <div
-          className={`h-full rounded-full transition-all ${barColor}`}
+          className={`h-full rounded-full transition-[width,background-color] duration-500 ease-out motion-reduce:transition-none ${barColor}`}
           style={{ width: `${Math.min(pct, 100)}%` }}
         />
       </div>
@@ -184,18 +184,18 @@ export function FuelResult({
                       key={i}
                       className="grid gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:px-4 md:py-4"
                     >
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900 md:h-10 md:w-10">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900 tabular-nums md:h-10 md:w-10">
                         {String(i + 1).padStart(2, '0')}
                       </div>
                       <div>
                         <p className="font-semibold text-ink-900">
                           Bottle {i + 1}
                         </p>
-                        <p className="mt-1 text-sm leading-6 text-ink-600">
+                        <p className="mt-1 text-sm leading-6 text-ink-600 tabular-nums">
                           {alloc.capacityMl}ml • {alloc.isWaterOnly ? 'Water only' : product?.name}
                         </p>
                         {!alloc.isWaterOnly && (
-                          <p className="text-sm leading-6 text-ink-600">
+                          <p className="text-sm leading-6 text-ink-600 tabular-nums">
                             {alloc.carbsTotal}g carbs • ~{alloc.mixScoops} scoops •{' '}
                             {(concentration * 100).toFixed(1)}g per 100ml
                           </p>
@@ -213,10 +213,10 @@ export function FuelResult({
                           </>
                         ) : (
                           <>
-                            <p className="font-sans text-[1.15rem] font-semibold leading-none text-brand-700">
+                            <p className="font-sans text-[1.15rem] font-semibold leading-none text-brand-700 tabular-nums">
                               {alloc.mixGrams}g mix
                             </p>
-                            <p className="mt-2 text-sm leading-6 text-ink-600">
+                            <p className="mt-2 text-sm leading-6 text-ink-600 tabular-nums">
                               Add to {alloc.capacityMl}ml bottle
                             </p>
                           </>
@@ -240,14 +240,14 @@ export function FuelResult({
                       key={`${alloc.productId}-${i}`}
                       className="grid gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:px-4 md:py-4"
                     >
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900 md:h-10 md:w-10">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900 tabular-nums md:h-10 md:w-10">
                         {String(i + 1).padStart(2, '0')}
                       </div>
                       <div>
                         <p className="font-semibold text-ink-900">
                           {product?.name || 'Solid fuel'}
                         </p>
-                        <p className="mt-1 text-sm leading-6 text-ink-600">
+                        <p className="mt-1 text-sm leading-6 text-ink-600 tabular-nums">
                           {alloc.carbsTotal}g carbs total • aim for one every ~
                           {alloc.timingIntervalMinutes} minutes
                         </p>
@@ -261,7 +261,7 @@ export function FuelResult({
                         />
                       ) : (
                         <div className="text-left md:text-right">
-                          <p className="font-sans text-[1.15rem] font-semibold leading-none text-brand-700">
+                          <p className="font-sans text-[1.15rem] font-semibold leading-none text-brand-700 tabular-nums">
                             x{alloc.quantity}
                           </p>
                           <p className="mt-2 text-sm leading-6 text-ink-600">
@@ -278,7 +278,7 @@ export function FuelResult({
             {refuelStops > 0 && (
               <div className="surface-note border-brand-200 bg-[color:color-mix(in_oklch,var(--color-brand-50)_58%,white)] p-4">
                 <p className="section-kicker text-[0.68rem]">Refills</p>
-                <p className="mt-2 font-semibold text-ink-900">
+                <p className="mt-2 font-semibold text-ink-900 tabular-nums">
                   Prepare {refuelStops + 1} fill set{refuelStops === 0 ? '' : 's'}.
                 </p>
                 <p className="mt-2 text-sm leading-6 text-ink-600">
@@ -301,11 +301,11 @@ export function FuelResult({
                 key={`${item.timeOffsetMinutes}-${i}`}
                 className="grid gap-2.5 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-start md:gap-3 md:px-4 md:py-4"
               >
-                <div className="rounded-lg border border-brand-200 bg-brand-100 px-3 py-2 font-sans text-sm font-semibold text-brand-800">
+                <div className="rounded-lg border border-brand-200 bg-brand-100 px-3 py-2 font-sans text-sm font-semibold text-brand-800 tabular-nums">
                   {formatTime(item.timeOffsetMinutes)}
                 </div>
                 <p className="text-sm leading-6 text-ink-900">{item.action}</p>
-                <p className="text-sm leading-6 text-ink-600 md:text-right">
+                <p className="text-sm leading-6 text-ink-600 tabular-nums md:text-right">
                   {item.cumulativeCarbs}g total
                 </p>
               </div>

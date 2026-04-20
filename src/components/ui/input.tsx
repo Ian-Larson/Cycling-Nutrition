@@ -22,6 +22,7 @@ export function Input({ label, error, className, id, ...props }: InputProps) {
         className={clsx(
           'block min-h-12 w-full rounded-xl border px-3.5 py-2.5 text-base text-ink-900 md:min-h-11',
           'border-[color:var(--border-soft)] bg-white',
+          'transition-[border-color,box-shadow] duration-150 ease-out motion-reduce:transition-none',
           'focus:border-brand-400 focus:ring-2 focus:ring-brand-200 focus:outline-none',
           'placeholder:text-ink-400',
           error && 'border-rose-500 focus:border-rose-500 focus:ring-rose-200',

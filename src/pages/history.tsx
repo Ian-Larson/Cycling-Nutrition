@@ -175,26 +175,26 @@ export function HistoryPage() {
                       <div className="grid grid-cols-2 gap-2 md:hidden">
                         <div className="surface-note px-3 py-2.5">
                           <p className="page-stat-label">Carbs</p>
-                          <p className="font-sans text-[1.02rem] font-semibold leading-none text-brand-700">
+                          <p className="font-sans text-[1.02rem] font-semibold leading-none text-brand-700 tabular-nums">
                             {plan.summary.totalCarbsPlanned}g
                           </p>
                         </div>
                         <div className="surface-note px-3 py-2.5">
                           <p className="page-stat-label">Calories</p>
-                          <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900">
+                          <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900 tabular-nums">
                             {totalCaloriesPlanned} kcal
                           </p>
                         </div>
                         <div className="surface-note px-3 py-2.5">
                           <p className="page-stat-label">Hydration</p>
-                          <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900">
+                          <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900 tabular-nums">
                             {plan.summary.hydrationMl}ml
                           </p>
                         </div>
                         {plan.summary.sodiumMgPerHour !== undefined && (
                           <div className="surface-note px-3 py-2.5">
                             <p className="page-stat-label">Sodium / Hour</p>
-                            <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900">
+                            <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900 tabular-nums">
                               {plan.summary.sodiumMgPerHour}mg
                             </p>
                           </div>
@@ -210,20 +210,20 @@ export function HistoryPage() {
                         </div>
                         <div className="surface-note min-w-[7.75rem] px-3 py-2">
                           <p className="page-stat-label">Calories</p>
-                          <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900">
+                          <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900 tabular-nums">
                             {totalCaloriesPlanned} kcal
                           </p>
                         </div>
                         <div className="surface-note min-w-[7.75rem] px-3 py-2">
                           <p className="page-stat-label">Hydration</p>
-                          <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900">
+                          <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900 tabular-nums">
                             {plan.summary.hydrationMl}ml
                           </p>
                         </div>
                         {plan.summary.sodiumMgPerHour !== undefined && (
                           <div className="surface-note min-w-[8.25rem] px-3 py-2">
                             <p className="page-stat-label">Sodium / Hour</p>
-                            <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900">
+                            <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900 tabular-nums">
                               {plan.summary.sodiumMgPerHour}mg
                             </p>
                           </div>

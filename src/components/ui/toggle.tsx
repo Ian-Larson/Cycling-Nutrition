@@ -18,7 +18,7 @@ export function Toggle({ checked, onChange, label, disabled }: ToggleProps) {
         'relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border md:h-6 md:w-11',
         'transition-[transform,background-color,border-color,box-shadow] duration-200 ease-out motion-reduce:transition-none',
         'motion-safe:hover:shadow-[0_8px_18px_-16px_rgba(248,98,46,0.7)] motion-safe:active:scale-[0.98]',
-        'focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         checked
           ? 'border-brand-300 bg-brand-200 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]'

@@ -19,7 +19,7 @@ export function Button({
         'inline-flex items-center justify-center gap-2 rounded-xl border font-body text-sm font-medium',
         'transition-[transform,box-shadow,background-color,color,border-color] duration-200 ease-out motion-reduce:transition-none',
         'motion-safe:hover:-translate-y-px motion-safe:active:translate-y-[1px]',
-        'focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
         'disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none',
         {
           'border-brand-500 bg-brand-500 text-white shadow-[0_12px_26px_-16px_rgba(248,98,46,0.74)] hover:border-brand-700 hover:bg-brand-700 hover:shadow-[0_16px_32px_-18px_rgba(248,98,46,0.82)]': variant === 'primary',
