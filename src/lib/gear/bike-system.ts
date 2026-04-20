@@ -154,6 +154,14 @@ export function formatCassetteRange(
   return `${cassetteCogs.smallest}–${cassetteCogs.largest}T`;
 }
 
+export function formatChainringTeeth(chainring: ChainringSummary | null): string | null {
+  if (!chainring) return null;
+  if (chainring.drivetrainType === '2x' && chainring.innerRing !== undefined) {
+    return `${chainring.outerRing}/${chainring.innerRing}T`;
+  }
+  return `${chainring.outerRing}T`;
+}
+
 export function formatWeightKg(grams: number | null | undefined): string | null {
   if (grams === null || grams === undefined || !Number.isFinite(grams)) return null;
   if (grams <= 0) return null;

@@ -5,6 +5,7 @@ import { EditBikeWeightDialog } from './edit-bike-weight-dialog';
 import { EditBikeNameDialog } from './edit-bike-name-dialog';
 import {
   formatCassetteRange,
+  formatChainringTeeth,
   formatGearRatioRange,
   formatMileage,
   formatWeightKg,
@@ -35,10 +36,11 @@ export function BikeSystemCard({ bike, installRecords, instances, catalog }: Bik
   const chainring = useMemo(() => getInstalledChainring(inputs), [inputs]);
   const cassetteCogs = useMemo(() => getCassetteCogRange(inputs), [inputs]);
 
-  const mileage = formatMileage(bike.cachedOdometerMi);
+  const odometer = formatMileage(bike.cachedOdometerMi);
   const weight = formatWeightKg(bike.totalWeightGrams);
   const ratio = formatGearRatioRange(chainring, cassetteCogs);
   const cassette = formatCassetteRange(cassetteCogs);
+  const crankset = formatChainringTeeth(chainring);
 
   return (
     <>
@@ -77,9 +79,9 @@ export function BikeSystemCard({ bike, installRecords, instances, catalog }: Bik
           </div>
           <div className="space-y-1.5 pt-0.5">
             <SystemSpecRow
-              label="Mileage"
-              value={mileage ?? '—'}
-              muted={mileage === null}
+              label="Odometer"
+              value={odometer ?? '—'}
+              muted={odometer === null}
             />
             <SystemSpecRow
               label="Weight"
@@ -92,6 +94,11 @@ export function BikeSystemCard({ bike, installRecords, instances, catalog }: Bik
               label="Gear range"
               value={ratio ?? '—'}
               muted={ratio === null}
+            />
+            <SystemSpecRow
+              label="Crankset"
+              value={crankset ?? '—'}
+              muted={crankset === null}
             />
             <SystemSpecRow
               label="Cassette"
