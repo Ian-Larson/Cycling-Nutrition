@@ -89,13 +89,11 @@ function formatAttributes(attributes: GearPartAttributes): string {
       .join(' - ');
   }
 
-  return [
-    attributes.toothCount && `${attributes.toothCount}T`,
-    attributes.position,
-    attributes.mount,
-  ]
-    .filter(Boolean)
-    .join(' - ');
+  const ringLabel =
+    attributes.drivetrainType === '2x' && attributes.innerRing
+      ? `${attributes.outerRing}-${attributes.innerRing}T`
+      : `${attributes.outerRing}T`;
+  return [attributes.drivetrainType, ringLabel].filter(Boolean).join(' ');
 }
 
 function catalogTitle(item: GearPartCatalogItem): string {

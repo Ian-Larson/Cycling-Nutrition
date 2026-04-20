@@ -136,13 +136,15 @@ function normalizeAttributes(
     };
   }
 
-  const toothCount = positiveNumber(value.toothCount);
-  if (!toothCount) return undefined;
+  const outerRing = positiveNumber(value.outerRing) ?? positiveNumber(value.toothCount);
+  if (!outerRing) return undefined;
+  const drivetrainType = value.drivetrainType === '2x' ? '2x' : '1x';
+  const innerRing = drivetrainType === '2x' ? positiveNumber(value.innerRing) : undefined;
   return {
     category: 'chainring',
-    toothCount,
-    position: text(value.position),
-    mount: text(value.mount),
+    drivetrainType,
+    outerRing,
+    innerRing,
   };
 }
 
