@@ -5,6 +5,7 @@ export interface Bike {
   cachedOdometerMi: number | null;
   odometerSyncedAtIso: string | null;
   isPrimary: boolean;
+  totalWeightGrams?: number;
   createdAt: number;
   updatedAt: number;
 }
