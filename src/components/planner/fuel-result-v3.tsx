@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, SpecRow } from '@/components/ui';
+import { Card, CardContent, CardHeader, SpecRow, DividedRowList } from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
 import {
   formatPercent,
@@ -302,114 +302,100 @@ function DuringCard({
           )}
         </div>
 
+        {packList && packList.fluidShortfallMl && packList.fluidShortfallMl > 0 ? (
+          <div className="rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-3 text-sm leading-5 text-amber-900 md:leading-6">
+            <p className="font-semibold">
+              Plan a refill stop for ~{packList.fluidShortfallMl.toLocaleString()} ml extra fluid
+            </p>
+            <p className="mt-1">
+              Your two bottles can't carry the full hydration target for this ride. Add a refill
+              stop, top up from a hydration pack, or dial down the fluid plan.
+            </p>
+          </div>
+        ) : null}
         {packList && packList.bottles.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <h4 className="section-title text-lg">
-                Bring {packList.bottles.length === 1 ? '1 bottle' : `${packList.bottles.length} bottles`}
-              </h4>
-              <p className="text-sm leading-5 text-ink-600">
-                Fill each as shown below
-              </p>
-            </div>
-            {packList.fluidShortfallMl && packList.fluidShortfallMl > 0 ? (
-              <div className="rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-3 text-sm leading-5 text-amber-900 md:leading-6">
-                <p className="font-semibold">
-                  Plan a refill stop for ~{packList.fluidShortfallMl.toLocaleString()} ml extra fluid
-                </p>
-                <p className="mt-1">
-                  Your two bottles can't carry the full hydration target for this ride. Add a refill
-                  stop, top up from a hydration pack, or dial down the fluid plan.
-                </p>
+          <DividedRowList
+            items={packList.bottles}
+            getKey={(_, i) => `bottle-${i}`}
+            header={
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                <div>
+                  <p className="section-kicker text-[0.68rem]">Bottles</p>
+                  <p className="text-sm font-semibold text-ink-900">
+                    Bring {packList.bottles.length === 1 ? '1 bottle' : `${packList.bottles.length} bottles`}
+                  </p>
+                </div>
+                <p className="text-xs leading-5 text-ink-500">Fill each as shown</p>
               </div>
-            ) : null}
-            {packList.bottles.map((alloc, i) => {
+            }
+            renderItem={(alloc, i) => {
               const product = alloc.productId
                 ? products.find((p) => p.id === alloc.productId)
                 : null;
               return (
-                <div
-                  key={i}
-                  className="grid gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:px-4"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900">
-                    {String(i + 1).padStart(2, '0')}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-ink-900">
+                <div className="flex items-start justify-between gap-3 px-3 py-2 md:px-4 md:py-2.5">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold leading-6 text-ink-900">
                       Bottle {i + 1}
                     </p>
-                    <p className="mt-1 text-sm leading-6 text-ink-600">
-                      {alloc.capacityMl} ml •{' '}
+                    <p className="truncate text-xs leading-5 text-ink-600">
+                      {alloc.capacityMl} ml ·{' '}
+                      {alloc.isWaterOnly ? 'Water' : (product?.name ?? 'Mix')}
                       {alloc.isWaterOnly
-                        ? 'Water only'
-                        : (product?.name ?? 'Mix')}
+                        ? ''
+                        : ` · ${alloc.carbsTotal} g carbs${
+                            alloc.sodiumMgTotal ? ` · ${alloc.sodiumMgTotal} mg Na` : ''
+                          }`}
                     </p>
-                    {!alloc.isWaterOnly && (
-                      <p className="text-sm leading-6 text-ink-600">
-                        {alloc.carbsTotal} g carbs
-                        {alloc.mixScoops !== undefined
-                          ? ` • ~${alloc.mixScoops} scoops`
-                          : ''}
-                        {alloc.sodiumMgTotal
-                          ? ` • ${alloc.sodiumMgTotal} mg Na`
-                          : ''}
-                      </p>
-                    )}
                   </div>
-                  <div className="text-left md:text-right">
-                    {alloc.isWaterOnly ? (
-                      <p className="font-sans text-sm font-semibold text-ink-900">
-                        Water
-                      </p>
-                    ) : (
-                      <p className="font-sans text-[1.05rem] font-semibold leading-none text-brand-700">
-                        {alloc.mixGrams} g mix
-                      </p>
-                    )}
-                  </div>
+                  <p className="shrink-0 text-right font-sans text-sm font-semibold leading-6 tabular-nums text-brand-700">
+                    {alloc.isWaterOnly
+                      ? 'Water'
+                      : `${alloc.mixGrams} g${
+                          alloc.mixScoops !== undefined ? ` · ~${alloc.mixScoops}×` : ''
+                        }`}
+                  </p>
                 </div>
               );
-            })}
-          </div>
+            }}
+          />
         )}
 
         {packList && packList.solids.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <h4 className="section-title text-lg">Bring solids</h4>
-              <p className="text-sm leading-5 text-ink-600">
-                Carry and eat on schedule
-              </p>
-            </div>
-            {packList.solids.map((alloc, i) => {
+          <DividedRowList
+            items={packList.solids}
+            getKey={(alloc, i) => `${alloc.productId}-${i}`}
+            header={
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                <div>
+                  <p className="section-kicker text-[0.68rem]">Solids</p>
+                  <p className="text-sm font-semibold text-ink-900">Bring solids</p>
+                </div>
+                <p className="text-xs leading-5 text-ink-500">Carry and eat on schedule</p>
+              </div>
+            }
+            renderItem={(alloc) => {
               const product = products.find((p) => p.id === alloc.productId);
               return (
-                <div
-                  key={`${alloc.productId}-${i}`}
-                  className="grid gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:px-4"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900">
-                    {String(i + 1).padStart(2, '0')}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-ink-900">
+                <div className="flex items-start justify-between gap-3 px-3 py-2 md:px-4 md:py-2.5">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold leading-6 text-ink-900">
                       {product?.name ?? 'Solid'}
                     </p>
-                    <p className="mt-1 text-sm leading-6 text-ink-600">
-                      {alloc.carbsTotal} g carbs • every ~{alloc.timingIntervalMinutes} min
+                    <p className="truncate text-xs leading-5 text-ink-600">
+                      {alloc.carbsTotal} g carbs · every ~{alloc.timingIntervalMinutes} min
                       {alloc.caffeineMgTotal
-                        ? ` • ${alloc.caffeineMgTotal} mg caffeine`
+                        ? ` · ${alloc.caffeineMgTotal} mg caffeine`
                         : ''}
                     </p>
                   </div>
-                  <p className="font-sans text-[1.05rem] font-semibold leading-none text-brand-700 md:text-right">
+                  <p className="shrink-0 text-right font-sans text-sm font-semibold leading-6 tabular-nums text-brand-700">
                     ×{alloc.quantity}
                   </p>
                 </div>
               );
-            })}
-          </div>
+            }}
+          />
         )}
       </CardContent>
     </Card>
