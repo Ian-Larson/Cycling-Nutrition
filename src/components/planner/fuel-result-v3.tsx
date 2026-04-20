@@ -79,22 +79,6 @@ function HeatPill({ heat }: { heat: string }) {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: string;
-  accent?: boolean;
-}) {
-  return (
-    <div className="surface-note p-3.5 md:p-4">
-      <p className="page-stat-label">{label}</p>
-      <p className={`page-stat-value ${accent ? 'text-brand-700' : ''}`}>{value}</p>
-    </div>
-  );
-}
 
 function WarningsCard({ warnings }: { warnings: Warning[] }) {
   if (warnings.length === 0) return null;
@@ -477,27 +461,24 @@ function DailyCard({ prescription }: { prescription: FuelingPrescription }) {
         <h3 className="section-title">Daily targets</h3>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3">
-          <StatCard
+        <div className="space-y-1.5">
+          <SpecRow
             label="Carbs"
-            value={`${daily.carbsGramsTotal} g`}
+            value={formatCarbsGrams(daily.carbsGramsTotal)}
             accent
           />
-          <StatCard
+          <SpecRow label="Carbs / kg" value={formatGPerKg(daily.carbsGPerKg)} />
+          <SpecRow
             label="Protein"
-            value={`${daily.proteinGramsTotal} g`}
+            value={formatCarbsGrams(daily.proteinGramsTotal)}
           />
-          <StatCard
-            label="Caffeine max"
-            value={`${daily.caffeineMgCeiling} mg`}
-          />
-          <StatCard
-            label="Carbs / kg"
-            value={`${daily.carbsGPerKg.toFixed(1)} g/kg`}
-          />
-          <StatCard
+          <SpecRow
             label="Protein / kg"
             value={`${daily.proteinGPerKg.toFixed(2)} g/kg`}
+          />
+          <SpecRow
+            label="Caffeine max"
+            value={`${Math.round(daily.caffeineMgCeiling)} mg`}
           />
         </div>
       </CardContent>
