@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader } from '@/components/ui';
+import { Card, CardContent, CardHeader, SpecRow } from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
+import { formatPercent } from '@/lib/fueling/format';
 import type { Product } from '@/types';
 import type {
   FuelingPrescription,
@@ -131,21 +132,25 @@ function ContextCard({ prescription }: { prescription: FuelingPrescription }) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
-          <StatCard
+      <CardContent className="space-y-2">
+        <div className="space-y-1.5">
+          <SpecRow
             label="Duration"
             value={formatDuration(contextSummary.durationMinutes)}
           />
-          <StatCard label="IF" value={contextSummary.intensityFactor.toFixed(2)} />
-          <StatCard label="TSS" value={String(Math.round(contextSummary.tss))} />
-          <StatCard
+          <SpecRow
+            label="IF"
+            value={contextSummary.intensityFactor.toFixed(2)}
+          />
+          <SpecRow label="TSS" value={String(Math.round(contextSummary.tss))} />
+          <SpecRow
             label="Confidence"
-            value={`${Math.round(confidence.score * 100)}%`}
+            value={formatPercent(confidence.score)}
+            muted={confidence.score < 0.5}
           />
         </div>
         {confidence.missing.length > 0 && (
-          <p className="text-sm leading-5 text-ink-600 md:leading-6">
+          <p className="pt-1 text-xs leading-5 text-ink-500">
             Inferring: {confidence.missing.join(', ')}
           </p>
         )}
