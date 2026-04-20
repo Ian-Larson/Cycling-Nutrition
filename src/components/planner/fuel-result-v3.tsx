@@ -79,7 +79,6 @@ function HeatPill({ heat }: { heat: string }) {
   );
 }
 
-
 function WarningsCard({ warnings }: { warnings: Warning[] }) {
   if (warnings.length === 0) return null;
 
