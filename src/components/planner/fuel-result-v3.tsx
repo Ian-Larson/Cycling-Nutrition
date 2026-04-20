@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, SpecRow } from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
-import { formatPercent } from '@/lib/fueling/format';
+import { formatPercent, formatCarbsGrams, formatGPerKg } from '@/lib/fueling/format';
 import type { Product } from '@/types';
 import type {
   FuelingPrescription,
@@ -184,58 +184,52 @@ function PreRideCard({ prescription }: { prescription: FuelingPrescription }) {
         <h3 className="section-title">Pre-ride</h3>
       </CardHeader>
       <CardContent className="space-y-3">
+        {pre && (
+          <div className="space-y-1.5">
+            <SpecRow
+              label="Carbs"
+              value={formatCarbsGrams(pre.carbsGrams)}
+              accent
+            />
+            <SpecRow label="Per kg" value={formatGPerKg(pre.carbsGPerKg)} />
+            <SpecRow label="Window" value={`${pre.windowHoursBefore} h before`} />
+            {pre.proteinGrams !== undefined && (
+              <SpecRow
+                label="Protein"
+                value={formatCarbsGrams(pre.proteinGrams)}
+              />
+            )}
+            {pre.caffeineMg !== undefined && (
+              <SpecRow
+                label="Caffeine"
+                value={
+                  pre.caffeineTimingMinutesBefore !== undefined
+                    ? `${pre.caffeineMg} mg · ${pre.caffeineTimingMinutesBefore} min before`
+                    : `${pre.caffeineMg} mg`
+                }
+              />
+            )}
+          </div>
+        )}
         {carbLoad && (
-          <div className="rounded-2xl border border-brand-200 bg-[color:color-mix(in_oklch,var(--color-brand-50)_58%,white)] px-3 py-3 md:px-4 md:py-4">
+          <div className="rounded-xl border border-brand-200 bg-[color:color-mix(in_oklch,var(--color-brand-50)_58%,white)] px-3 py-2.5">
             <p className="section-kicker text-[0.68rem] text-brand-700">
               Carb load
             </p>
-            <p className="mt-2 font-semibold text-ink-900">
+            <p className="mt-1 text-sm font-semibold text-ink-900">
               {carbLoad.targetGPerKgPerDay.toFixed(1)} g/kg/day × {carbLoad.days} days
             </p>
-            <p className="mt-1 text-sm leading-6 text-ink-600">
+            <p className="mt-0.5 text-xs leading-5 text-ink-600">
               Hourly ceiling {carbLoad.hourlyCeilingGPerKg.toFixed(1)} g/kg.
             </p>
           </div>
         )}
-        {pre && (
-          <>
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
-              <StatCard
-                label="Carbs"
-                value={`${pre.carbsGrams} g`}
-                accent
-              />
-              <StatCard
-                label="Per kg"
-                value={`${pre.carbsGPerKg.toFixed(1)} g/kg`}
-              />
-              <StatCard
-                label="Window"
-                value={`${pre.windowHoursBefore}h before`}
-              />
-              {pre.proteinGrams !== undefined && (
-                <StatCard label="Protein" value={`${pre.proteinGrams} g`} />
-              )}
-            </div>
-            {pre.caffeineMg !== undefined && (
-              <div className="surface-note p-3.5 md:p-4">
-                <p className="section-kicker text-[0.68rem]">Caffeine stack</p>
-                <p className="mt-2 font-semibold text-ink-900">
-                  {pre.caffeineMg} mg
-                  {pre.caffeineTimingMinutesBefore !== undefined
-                    ? ` • ${pre.caffeineTimingMinutesBefore} min before start`
-                    : ''}
-                </p>
-              </div>
-            )}
-            {pre.notes.length > 0 && (
-              <ul className="space-y-1 text-sm leading-6 text-ink-700">
-                {pre.notes.map((note, i) => (
-                  <li key={i}>• {note}</li>
-                ))}
-              </ul>
-            )}
-          </>
+        {pre && pre.notes.length > 0 && (
+          <ul className="space-y-1 text-xs leading-5 text-ink-600">
+            {pre.notes.map((note, i) => (
+              <li key={i}>• {note}</li>
+            ))}
+          </ul>
         )}
       </CardContent>
     </Card>
