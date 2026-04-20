@@ -147,6 +147,13 @@ export function formatDrivetrainSpeeds(
   return `${front} × ${cassetteSpeedCount}`;
 }
 
+export function formatCassetteRange(
+  cassetteCogs: { smallest: number; largest: number } | null
+): string | null {
+  if (!cassetteCogs) return null;
+  return `${cassetteCogs.smallest}–${cassetteCogs.largest}T`;
+}
+
 export function formatWeightKg(grams: number | null | undefined): string | null {
   if (grams === null || grams === undefined || !Number.isFinite(grams)) return null;
   if (grams <= 0) return null;
