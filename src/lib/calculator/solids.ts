@@ -20,7 +20,11 @@ export function recommendSolids(
     return [];
   }
 
-  const sorted = [...availableSolids].sort(
+  // Drop products with non-positive carbs — dividing by them produces Infinity/NaN.
+  const usable = availableSolids.filter((p) => p.nutrition.carbsGrams > 0);
+  if (usable.length === 0) return [];
+
+  const sorted = [...usable].sort(
     (a, b) => b.nutrition.carbsGrams - a.nutrition.carbsGrams
   );
 

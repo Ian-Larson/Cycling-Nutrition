@@ -38,6 +38,11 @@ export function ProductForm({
   const [concMax, setConcMax] = useState(initialData?.concentration?.maxGPerMl ? String(initialData.concentration.maxGPerMl) : '');
   const [isAvailable, setIsAvailable] = useState(initialData?.isAvailable ?? true);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [errors, setErrors] = useState<{
+    name?: string;
+    carbs?: string;
+    calories?: string;
+  }>({});
 
   useEffect(() => {
     if (!confirmingDelete) return;
@@ -45,9 +50,32 @@ export function ProductForm({
     return () => clearTimeout(timer);
   }, [confirmingDelete]);
 
+  const parsePositive = (value: string): number | null => {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !carbsGrams || !calories) return;
+
+    const nextErrors: typeof errors = {};
+    if (!name.trim()) nextErrors.name = 'Required.';
+
+    const carbs = parsePositive(carbsGrams);
+    if (carbs === null) nextErrors.carbs = 'Enter a number.';
+    else if (carbs <= 0) nextErrors.carbs = 'Must be greater than 0.';
+
+    const cals = parsePositive(calories);
+    if (cals === null) nextErrors.calories = 'Enter a number.';
+    else if (cals < 0) nextErrors.calories = 'Must be 0 or greater.';
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+    setErrors({});
 
     const concentration: ConcentrationRange | undefined =
       type === 'drink_mix' && (concMin || concMax)
@@ -63,8 +91,8 @@ export function ProductForm({
       type,
       isAvailable,
       nutrition: {
-        carbsGrams: Number(carbsGrams),
-        calories: Number(calories),
+        carbsGrams: carbs as number,
+        calories: cals as number,
       },
       serving: {
         servingSizeGrams: servingSizeGrams ? Number(servingSizeGrams) : undefined,
@@ -85,6 +113,7 @@ export function ProductForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          error={errors.name}
         />
         <Input
           label="Brand (optional)"
@@ -109,7 +138,9 @@ export function ProductForm({
           value={carbsGrams}
           onChange={(e) => setCarbsGrams(e.target.value)}
           required
-          min="0"
+          min="0.1"
+          step="0.1"
+          error={errors.carbs}
         />
         <Input
           label="Calories per serving"
@@ -119,6 +150,7 @@ export function ProductForm({
           onChange={(e) => setCalories(e.target.value)}
           required
           min="0"
+          error={errors.calories}
         />
       </div>
 
