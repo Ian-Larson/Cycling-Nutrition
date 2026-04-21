@@ -4,6 +4,8 @@ import {
   useMemo,
   useRef,
   useState,
+  type ChangeEvent,
+  type FocusEvent,
   type KeyboardEvent,
 } from 'react';
 import { Link } from 'react-router-dom';
@@ -104,10 +106,9 @@ export function RideForm({
   initialSnapshot,
 }: RideFormProps) {
   const [durationMinutes, setDuration] = useState(initialSnapshot?.durationMinutes ?? 90);
-  const [editingDuration, setEditingDuration] = useState(false);
-  const [durationInput, setDurationInput] = useState(
-    String(initialSnapshot?.durationMinutes ?? 90)
-  );
+  const initialDuration = initialSnapshot?.durationMinutes ?? 90;
+  const [hoursInput, setHoursInput] = useState(String(Math.floor(initialDuration / 60)));
+  const [minutesInput, setMinutesInput] = useState(String(initialDuration % 60));
   const [intensity, setIntensity] = useState<RideCharacteristics['intensity']>(
     initialSnapshot?.intensity ?? 'endurance'
   );
@@ -233,8 +234,8 @@ export function RideForm({
 
   const setManualDuration = (nextMinutes: number) => {
     setDuration(nextMinutes);
-    setDurationInput(String(nextMinutes));
-    setEditingDuration(false);
+    setHoursInput(String(Math.floor(nextMinutes / 60)));
+    setMinutesInput(String(nextMinutes % 60));
   };
 
   const setManualCarbTarget = (nextCarbTarget: number) => {
@@ -243,22 +244,32 @@ export function RideForm({
     setEditingCarbs(false);
   };
 
+  const handleDurationFieldChange = (
+    event: ChangeEvent<HTMLInputElement>,
+    field: 'hours' | 'minutes'
+  ) => {
+    const raw = event.target.value.replace(/[^0-9]/g, '');
+    if (field === 'hours') setHoursInput(raw);
+    else setMinutesInput(raw);
+  };
+
   const commitDurationInput = () => {
-    const parsed = parseOptionalNumber(durationInput);
-    if (parsed === undefined) {
-      setDurationInput(String(durationMinutes));
-      setEditingDuration(false);
+    const parsedHours = hoursInput.trim() === '' ? 0 : Number(hoursInput);
+    const parsedMinutes = minutesInput.trim() === '' ? 0 : Number(minutesInput);
+
+    if (!Number.isFinite(parsedHours) || !Number.isFinite(parsedMinutes)) {
+      setHoursInput(String(Math.floor(durationMinutes / 60)));
+      setMinutesInput(String(durationMinutes % 60));
       return;
     }
 
-    const normalized = Math.round(parsed);
-    if (normalized < 30 || normalized > 300) {
-      setDurationInput(String(durationMinutes));
-      setEditingDuration(false);
-      return;
-    }
+    const total = Math.round(parsedHours) * 60 + Math.round(parsedMinutes);
+    const clamped = Math.min(300, Math.max(30, total));
+    setManualDuration(clamped);
+  };
 
-    setManualDuration(normalized);
+  const selectOnFocus = (event: FocusEvent<HTMLInputElement>) => {
+    event.currentTarget.select();
   };
 
   const commitCarbTargetInput = () => {
@@ -441,36 +452,44 @@ export function RideForm({
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-3">
                   <p className="section-kicker text-[0.68rem]">Duration</p>
-                  {editingDuration ? (
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        autoFocus
-                        value={durationInput}
-                        onChange={(event) => setDurationInput(event.target.value)}
-                        onBlur={commitDurationInput}
-                        onKeyDown={blurOnEnter}
-                        className="min-h-9 w-16 rounded-lg border border-brand-300 bg-white px-2 text-center text-sm font-semibold text-ink-900 focus:border-brand-500 focus:ring-2 focus:ring-brand-300 focus:outline-none"
-                      />
-                      <span className="text-sm text-ink-500">min</span>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDurationInput(String(durationMinutes));
-                        setEditingDuration(true);
-                      }}
-                      className="min-h-9 min-w-[6.75rem] rounded-lg border border-brand-200 bg-white px-3 py-1.5 font-sans text-sm font-semibold text-brand-700"
-                    >
-                      {formatDuration(durationMinutes)}
-                    </button>
-                  )}
+                  <div
+                    className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-brand-200 bg-white px-2 py-1 font-sans text-sm font-semibold text-brand-700 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300"
+                    role="group"
+                    aria-label="Ride duration"
+                  >
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={hoursInput}
+                      onChange={(event) => handleDurationFieldChange(event, 'hours')}
+                      onBlur={commitDurationInput}
+                      onFocus={selectOnFocus}
+                      onKeyDown={blurOnEnter}
+                      aria-label="Hours"
+                      maxLength={2}
+                      placeholder="0"
+                      className="w-7 bg-transparent text-right tabular-nums text-ink-900 focus:outline-none"
+                    />
+                    <span className="text-xs font-medium text-ink-500">hr</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={minutesInput}
+                      onChange={(event) => handleDurationFieldChange(event, 'minutes')}
+                      onBlur={commitDurationInput}
+                      onFocus={selectOnFocus}
+                      onKeyDown={blurOnEnter}
+                      aria-label="Minutes"
+                      maxLength={2}
+                      placeholder="00"
+                      className="ml-1 w-8 bg-transparent text-right tabular-nums text-ink-900 focus:outline-none"
+                    />
+                    <span className="text-xs font-medium text-ink-500">min</span>
+                  </div>
                 </div>
                 <div>
                   <p className="mt-1 text-sm leading-6 text-ink-600">
-                    Use moving time.
+                    Use moving time. Tab between hours and minutes.
                   </p>
                 </div>
               </div>
