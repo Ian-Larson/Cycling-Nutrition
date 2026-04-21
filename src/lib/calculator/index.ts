@@ -109,7 +109,10 @@ export function calculateFuelPlan(
     productId: r.product.id,
     quantity: r.quantity,
     carbsTotal: r.product.nutrition.carbsGrams * r.quantity,
-    timingIntervalMinutes: Math.floor(input.ride.durationMinutes / (r.quantity + 1)),
+    timingIntervalMinutes: Math.max(
+      1,
+      Math.floor(input.ride.durationMinutes / (r.quantity + 1))
+    ),
   }));
 
   const allProducts = [
@@ -235,8 +238,11 @@ export function recalculatePlan(
           productId: o.productId,
           quantity: o.quantity,
           carbsTotal: carbsPerUnit * o.quantity,
-          timingIntervalMinutes: Math.floor(
-            currentPlan.rideCharacteristics.durationMinutes / (o.quantity + 1)
+          timingIntervalMinutes: Math.max(
+            1,
+            Math.floor(
+              currentPlan.rideCharacteristics.durationMinutes / (o.quantity + 1)
+            )
           ),
         };
       });

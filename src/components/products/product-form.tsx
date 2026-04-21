@@ -42,6 +42,8 @@ export function ProductForm({
     name?: string;
     carbs?: string;
     calories?: string;
+    concMin?: string;
+    concMax?: string;
   }>({});
 
   useEffect(() => {
@@ -71,6 +73,24 @@ export function ProductForm({
     if (cals === null) nextErrors.calories = 'Enter a number.';
     else if (cals < 0) nextErrors.calories = 'Must be 0 or greater.';
 
+    let minVal: number | undefined;
+    let maxVal: number | undefined;
+    if (type === 'drink_mix') {
+      if (concMin.trim()) {
+        const parsed = parsePositive(concMin);
+        if (parsed === null || parsed < 0) nextErrors.concMin = 'Enter a non-negative number.';
+        else minVal = parsed;
+      }
+      if (concMax.trim()) {
+        const parsed = parsePositive(concMax);
+        if (parsed === null || parsed < 0) nextErrors.concMax = 'Enter a non-negative number.';
+        else maxVal = parsed;
+      }
+      if (minVal !== undefined && maxVal !== undefined && minVal > maxVal) {
+        nextErrors.concMax = 'Max must be ≥ min.';
+      }
+    }
+
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       return;
@@ -78,10 +98,10 @@ export function ProductForm({
     setErrors({});
 
     const concentration: ConcentrationRange | undefined =
-      type === 'drink_mix' && (concMin || concMax)
+      type === 'drink_mix' && (minVal !== undefined || maxVal !== undefined)
         ? {
-            minGPerMl: concMin ? Number(concMin) : undefined,
-            maxGPerMl: concMax ? Number(concMax) : undefined,
+            minGPerMl: minVal,
+            maxGPerMl: maxVal,
           }
         : undefined;
 
@@ -186,6 +206,7 @@ export function ProductForm({
             min="0"
             max="0.16"
             step="0.01"
+            error={errors.concMin}
           />
           <Input
             label="Max concentration (g/ml)"
@@ -196,6 +217,7 @@ export function ProductForm({
             min="0"
             max="0.16"
             step="0.01"
+            error={errors.concMax}
           />
         </div>
       )}

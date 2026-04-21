@@ -64,6 +64,38 @@ describe('calculateFuelPlan summary behavior', () => {
     expect(plan.summary.sodiumMgTotal).toBeUndefined();
   });
 
+  it('clamps solid timing interval to at least 1 minute for short rides', () => {
+    const ride: RideCharacteristics = {
+      durationMinutes: 30,
+      intensity: 'endurance',
+      heatFactor: 'moderate',
+      carbTargetGramsPerHour: 120,
+      planningMode: 'manual',
+    };
+
+    const gel: Product = {
+      id: 'gel-1',
+      name: 'Small gel',
+      type: 'gel',
+      isAvailable: true,
+      nutrition: { carbsGrams: 1, calories: 4 },
+      serving: {},
+      createdAt: 0,
+      updatedAt: 0,
+    };
+
+    const plan = calculateFuelPlan({
+      ride,
+      availableBottles: baseBottles,
+      drinkMix,
+      availableSolids: [gel],
+    });
+
+    plan.solids.forEach((s) => {
+      expect(s.timingIntervalMinutes).toBeGreaterThanOrEqual(1);
+    });
+  });
+
   it('uses auto hydration override and adds sodium summary fields', () => {
     const ride: RideCharacteristics = {
       durationMinutes: 120,
