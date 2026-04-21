@@ -7,8 +7,11 @@ export { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsib
 export { IconButton } from './icon-button';
 export { Input } from './input';
 export { PresetButtons } from './preset-buttons';
+export { SegmentedControl } from './segmented-control';
+export type { SegmentedControlOption } from './segmented-control';
 export { Select } from './select';
 export { SpecRow } from './spec-row';
+export { Tabs, TabList, Tab, TabPanel } from './tabs';
 export { DividedRowList } from './divided-row-list';
 export { Stepper } from './stepper';
 export { Toast } from './toast';
