@@ -5,7 +5,7 @@ import { MeanMaxChart } from '@/components/analyzer/mean-max-chart';
 import { PowerTimeSeriesChart } from '@/components/analyzer/power-time-series-chart';
 import { ScatterChart } from '@/components/analyzer/scatter-chart';
 import { PageIntro } from '@/components/layout/page-intro';
-import { Button, Card, CardContent, CardHeader, Select } from '@/components/ui';
+import { Badge, Button, Card, CardContent, CardHeader, Select } from '@/components/ui';
 import {
   buildChartSeries,
   buildFileSummaries,
@@ -552,9 +552,7 @@ export function PowerMeterAnalyzerPage() {
                         <span className="truncate">{summary.name}</span>
                       </p>
                       {summary.id === activeReferenceId && (
-                        <span className="rounded-full bg-brand-100 px-2 py-1 text-xs font-semibold text-brand-800">
-                          reference
-                        </span>
+                        <Badge variant="brand">reference</Badge>
                       )}
                     </div>
 

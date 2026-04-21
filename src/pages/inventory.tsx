@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { clsx } from 'clsx';
 import { useStore } from '@/store';
-import { Button, Card, CardContent, CardHeader, Toggle } from '@/components/ui';
+import { Badge, Button, Card, CardContent, CardHeader, Toggle } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
 import { SectionNav } from '@/components/layout/section-nav';
 import { ProductForm } from '@/components/products/product-form';
@@ -168,9 +168,7 @@ export function InventoryPage() {
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <p className="truncate font-semibold text-ink-900">{product.name}</p>
-          <span className="rounded-full bg-shell-100 px-2.5 py-1 text-xs font-medium text-ink-600">
-            {PRODUCT_TYPE_LABELS[product.type]}
-          </span>
+          <Badge variant="neutral">{PRODUCT_TYPE_LABELS[product.type]}</Badge>
           {product.brand ? (
             <span className="text-sm leading-5 text-ink-600">{product.brand}</span>
           ) : null}

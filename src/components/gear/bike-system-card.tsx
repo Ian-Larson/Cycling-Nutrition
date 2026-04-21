@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Card, CardContent, SpecRow } from '@/components/ui';
+import { Badge, Card, CardContent, SpecRow } from '@/components/ui';
 import { EditBikeWeightDialog } from './edit-bike-weight-dialog';
 import { EditBikeNameDialog } from './edit-bike-name-dialog';
 import {
@@ -71,9 +71,13 @@ export function BikeSystemCard({ bike, installRecords, instances, catalog }: Bik
               </svg>
             </button>
             {bike.isPrimary ? (
-              <span className="shrink-0 rounded-full border border-brand-200 bg-brand-50 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-brand-700">
+              <Badge
+                variant="brand"
+                size="sm"
+                className="shrink-0 font-semibold uppercase tracking-wide"
+              >
                 Default
-              </span>
+              </Badge>
             ) : null}
           </div>
           <div className="space-y-1.5 pt-0.5">

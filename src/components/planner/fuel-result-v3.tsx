@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, SpecRow, DividedRowList } from '@/components/ui';
+import { Badge, Card, CardContent, CardHeader, SpecRow, DividedRowList } from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
 import {
   formatPercent,
@@ -65,17 +65,17 @@ function severityClasses(severity: WarningSeverity): {
 
 function PurposePill({ purpose }: { purpose: string }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium capitalize text-brand-800">
+    <Badge variant="brand" className="capitalize">
       {purpose.replace(/_/g, ' ')}
-    </span>
+    </Badge>
   );
 }
 
 function HeatPill({ heat }: { heat: string }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-shell-100 px-2.5 py-1 text-xs font-medium capitalize text-ink-700">
+    <Badge variant="neutral" className="capitalize">
       {heat}
-    </span>
+    </Badge>
   );
 }
 
@@ -381,9 +381,9 @@ function PostRideCard({ post }: { post: PostRidePrescription | undefined }) {
       <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="section-title">Post-ride</h3>
-          <span className="inline-flex items-center rounded-full bg-shell-100 px-2.5 py-0.5 text-[0.7rem] font-medium capitalize text-ink-700">
+          <Badge variant="neutral" size="sm" className="capitalize">
             {post.mode}
-          </span>
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
