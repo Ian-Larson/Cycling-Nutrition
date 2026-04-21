@@ -216,7 +216,7 @@ export function GearPage() {
       className="page-shell max-w-6xl space-y-4 md:space-y-6"
     >
       <PageIntro
-        title="Gear"
+        title="Garage"
         description="Track installed parts, due service, spare inventory, and maintenance history."
       />
 

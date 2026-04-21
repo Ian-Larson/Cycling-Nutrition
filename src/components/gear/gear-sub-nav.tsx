@@ -2,7 +2,7 @@ import { clsx } from 'clsx';
 import { NavLink } from 'react-router-dom';
 
 const LINKS = [
-  { to: '/gear', label: 'Gear', end: true },
+  { to: '/gear', label: 'Garage', end: true },
   { to: '/gear/inventory', label: 'Inventory', end: false },
 ] as const;
 
