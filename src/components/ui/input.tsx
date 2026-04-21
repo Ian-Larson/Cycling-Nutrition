@@ -25,14 +25,14 @@ export function Input({ label, error, className, id, ...props }: InputProps) {
           'transition-[border-color,box-shadow] duration-150 ease-out motion-reduce:transition-none',
           'focus:border-brand-400 focus:ring-2 focus:ring-brand-200 focus:outline-none',
           'placeholder:text-ink-400',
-          error && 'border-rose-500 focus:border-rose-500 focus:ring-rose-200',
+          error && 'border-error-500 focus:border-error-500 focus:ring-error-200',
           className
         )}
         {...(error ? { 'aria-invalid': true, 'aria-describedby': `${id}-error` } : {})}
         {...props}
       />
       {error && (
-        <p id={`${id}-error`} className="text-sm text-rose-700">
+        <p id={`${id}-error`} className="text-sm text-error-700">
           {error}
         </p>
       )}

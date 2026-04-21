@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
+  Alert,
   Button,
   Card,
   CardContent,
@@ -566,9 +567,9 @@ export function PlannerPage() {
               </p>
             </div>
             {!canCalculate && (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-sm leading-6 text-amber-800 md:px-5 md:py-4">
+              <Alert variant="warning">
                 Select at least one bottle and one mix in setup.
-              </div>
+              </Alert>
             )}
             <RideForm
               key={rideFormInstanceKey}

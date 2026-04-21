@@ -1,4 +1,4 @@
-import { Badge, Card, CardContent, CardHeader, SpecRow, DividedRowList } from '@/components/ui';
+import { Alert, Badge, Card, CardContent, CardHeader, SpecRow, DividedRowList } from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
 import {
   formatPercent,
@@ -284,15 +284,13 @@ function DuringStatsCard({ prescription }: { prescription: FuelingPrescription }
 
 function FluidShortfallNote({ shortfallMl }: { shortfallMl: number }) {
   return (
-    <div className="rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-3 text-sm leading-5 text-amber-900 md:leading-6">
-      <p className="font-semibold">
-        Plan a refill stop for ~{shortfallMl.toLocaleString()} ml extra fluid
-      </p>
-      <p className="mt-1">
-        Your bottles can't carry the full hydration target. Add a refill stop, carry extra,
-        or dial down the fluid plan.
-      </p>
-    </div>
+    <Alert
+      variant="warning"
+      title={`Plan a refill stop for ~${shortfallMl.toLocaleString()} ml extra fluid`}
+    >
+      Your bottles can't carry the full hydration target. Add a refill stop, carry extra,
+      or dial down the fluid plan.
+    </Alert>
   );
 }
 

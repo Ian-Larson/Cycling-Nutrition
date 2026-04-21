@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  Alert,
   Button,
   Collapsible,
   CollapsibleContent,
@@ -791,13 +792,13 @@ export function RideForm({
 
           <div className="lg:pt-1">
             {!hasFtp ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800 md:p-5">
+              <Alert variant="warning">
                 Add FTP in{' '}
                 <Link className="font-medium underline" to="/athlete?return=planner-step2">
                   Athlete
                 </Link>{' '}
                 to use auto mode.
-              </div>
+              </Alert>
             ) : autoPreview.result && previewAutoMetrics ? (
               <div className="rounded-2xl border border-brand-300 bg-[color:color-mix(in_oklch,var(--color-brand-100)_72%,white)] p-4 text-brand-900 md:p-5">
                 <p className="section-kicker text-[0.68rem] text-brand-700">
