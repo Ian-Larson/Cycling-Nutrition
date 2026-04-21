@@ -7,6 +7,9 @@ import {
   CardContent,
   CardHeader,
   Input,
+  Tab,
+  TabList,
+  Tabs,
   Toast,
 } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
@@ -16,6 +19,7 @@ import { FuelResult } from '@/components/planner/fuel-result';
 import { FuelResultV3 } from '@/components/planner/fuel-result-v3';
 import { RideForm, type RideFormSnapshot } from '@/components/planner/ride-form';
 import { SetupCard } from '@/components/planner/setup-card';
+import { StepNavigation } from '@/components/planner/step-navigation';
 import { calculateFuelPlan, recalculatePlan, type CalculatorInput } from '@/lib/calculator';
 import { useFuelingEngine } from '@/hooks/use-fueling-engine';
 import type { FuelingPrescription } from '@/lib/fueling';
@@ -469,63 +473,12 @@ export function PlannerPage() {
 
         <SectionNav section="nutrition" />
 
-        <section className="grid grid-cols-3 gap-2 md:gap-3" aria-label="Plan steps">
-          {STEP_LABELS.map((item) => {
-            const isActive = item.step === step;
-            const isComplete = item.step < step;
-            const isDisabled = !canOpenStep(item.step);
-
-            return (
-              <button
-                key={item.step}
-                type="button"
-                disabled={isDisabled}
-                aria-current={isActive ? 'step' : undefined}
-                onClick={() => handleStepSelect(item.step)}
-                className={`min-h-[4rem] rounded-lg border px-3 py-2 text-left transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100 disabled:cursor-not-allowed md:min-h-[4.25rem] md:px-4 md:py-2.5 ${
-                  isActive
-                    ? 'border-brand-500 bg-brand-500 text-white shadow-[0_12px_26px_-16px_rgba(248,98,46,0.74)]'
-                    : isComplete
-                      ? 'border-brand-200 bg-white text-ink-900 hover:bg-brand-50'
-                      : 'border-[color:var(--border-soft)] bg-white text-ink-600 hover:bg-shell-50 disabled:text-ink-400 disabled:hover:bg-white'
-                }`}
-              >
-                <span className="flex items-center justify-between gap-2">
-                  <span className="text-[0.7rem] font-semibold opacity-80 md:text-xs">
-                    Step {item.step}
-                  </span>
-                  {isComplete ? (
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full ${
-                        isActive
-                          ? 'bg-white/18 text-white'
-                          : 'bg-brand-100 text-brand-700'
-                      }`}
-                    >
-                      <svg
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        className="h-3.5 w-3.5"
-                        aria-hidden
-                      >
-                        <path
-                          d="M5.5 10.5 8.5 13.5 14.5 6.5"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>
-                  ) : null}
-                </span>
-                <span className="mt-1 block font-sans text-sm font-semibold leading-none md:text-base">
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </section>
+        <StepNavigation
+          steps={STEP_LABELS}
+          current={step}
+          canOpen={canOpenStep}
+          onSelect={handleStepSelect}
+        />
 
         {step === 1 && (
           <>
@@ -710,41 +663,19 @@ export function PlannerPage() {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-3 gap-1.5 md:gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setResultTab('pack')}
-                        className={`rounded-lg border px-2 py-2.5 text-[0.78rem] font-medium md:px-4 md:py-2 md:text-sm ${
-                          resultTab === 'pack'
-                            ? 'border-brand-300 bg-brand-100 text-brand-800'
-                            : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                        }`}
+                    <Tabs
+                      value={resultTab}
+                      onChange={(v) => setResultTab(v as typeof resultTab)}
+                    >
+                      <TabList
+                        label="Fuel plan view"
+                        className="grid w-full grid-cols-3 gap-1.5 md:gap-2"
                       >
-                        Pack
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setResultTab('guide')}
-                        className={`rounded-lg border px-2 py-2.5 text-[0.78rem] font-medium md:px-4 md:py-2 md:text-sm ${
-                          resultTab === 'guide'
-                            ? 'border-brand-300 bg-brand-100 text-brand-800'
-                            : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                        }`}
-                      >
-                        Ride guide
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setResultTab('metrics')}
-                        className={`rounded-lg border px-2 py-2.5 text-[0.78rem] font-medium md:px-4 md:py-2 md:text-sm ${
-                          resultTab === 'metrics'
-                            ? 'border-brand-300 bg-brand-100 text-brand-800'
-                            : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                        }`}
-                      >
-                        Stats
-                      </button>
-                    </div>
+                        <Tab value="pack">Pack</Tab>
+                        <Tab value="guide">Ride guide</Tab>
+                        <Tab value="metrics">Stats</Tab>
+                      </TabList>
+                    </Tabs>
                   </CardContent>
                 </Card>
 
