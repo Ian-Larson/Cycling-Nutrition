@@ -1,7 +1,9 @@
+export { Badge } from './badge';
 export { Button } from './button';
 export { Card, CardHeader, CardContent } from './card';
 export { Checkbox } from './checkbox';
 export { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsible';
+export { IconButton } from './icon-button';
 export { Input } from './input';
 export { PresetButtons } from './preset-buttons';
 export { Select } from './select';
