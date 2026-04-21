@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { clsx } from 'clsx';
 import { useStore } from '@/store';
 import { Button, Card, CardContent, CardHeader, Toggle } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
@@ -293,47 +294,79 @@ export function InventoryPage() {
         )}
 
         {products.length > 0 && (
-          <div className="mb-2.5 rounded-2xl border border-[color:var(--border-soft)] bg-[var(--surface-soft)] p-3 md:mb-3 md:p-4">
-            <div className="space-y-2.5 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
-              <div className="space-y-1.5">
-                <p className="section-kicker text-[0.68rem]">Type</p>
-                <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:px-0">
-                  {typeFilters.map((filter) => (
+          <div className="mb-2.5 space-y-3 md:mb-3">
+            <div className="space-y-1">
+              <p className="section-kicker text-[0.66rem] text-ink-500">Type</p>
+              <div className="flex flex-wrap gap-1.5">
+                {typeFilters.map((filter) => {
+                  const active = filterType === filter.value;
+                  const count =
+                    filter.value === 'all'
+                      ? products.length
+                      : products.filter((p) => p.type === filter.value).length;
+                  return (
                     <button
                       key={filter.value}
+                      type="button"
                       onClick={() => setFilterType(filter.value)}
-                      className={`min-h-10 shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors md:min-h-0 ${
-                        filterType === filter.value
-                          ? 'border-brand-300 bg-brand-100 text-brand-800'
-                          : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                      }`}
+                      className={clsx(
+                        'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                        active
+                          ? 'bg-brand-100 text-brand-900'
+                          : 'bg-shell-100 text-ink-700 hover:bg-shell-200'
+                      )}
                     >
                       {filter.label}
+                      {filter.value !== 'all' && (
+                        <span className="ml-1 text-[0.66rem] text-ink-500">
+                          {count}
+                        </span>
+                      )}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-              <div className="space-y-1.5">
-                <p className="section-kicker text-[0.68rem]">Availability</p>
-                <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:px-0">
-                  {(['all', 'available', 'unavailable'] as const).map((value) => (
+            </div>
+            <div className="space-y-1">
+              <p className="section-kicker text-[0.66rem] text-ink-500">
+                Availability
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {(['all', 'available', 'unavailable'] as const).map((value) => {
+                  const active = availabilityFilter === value;
+                  const label =
+                    value === 'all'
+                      ? 'All'
+                      : value === 'available'
+                        ? 'Available'
+                        : 'Unavailable';
+                  const count =
+                    value === 'all'
+                      ? products.length
+                      : value === 'available'
+                        ? availableProductCount
+                        : products.length - availableProductCount;
+                  return (
                     <button
                       key={value}
+                      type="button"
                       onClick={() => setAvailabilityFilter(value)}
-                      className={`min-h-10 shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors md:min-h-0 ${
-                        availabilityFilter === value
-                          ? 'border-brand-300 bg-brand-100 text-brand-800'
-                          : 'border-[color:var(--border-soft)] bg-white text-ink-600 hover:bg-shell-50'
-                      }`}
+                      className={clsx(
+                        'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                        active
+                          ? 'bg-brand-100 text-brand-900'
+                          : 'bg-shell-100 text-ink-700 hover:bg-shell-200'
+                      )}
                     >
-                      {value === 'all'
-                        ? 'All'
-                        : value === 'available'
-                          ? 'Available'
-                          : 'Unavailable'}
+                      {label}
+                      {value !== 'all' && (
+                        <span className="ml-1 text-[0.66rem] text-ink-500">
+                          {count}
+                        </span>
+                      )}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             </div>
           </div>
