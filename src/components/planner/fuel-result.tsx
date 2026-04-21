@@ -106,14 +106,37 @@ export function FuelResult({
   return (
     <div className="space-y-3 md:space-y-4">
       {showMetrics && plan.warnings && plan.warnings.length > 0 && (
-        <Card className="overflow-hidden border-amber-300 bg-[color:color-mix(in_oklch,white_72%,rgb(254_243_199))]">
+        <Card className="overflow-hidden border-warning-200 bg-warning-50">
           <CardHeader className="space-y-2 bg-white/35">
-            <h3 className="section-title text-lg text-amber-900">Warnings</h3>
+            <h3 className="section-title text-lg text-warning-700">Warnings</h3>
           </CardHeader>
           <CardContent className="space-y-2">
             {plan.warnings.map((warning, i) => (
-              <p key={i} className="text-sm leading-6 text-amber-900">
-                {warning.message}
+              <p
+                key={i}
+                className="flex items-start gap-1.5 text-sm leading-6 text-warning-700"
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden
+                  className="mt-1 h-3.5 w-3.5 shrink-0"
+                >
+                  <path
+                    d="M8 1.75 14.5 13.5h-13L8 1.75Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M8 6.5v3.25"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="8" cy="11.5" r="0.85" fill="currentColor" />
+                </svg>
+                <span>{warning.message}</span>
               </p>
             ))}
           </CardContent>

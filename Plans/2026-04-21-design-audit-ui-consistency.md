@@ -170,26 +170,26 @@ Order chosen so each phase unblocks the next.
 - [x] De-duplicated History row actions into a single tree; merged Inventory product rows into `renderProductRow` with responsive classes.
 - [x] Reconciled inventory copy: bottle-count tightened, filter-pills show count on every pill including "All", empty states consolidated with "Clear filters" affordance.
 
-### Phase 5 · Gear polish (#17–#33)
-- [ ] Promote gear tabs to ARIA tabs pattern.
-- [ ] Resolve GearTabs / GearSubNav visual overlap.
-- [ ] Urgency pills: icon + text + sr-only label.
-- [ ] Always-visible edit affordances on bike-system rows and active-setup empty slots.
-- [ ] Color-code inventory stat strip; fix ChipRow inverted logic; rename "All" → "Clear".
-- [ ] GearLifeBar caption + aria-label; disambiguate "Mileage unavailable".
-- [ ] History table: `aria-sort`, visible sort indicator, clear row actions.
-- [ ] Tooltip on truncated bike pill; always-show lifetime miles on parts.
+### Phase 5 · Gear polish (#17–#33) — ✅ complete
+- [x] Promote gear tabs to ARIA tabs pattern (`role=tablist/tab/tabpanel`, arrow-key navigation, roving tabindex). Shared `gearTabId`/`gearPanelId` helpers moved to `gear-tab-ids.ts` for Fast Refresh compatibility.
+- [x] Resolve GearTabs / GearSubNav visual overlap (GearSubNav rebuilt as underlined primary nav; GearTabs remains pill row).
+- [x] Urgency pills: triangle/checkmark icon + visible text + sr-only semantic prefix ("Service status: …").
+- [x] Always-visible edit affordances on bike-system rows (rename button now has a persistent border + pencil); install affordance on empty slots is a full pill button with aria-label.
+- [x] Color-code inventory stat strip with status borders + accent count colors; ChipRow "All" toggles to "× Clear" when filters active (disabled when nothing to clear); added aria-pressed to option buttons.
+- [x] GearLifeBar `aria-label` reflects axis (`"NN% of mileage interval used"` or `"… time interval used"`); `formatMi`/`formatDays` copy disambiguates "No mileage schedule" vs "Odometer not set".
+- [x] History table: `aria-sort`, visible sort indicator with idle ↕ glyph, tokenized Install/Remove pills, row Edit/Delete styled as bordered mini-buttons with focus-visible rings.
+- [x] `title={bike.name}` on truncated bike pills; part cards always render Miles row with "Never installed" fallback.
 
-### Phase 6 · Power-meter-analyzer explainers (#29, #30)
-- [ ] Units on Offset input; tooltip on Reference; humanize meter-mode labels.
-- [ ] Accuracy Summary shows reference row with one file loaded.
+### Phase 6 · Power-meter-analyzer explainers (#29, #30) — ✅ complete
+- [x] Offset input labelled "Offset (seconds)" with trailing `s` indicator and a helper line; Reference button now reads "Set as reference"/"Reference ✓" with tooltip + aria-pressed; meter-mode labels humanized ("Dual-sided / total power", "Left side only (doubled)", "Right side only (doubled)"); Shown/Hidden button gains aria-pressed and clearer copy.
+- [x] Accuracy Summary: when only one file is loaded, show Avg/Max on the single reference row with a helper line explaining that adding another file unlocks delta/bias/error metrics.
 
-### Phase 7 · Accessibility sweep (Pattern 5 follow-through)
-- [ ] Add text/icon to every color-only signal.
-- [ ] `aria-valuenow/min/max` on Stepper.
-- [ ] `aria-pressed` / `role=group` on PresetButtons.
-- [ ] Assertive role on error Toasts.
-- [ ] Form errors gain border highlight + icon across athlete/account.
+### Phase 7 · Accessibility sweep (Pattern 5 follow-through) — ✅ complete
+- [x] Tokenized remaining rose/amber/emerald status colors (gear-due-preview-band, fuel-result warnings, drink-mix + solid-fuel selectors, power-meter-analyzer parse errors, history table pills); added triangle/info icons so warnings and errors are never color-only.
+- [x] `aria-valuenow/min/max` + `role="spinbutton"` on Stepper value readout.
+- [x] PresetButtons: wrapped in `role="group"` with configurable `ariaLabel`, per-option `aria-pressed`, and normalized focus-visible rings.
+- [x] Toast: added `variant` prop; error variant uses `role="alert"` + `aria-live="assertive"` and the triangle icon.
+- [x] Input primitive now paints `bg-error-50` + triangle icon beside error messages, cascading to all athlete/account form fields.
 
 ---
 

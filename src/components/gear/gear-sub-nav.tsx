@@ -8,10 +8,9 @@ const LINKS = [
 
 export function GearSubNav() {
   return (
-    <div
-      role="navigation"
+    <nav
       aria-label="Gear sections"
-      className="inline-flex w-fit gap-1 rounded-lg border border-[color:var(--border-soft)] bg-white p-1"
+      className="-mb-px flex w-full gap-1 border-b border-[color:var(--border-soft)]"
     >
       {LINKS.map((link) => (
         <NavLink
@@ -20,16 +19,16 @@ export function GearSubNav() {
           end={link.end}
           className={({ isActive }) =>
             clsx(
-              'min-h-9 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-200',
+              'min-h-11 inline-flex items-center border-b-2 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:px-4',
               isActive
-                ? 'bg-brand-100 text-brand-900'
-                : 'text-ink-700 hover:bg-shell-50'
+                ? 'border-brand-600 text-brand-800'
+                : 'border-transparent text-ink-700 hover:border-shell-300 hover:text-ink-900'
             )
           }
         >
           {link.label}
         </NavLink>
       ))}
-    </div>
+    </nav>
   );
 }

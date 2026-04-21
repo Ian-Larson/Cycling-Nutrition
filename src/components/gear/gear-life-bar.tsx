@@ -9,7 +9,9 @@ export function GearLifeBar({ className, ...input }: GearLifeBarProps) {
   const result = computeLifeBar(input);
   if (!result) return null;
 
-  const pctPercent = `${Math.round(result.pct * 100)}%`;
+  const pctNumber = Math.round(result.pct * 100);
+  const pctPercent = `${pctNumber}%`;
+  const axisLabel = result.axis === 'mi' ? 'mileage' : 'time';
 
   return (
     <div
@@ -20,8 +22,8 @@ export function GearLifeBar({ className, ...input }: GearLifeBarProps) {
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-valuenow={Math.round(result.pct * 100)}
-      aria-label="Service life remaining"
+      aria-valuenow={pctNumber}
+      aria-label={`${pctNumber}% of ${axisLabel} interval used`}
     >
       <div
         className="h-full rounded-full bg-ink-400 motion-safe:transition-[width] motion-safe:duration-150 motion-safe:ease-out"

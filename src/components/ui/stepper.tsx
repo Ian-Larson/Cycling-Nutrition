@@ -32,7 +32,11 @@ export function Stepper({ value, onChange, min = 0, max = 99, label }: StepperPr
       </button>
       <span
         id={ariaValueId}
-        role="status"
+        role="spinbutton"
+        aria-valuenow={value}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-label={label ? `${label} value` : 'Value'}
         aria-live="polite"
         aria-atomic="true"
         className="min-w-[2rem] text-center font-sans text-base font-medium text-ink-900 tabular-nums md:min-w-[1.75rem]"

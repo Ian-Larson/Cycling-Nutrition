@@ -61,7 +61,27 @@ export function SolidFuelSelector({
                   {product.nutrition.carbsGrams}g carbs • {product.nutrition.calories} kcal each
                 </p>
                 {!product.isAvailable && (
-                  <p className="text-xs font-medium text-amber-700">
+                  <p className="inline-flex items-center gap-1 text-xs font-medium text-warning-700">
+                    <svg
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      aria-hidden
+                      className="h-3 w-3"
+                    >
+                      <path
+                        d="M8 1.75 14.5 13.5h-13L8 1.75Z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M8 6.5v3.25"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                      <circle cx="8" cy="11.5" r="0.85" fill="currentColor" />
+                    </svg>
                     Unavailable in inventory
                   </p>
                 )}

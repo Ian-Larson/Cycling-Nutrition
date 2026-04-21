@@ -41,17 +41,17 @@ function severityClasses(severity: WarningSeverity): {
   switch (severity) {
     case 'error':
       return {
-        border: 'border-rose-300',
-        bg: 'bg-rose-50',
-        text: 'text-rose-900',
-        badge: 'bg-rose-200 text-rose-900',
+        border: 'border-error-200',
+        bg: 'bg-error-50',
+        text: 'text-error-900',
+        badge: 'bg-error-100 text-error-900',
       };
     case 'warn':
       return {
-        border: 'border-amber-300',
-        bg: 'bg-amber-50',
-        text: 'text-amber-900',
-        badge: 'bg-amber-200 text-amber-900',
+        border: 'border-warning-200',
+        bg: 'bg-warning-50',
+        text: 'text-warning-700',
+        badge: 'bg-warning-100 text-warning-700',
       };
     default:
       return {
@@ -90,11 +90,52 @@ function WarningsCard({ warnings }: { warnings: Warning[] }) {
       <CardContent className="space-y-2">
         {warnings.map((w, i) => {
           const s = severityClasses(w.severity);
+          const isError = w.severity === 'error';
+          const isWarn = w.severity === 'warn';
           return (
             <div
               key={`${w.code}-${i}`}
+              role={isError ? 'alert' : undefined}
               className={`flex items-start gap-2.5 rounded-2xl border ${s.border} ${s.bg} ${s.text} px-3 py-2.5 md:px-4 md:py-3`}
             >
+              {isError || isWarn ? (
+                <svg
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden
+                  className="mt-0.5 h-4 w-4 shrink-0"
+                >
+                  <path
+                    d="M8 1.75 14.5 13.5h-13L8 1.75Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M8 6.5v3.25"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="8" cy="11.5" r="0.85" fill="currentColor" />
+                </svg>
+              ) : (
+                <svg
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden
+                  className="mt-0.5 h-4 w-4 shrink-0"
+                >
+                  <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+                  <path
+                    d="M8 5.5v3.25"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="8" cy="11.5" r="0.85" fill="currentColor" />
+                </svg>
+              )}
               <span
                 className={`mt-0.5 inline-flex shrink-0 items-center rounded-full ${s.badge} px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide`}
               >

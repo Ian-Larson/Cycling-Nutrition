@@ -50,7 +50,7 @@ export function BikeSystemCard({ bike, installRecords, instances, catalog }: Bik
               type="button"
               onClick={() => setNameOpen(true)}
               aria-label={`Rename ${bike.name}`}
-              className="group -mx-1.5 -my-0.5 inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200"
+              className="-mx-1.5 -my-0.5 inline-flex min-w-0 items-center gap-1.5 rounded-md border border-transparent px-1.5 py-0.5 transition-colors hover:border-[color:var(--border-soft)] hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
             >
               <span className="truncate font-heading text-sm font-semibold tracking-tight text-ink-900">
                 {bike.name}
@@ -59,7 +59,7 @@ export function BikeSystemCard({ bike, installRecords, instances, catalog }: Bik
                 viewBox="0 0 20 20"
                 fill="none"
                 aria-hidden
-                className="h-3.5 w-3.5 shrink-0 text-ink-400 transition-colors group-hover:text-ink-600"
+                className="h-3.5 w-3.5 shrink-0 text-ink-500"
               >
                 <path
                   d="M4 14.5 14 4.5l2 2L6 16.5H4v-2Z"
