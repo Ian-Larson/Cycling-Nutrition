@@ -158,17 +158,17 @@ Order chosen so each phase unblocks the next.
 - [x] Extracted `CallbackCard` used by both `auth-callback.tsx` and `strava-callback.tsx`.
 - [x] `SyncStatusBadge` component in `src/components/layout/sync-status-badge.tsx`, used by the account page (auth + cloud kinds) and the header (combined kind).
 
-### Phase 4 · Planner polish (#1–#16)
-- [ ] `StepNavigation` + "Current / Done" text on steps.
-- [ ] "Saved" indicator for plan draft persistence.
-- [ ] Default-open calculation details (or hoist key values) in auto mode.
-- [ ] Explainer copy for input-pair selector.
-- [ ] Legend for TargetBar.
-- [ ] Refill-aware bottle numbering.
-- [ ] Toast + step-1 landing on "Reuse plan".
-- [ ] `aria-live` on delete-confirm timer.
-- [ ] De-duplicate History / Inventory mobile vs desktop trees.
-- [ ] Reconcile inventory bottle-count copy, filter-pill counts, empty-state voice.
+### Phase 4 · Planner polish (#1–#16) — ✅ complete
+- [x] `StepNavigation` + "Current / Done" text on steps (shipped in Phase 2).
+- [x] "Saved" indicator for plan draft persistence (fade-in pill next to StepNavigation, announced via `aria-live`).
+- [x] Default-open calculation details in auto mode.
+- [x] Explainer copy for input-pair selector: "Pick the two you know — we'll calculate the third."
+- [x] Legend for TargetBar with semantic tokens (`success-500` / `warning-500` / `error-600`) + `role="img"` aria-label.
+- [x] Refill-aware bottle numbering ("Bottle 1 of 3 · ×2 fills").
+- [x] Toast + step-1 landing on "Reuse plan" (`/?reuse=1` flag + cleaned from URL).
+- [x] `aria-live` on delete-confirm timer (status region announces the 4-second window).
+- [x] De-duplicated History row actions into a single tree; merged Inventory product rows into `renderProductRow` with responsive classes.
+- [x] Reconciled inventory copy: bottle-count tightened, filter-pills show count on every pill including "All", empty states consolidated with "Clear filters" affordance.
 
 ### Phase 5 · Gear polish (#17–#33)
 - [ ] Promote gear tabs to ARIA tabs pattern.

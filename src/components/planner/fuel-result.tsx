@@ -15,14 +15,17 @@ function TargetBar({ planned, needed }: { planned: number; needed: number }) {
   const absDelta = Math.abs(delta);
   const pct = needed > 0 ? Math.min((planned / needed) * 100, 120) : 0;
 
-  let barColor = 'bg-emerald-500';
-  let textColor = 'text-emerald-700';
+  let barColor = 'bg-success-500';
+  let textColor = 'text-success-700';
+  let statusLabel = 'On target';
   if (absDelta > 10) {
-    barColor = 'bg-rose-600';
-    textColor = 'text-rose-700';
+    barColor = 'bg-error-600';
+    textColor = 'text-error-700';
+    statusLabel = 'Off target';
   } else if (absDelta > 5) {
-    barColor = 'bg-amber-500';
-    textColor = 'text-amber-700';
+    barColor = 'bg-warning-500';
+    textColor = 'text-warning-700';
+    statusLabel = 'Close';
   }
 
   const sign = delta >= 0 ? '+' : '';
@@ -41,11 +44,29 @@ function TargetBar({ planned, needed }: { planned: number; needed: number }) {
           {delta}g
         </p>
       </div>
-      <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-shell-200">
+      <div
+        className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-shell-200"
+        role="img"
+        aria-label={`${statusLabel}: planned ${planned} of ${needed} grams (${sign}${delta}g)`}
+      >
         <div
           className={`h-full rounded-full transition-[width,background-color] duration-500 ease-out motion-reduce:transition-none ${barColor}`}
           style={{ width: `${Math.min(pct, 100)}%` }}
         />
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs leading-5 text-ink-600">
+        <span className="inline-flex items-center gap-1.5">
+          <span aria-hidden className="h-2 w-2 rounded-full bg-success-500" />
+          On target (within 5g)
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span aria-hidden className="h-2 w-2 rounded-full bg-warning-500" />
+          Close (within 10g)
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span aria-hidden className="h-2 w-2 rounded-full bg-error-600" />
+          Off target
+        </span>
       </div>
     </div>
   );
@@ -178,6 +199,7 @@ export function FuelResult({
                   const concentration = alloc.capacityMl > 0
                     ? alloc.carbsTotal / alloc.capacityMl
                     : 0;
+                  const fillCount = refuelStops + 1;
 
                   return (
                     <div
@@ -189,7 +211,12 @@ export function FuelResult({
                       </div>
                       <div>
                         <p className="font-semibold text-ink-900">
-                          Bottle {i + 1}
+                          Bottle {i + 1} of {plan.bottles.length}
+                          {refuelStops > 0 && (
+                            <span className="ml-2 text-xs font-medium text-brand-700 tabular-nums">
+                              &times;{fillCount} fills
+                            </span>
+                          )}
                         </p>
                         <p className="mt-1 text-sm leading-6 text-ink-600 tabular-nums">
                           {alloc.capacityMl}ml • {alloc.isWaterOnly ? 'Water only' : product?.name}

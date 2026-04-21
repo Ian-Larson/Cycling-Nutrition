@@ -190,7 +190,7 @@ const STEP_LABELS: Array<{ step: PlannerStep; label: string }> = [
 ];
 
 export function PlannerPage() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const bottleCounts = useStore((s) => s.bottleCounts);
   const products = useStore((s) => s.products);
   const saveFuelPlan = useStore((s) => s.saveFuelPlan);
@@ -199,10 +199,12 @@ export function PlannerPage() {
     const current = useStore.getState().plannerDraft;
     return isPlannerDraftShape(current) ? current : null;
   });
+  const [isReusedDraft] = useState(() => searchParams.get('reuse') === '1');
 
-  const [step, setStep] = useState<PlannerStep>(
-    initialDraft?.ride ? 2 : parseInitialStep(searchParams.get('step'))
-  );
+  const [step, setStep] = useState<PlannerStep>(() => {
+    if (isReusedDraft) return 1;
+    return initialDraft?.ride ? 2 : parseInitialStep(searchParams.get('step'));
+  });
   const [resultTab, setResultTab] = useState<ResultTab>('pack');
   const [plan, setPlan] = useState<Omit<FuelPlan, 'id' | 'createdAt'> | null>(
     null
@@ -215,7 +217,17 @@ export function PlannerPage() {
   const [rideFormSnapshot, setRideFormSnapshot] = useState<RideFormSnapshot>();
   const [rideFormCanCalculate, setRideFormCanCalculate] = useState(false);
   const [rideFormSubmitTrigger, setRideFormSubmitTrigger] = useState(0);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(
+    isReusedDraft ? 'Plan loaded. Review setup, then continue.' : null
+  );
+
+  useEffect(() => {
+    if (!isReusedDraft) return;
+    if (!searchParams.has('reuse')) return;
+    const next = new URLSearchParams(searchParams);
+    next.delete('reuse');
+    setSearchParams(next, { replace: true });
+  }, [isReusedDraft, searchParams, setSearchParams]);
 
   const [selectedBottleCounts, setSelectedBottleCounts] = useState<BottleInventory>(
     () => initSelectedBottleCounts(bottleCounts, initialDraft)
@@ -236,6 +248,8 @@ export function PlannerPage() {
   const [rideFormInstanceKey, setRideFormInstanceKey] = useState(0);
 
   const lastInputRef = useRef<CalculatorInput | null>(null);
+  const draftInitializedRef = useRef(false);
+  const [draftSavedFlash, setDraftSavedFlash] = useState(false);
 
   useEffect(() => {
     setPlannerDraft({
@@ -245,6 +259,16 @@ export function PlannerPage() {
       selectedSolidIds,
       title: planTitle || undefined,
     });
+    if (!draftInitializedRef.current) {
+      draftInitializedRef.current = true;
+      return;
+    }
+    const showTimer = setTimeout(() => setDraftSavedFlash(true), 0);
+    const hideTimer = setTimeout(() => setDraftSavedFlash(false), 1600);
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
   }, [
     persistedRide,
     selectedBottleCounts,
@@ -473,12 +497,42 @@ export function PlannerPage() {
 
         <SectionNav section="nutrition" />
 
-        <StepNavigation
-          steps={STEP_LABELS}
-          current={step}
-          canOpen={canOpenStep}
-          onSelect={handleStepSelect}
-        />
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <StepNavigation
+            steps={STEP_LABELS}
+            current={step}
+            canOpen={canOpenStep}
+            onSelect={handleStepSelect}
+          />
+          <div
+            aria-live="polite"
+            className="min-h-[1.25rem] text-right text-xs text-ink-500"
+          >
+            {step !== 3 && (
+              <span
+                className={`inline-flex items-center gap-1 transition-opacity duration-300 ${
+                  draftSavedFlash ? 'opacity-100' : 'opacity-0'
+                }`}
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden
+                  className="h-3.5 w-3.5 text-success-700"
+                >
+                  <path
+                    d="m3.5 8.5 2.8 2.8L12.5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Draft saved
+              </span>
+            )}
+          </div>
+        </div>
 
         {step === 1 && (
           <>
