@@ -77,6 +77,133 @@ function formatDuration(mins: number): string {
   return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
 }
 
+function DurationHrMinInputInner({
+  initialMinutes,
+  onChange,
+  idHours,
+  labelPrefix,
+  minMinutes,
+  maxMinutes,
+}: {
+  initialMinutes: number | undefined;
+  onChange: (mins: number | undefined) => void;
+  idHours?: string;
+  labelPrefix: string;
+  minMinutes?: number;
+  maxMinutes?: number;
+}) {
+  const [hoursStr, setHoursStr] = useState(
+    initialMinutes === undefined ? '' : String(Math.floor(initialMinutes / 60))
+  );
+  const [minsStr, setMinsStr] = useState(
+    initialMinutes === undefined ? '' : String(initialMinutes % 60)
+  );
+
+  const commit = () => {
+    const hTrim = hoursStr.trim();
+    const mTrim = minsStr.trim();
+    if (hTrim === '' && mTrim === '') {
+      onChange(undefined);
+      return;
+    }
+    const h = hTrim === '' ? 0 : Number(hTrim);
+    const m = mTrim === '' ? 0 : Number(mTrim);
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return;
+    let total = Math.max(0, Math.round(h * 60 + m));
+    if (minMinutes !== undefined) total = Math.max(minMinutes, total);
+    if (maxMinutes !== undefined) total = Math.min(maxMinutes, total);
+    onChange(total);
+  };
+
+  const blurOnEnter = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      (event.target as HTMLInputElement).blur();
+    }
+  };
+
+  const handleGroupBlur = (event: FocusEvent<HTMLDivElement>) => {
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+    commit();
+  };
+
+  const handleDigitsOnly = (
+    event: ChangeEvent<HTMLInputElement>,
+    setter: (next: string) => void
+  ) => {
+    setter(event.target.value.replace(/[^0-9]/g, ''));
+  };
+
+  const selectOnFocus = (event: FocusEvent<HTMLInputElement>) => {
+    event.currentTarget.select();
+  };
+
+  return (
+    <div
+      className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-brand-200 bg-white px-2 py-1 font-sans text-sm font-semibold text-brand-700 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300"
+      role="group"
+      aria-label={`${labelPrefix} in hours and minutes`}
+      onBlur={handleGroupBlur}
+    >
+      <input
+        id={idHours}
+        type="text"
+        inputMode="numeric"
+        value={hoursStr}
+        onChange={(event) => handleDigitsOnly(event, setHoursStr)}
+        onFocus={selectOnFocus}
+        onKeyDown={blurOnEnter}
+        aria-label={`${labelPrefix} hours`}
+        maxLength={2}
+        placeholder="0"
+        className="w-7 bg-transparent text-right tabular-nums text-ink-900 focus:outline-none"
+      />
+      <span className="text-xs font-medium text-ink-500">hr</span>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={minsStr}
+        onChange={(event) => handleDigitsOnly(event, setMinsStr)}
+        onFocus={selectOnFocus}
+        onKeyDown={blurOnEnter}
+        aria-label={`${labelPrefix} minutes`}
+        maxLength={2}
+        placeholder="00"
+        className="ml-1 w-8 bg-transparent text-right tabular-nums text-ink-900 focus:outline-none"
+      />
+      <span className="text-xs font-medium text-ink-500">min</span>
+    </div>
+  );
+}
+
+function DurationHrMinInput({
+  minutes,
+  onChange,
+  idHours,
+  labelPrefix = 'Duration',
+  minMinutes,
+  maxMinutes,
+}: {
+  minutes: number | undefined;
+  onChange: (mins: number | undefined) => void;
+  idHours?: string;
+  labelPrefix?: string;
+  minMinutes?: number;
+  maxMinutes?: number;
+}) {
+  return (
+    <DurationHrMinInputInner
+      key={minutes === undefined ? 'empty' : String(minutes)}
+      initialMinutes={minutes}
+      onChange={onChange}
+      idHours={idHours}
+      labelPrefix={labelPrefix}
+      minMinutes={minMinutes}
+      maxMinutes={maxMinutes}
+    />
+  );
+}
+
 function parseOptionalNumber(value: string): number | undefined {
   const trimmed = value.trim();
   if (!trimmed) return undefined;
@@ -106,9 +233,6 @@ export function RideForm({
   initialSnapshot,
 }: RideFormProps) {
   const [durationMinutes, setDuration] = useState(initialSnapshot?.durationMinutes ?? 90);
-  const initialDuration = initialSnapshot?.durationMinutes ?? 90;
-  const [hoursInput, setHoursInput] = useState(String(Math.floor(initialDuration / 60)));
-  const [minutesInput, setMinutesInput] = useState(String(initialDuration % 60));
   const [intensity, setIntensity] = useState<RideCharacteristics['intensity']>(
     initialSnapshot?.intensity ?? 'endurance'
   );
@@ -234,42 +358,12 @@ export function RideForm({
 
   const setManualDuration = (nextMinutes: number) => {
     setDuration(nextMinutes);
-    setHoursInput(String(Math.floor(nextMinutes / 60)));
-    setMinutesInput(String(nextMinutes % 60));
   };
 
   const setManualCarbTarget = (nextCarbTarget: number) => {
     setCarbTarget(nextCarbTarget);
     setCarbTargetInput(String(nextCarbTarget));
     setEditingCarbs(false);
-  };
-
-  const handleDurationFieldChange = (
-    event: ChangeEvent<HTMLInputElement>,
-    field: 'hours' | 'minutes'
-  ) => {
-    const raw = event.target.value.replace(/[^0-9]/g, '');
-    if (field === 'hours') setHoursInput(raw);
-    else setMinutesInput(raw);
-  };
-
-  const commitDurationInput = () => {
-    const parsedHours = hoursInput.trim() === '' ? 0 : Number(hoursInput);
-    const parsedMinutes = minutesInput.trim() === '' ? 0 : Number(minutesInput);
-
-    if (!Number.isFinite(parsedHours) || !Number.isFinite(parsedMinutes)) {
-      setHoursInput(String(Math.floor(durationMinutes / 60)));
-      setMinutesInput(String(durationMinutes % 60));
-      return;
-    }
-
-    const total = Math.round(parsedHours) * 60 + Math.round(parsedMinutes);
-    const clamped = Math.min(300, Math.max(30, total));
-    setManualDuration(clamped);
-  };
-
-  const selectOnFocus = (event: FocusEvent<HTMLInputElement>) => {
-    event.currentTarget.select();
   };
 
   const commitCarbTargetInput = () => {
@@ -452,46 +546,18 @@ export function RideForm({
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-3">
                   <p className="section-kicker text-[0.68rem]">Duration</p>
-                  <div
-                    className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-brand-200 bg-white px-2 py-1 font-sans text-sm font-semibold text-brand-700 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300"
-                    role="group"
-                    aria-label="Ride duration"
-                  >
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={hoursInput}
-                      onChange={(event) => handleDurationFieldChange(event, 'hours')}
-                      onBlur={commitDurationInput}
-                      onFocus={selectOnFocus}
-                      onKeyDown={blurOnEnter}
-                      aria-label="Hours"
-                      maxLength={2}
-                      placeholder="0"
-                      className="w-7 bg-transparent text-right tabular-nums text-ink-900 focus:outline-none"
-                    />
-                    <span className="text-xs font-medium text-ink-500">hr</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={minutesInput}
-                      onChange={(event) => handleDurationFieldChange(event, 'minutes')}
-                      onBlur={commitDurationInput}
-                      onFocus={selectOnFocus}
-                      onKeyDown={blurOnEnter}
-                      aria-label="Minutes"
-                      maxLength={2}
-                      placeholder="00"
-                      className="ml-1 w-8 bg-transparent text-right tabular-nums text-ink-900 focus:outline-none"
-                    />
-                    <span className="text-xs font-medium text-ink-500">min</span>
-                  </div>
+                  <DurationHrMinInput
+                    minutes={durationMinutes}
+                    minMinutes={30}
+                    maxMinutes={300}
+                    onChange={(mins) => {
+                      if (mins !== undefined) setManualDuration(mins);
+                    }}
+                  />
                 </div>
-                <div>
-                  <p className="mt-1 text-sm leading-6 text-ink-600">
-                    Use moving time. Tab between hours and minutes.
-                  </p>
-                </div>
+                <p className="text-sm leading-6 text-ink-600">
+                  Use moving time. Tab between hours and minutes.
+                </p>
               </div>
               <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
                 {DURATION_PRESETS.map((preset) => (
@@ -633,15 +699,22 @@ export function RideForm({
             <div className="grid gap-4 sm:grid-cols-2 lg:gap-5">
               {(autoInputPair === 'duration_if' || autoInputPair === 'duration_tss') && (
                 <div className="space-y-2.5">
-                  <Input
-                    id="auto-duration"
-                    type="number"
-                    min={30}
-                    max={300}
-                    step={1}
-                    label="Duration (minutes)"
-                    value={autoDurationInput}
-                    onChange={(event) => setAutoDurationInput(event.target.value)}
+                  <label
+                    htmlFor="auto-duration-hours"
+                    className="block text-sm font-medium text-ink-800"
+                  >
+                    Duration
+                  </label>
+                  <DurationHrMinInput
+                    idHours="auto-duration-hours"
+                    minutes={
+                      autoDurationInput.trim() === ''
+                        ? undefined
+                        : Number(autoDurationInput)
+                    }
+                    onChange={(mins) =>
+                      setAutoDurationInput(mins === undefined ? '' : String(mins))
+                    }
                   />
                   <p className="text-sm leading-6 text-ink-600">Moving time.</p>
                 </div>
