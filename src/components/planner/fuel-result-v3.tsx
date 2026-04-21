@@ -229,14 +229,8 @@ function PreRideCard({ prescription }: { prescription: FuelingPrescription }) {
   );
 }
 
-function DuringCard({
-  prescription,
-  products,
-}: {
-  prescription: FuelingPrescription;
-  products: Product[];
-}) {
-  const { during, packList } = prescription;
+function DuringStatsCard({ prescription }: { prescription: FuelingPrescription }) {
+  const { during } = prescription;
 
   return (
     <Card className="overflow-hidden">
@@ -246,143 +240,136 @@ function DuringCard({
           Strategy: <span className="capitalize">{during.strategy.replace(/-/g, ' ')}</span>
         </p>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-3">
-          <div className="rounded-2xl border border-brand-200 bg-[color:color-mix(in_oklch,var(--color-brand-50)_55%,white)] px-4 py-3 md:px-5 md:py-4">
-            <p className="section-kicker text-[0.68rem] text-brand-700">Carbs / hour</p>
-            <p className="mt-1 font-heading text-3xl font-semibold leading-none text-brand-800 tabular-nums">
-              {formatCarbsPerHour(during.carbsGPerHour)}
-            </p>
-            <p className="mt-1 text-xs leading-5 text-brand-700/80">
-              {formatCarbsGrams(during.totalCarbsGrams)} total over the ride
-            </p>
-          </div>
-          <div className="space-y-1.5">
-            <SpecRow label="Fluid" value={formatFluidPerHour(during.hydrationMlPerHour)} />
+      <CardContent className="space-y-3">
+        <div className="rounded-2xl border border-brand-200 bg-[color:color-mix(in_oklch,var(--color-brand-50)_55%,white)] px-4 py-3 md:px-5 md:py-4">
+          <p className="section-kicker text-[0.68rem] text-brand-700">Carbs / hour</p>
+          <p className="mt-1 font-heading text-3xl font-semibold leading-none text-brand-800 tabular-nums">
+            {formatCarbsPerHour(during.carbsGPerHour)}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-brand-700/80">
+            {formatCarbsGrams(during.totalCarbsGrams)} total over the ride
+          </p>
+        </div>
+        <div className="space-y-1.5">
+          <SpecRow label="Fluid" value={formatFluidPerHour(during.hydrationMlPerHour)} />
+          <SpecRow
+            label="Total fluid"
+            value={formatFluidMl(during.totalHydrationMl)}
+          />
+          <SpecRow label="Sodium" value={formatSodiumPerHour(during.sodiumMgPerHour)} />
+          <SpecRow
+            label="Bottle [Na]"
+            value={formatMgPerL(during.sodiumMgPerLiterTargetInBottles)}
+          />
+          <SpecRow
+            label="Concentration"
+            value={`${(during.bottleConcentrationGPerMl * 100).toFixed(1)} g/100ml`}
+          />
+          {during.caffeineMg !== undefined && during.caffeineMg > 0 && (
             <SpecRow
-              label="Total fluid"
-              value={formatFluidMl(during.totalHydrationMl)}
+              label="Caffeine (solids)"
+              value={`${Math.round(during.caffeineMg)} mg`}
             />
-            <SpecRow label="Sodium" value={formatSodiumPerHour(during.sodiumMgPerHour)} />
-            <SpecRow
-              label="Bottle [Na]"
-              value={formatMgPerL(during.sodiumMgPerLiterTargetInBottles)}
-            />
-            <SpecRow
-              label="Concentration"
-              value={`${(during.bottleConcentrationGPerMl * 100).toFixed(1)} g/100ml`}
-            />
-            {during.caffeineMg !== undefined && during.caffeineMg > 0 && (
-              <SpecRow
-                label="Caffeine (solids)"
-                value={`${Math.round(during.caffeineMg)} mg`}
-              />
-            )}
-          </div>
-          {during.usesMultiTransportableCarbs && (
-            <p className="text-xs leading-5 text-ink-600">
-              Glucose:fructose mix recommended above 60 g/h.
-            </p>
           )}
         </div>
-
-        {packList && packList.fluidShortfallMl && packList.fluidShortfallMl > 0 ? (
-          <div className="rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-3 text-sm leading-5 text-amber-900 md:leading-6">
-            <p className="font-semibold">
-              Plan a refill stop for ~{packList.fluidShortfallMl.toLocaleString()} ml extra fluid
-            </p>
-            <p className="mt-1">
-              Your two bottles can't carry the full hydration target for this ride. Add a refill
-              stop, top up from a hydration pack, or dial down the fluid plan.
-            </p>
-          </div>
-        ) : null}
-        {packList && packList.bottles.length > 0 && (
-          <DividedRowList
-            items={packList.bottles}
-            getKey={(_, i) => `bottle-${i}`}
-            header={
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-                <div>
-                  <p className="section-kicker text-[0.68rem]">Bottles</p>
-                  <p className="text-sm font-semibold text-ink-900">
-                    Bring {packList.bottles.length === 1 ? '1 bottle' : `${packList.bottles.length} bottles`}
-                  </p>
-                </div>
-                <p className="text-xs leading-5 text-ink-500">Fill each as shown</p>
-              </div>
-            }
-            renderItem={(alloc, i) => {
-              const product = alloc.productId
-                ? products.find((p) => p.id === alloc.productId)
-                : null;
-              return (
-                <div className="flex items-start justify-between gap-3 px-3 py-2 md:px-4 md:py-2.5">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold leading-6 text-ink-900">
-                      Bottle {i + 1}
-                    </p>
-                    <p className="truncate text-xs leading-5 text-ink-600">
-                      {alloc.capacityMl} ml ·{' '}
-                      {alloc.isWaterOnly ? 'Water' : (product?.name ?? 'Mix')}
-                      {alloc.isWaterOnly
-                        ? ''
-                        : ` · ${alloc.carbsTotal} g carbs${
-                            alloc.sodiumMgTotal ? ` · ${alloc.sodiumMgTotal} mg Na` : ''
-                          }`}
-                    </p>
-                  </div>
-                  <p className="shrink-0 text-right font-sans text-sm font-semibold leading-6 tabular-nums text-brand-700">
-                    {alloc.isWaterOnly
-                      ? 'Water'
-                      : `${alloc.mixGrams} g${
-                          alloc.mixScoops !== undefined ? ` · ~${alloc.mixScoops}×` : ''
-                        }`}
-                  </p>
-                </div>
-              );
-            }}
-          />
-        )}
-
-        {packList && packList.solids.length > 0 && (
-          <DividedRowList
-            items={packList.solids}
-            getKey={(alloc, i) => `${alloc.productId}-${i}`}
-            header={
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-                <div>
-                  <p className="section-kicker text-[0.68rem]">Solids</p>
-                  <p className="text-sm font-semibold text-ink-900">Bring solids</p>
-                </div>
-                <p className="text-xs leading-5 text-ink-500">Carry and eat on schedule</p>
-              </div>
-            }
-            renderItem={(alloc) => {
-              const product = products.find((p) => p.id === alloc.productId);
-              return (
-                <div className="flex items-start justify-between gap-3 px-3 py-2 md:px-4 md:py-2.5">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold leading-6 text-ink-900">
-                      {product?.name ?? 'Solid'}
-                    </p>
-                    <p className="truncate text-xs leading-5 text-ink-600">
-                      {alloc.carbsTotal} g carbs · every ~{alloc.timingIntervalMinutes} min
-                      {alloc.caffeineMgTotal
-                        ? ` · ${alloc.caffeineMgTotal} mg caffeine`
-                        : ''}
-                    </p>
-                  </div>
-                  <p className="shrink-0 text-right font-sans text-sm font-semibold leading-6 tabular-nums text-brand-700">
-                    ×{alloc.quantity}
-                  </p>
-                </div>
-              );
-            }}
-          />
+        {during.usesMultiTransportableCarbs && (
+          <p className="text-xs leading-5 text-ink-600">
+            Glucose:fructose mix recommended above 60 g/h.
+          </p>
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function FluidShortfallNote({ shortfallMl }: { shortfallMl: number }) {
+  return (
+    <div className="rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-3 text-sm leading-5 text-amber-900 md:leading-6">
+      <p className="font-semibold">
+        Plan a refill stop for ~{shortfallMl.toLocaleString()} ml extra fluid
+      </p>
+      <p className="mt-1">
+        Your bottles can't carry the full hydration target. Add a refill stop, carry extra,
+        or dial down the fluid plan.
+      </p>
+    </div>
+  );
+}
+
+function BringList({
+  prescription,
+  products,
+}: {
+  prescription: FuelingPrescription;
+  products: Product[];
+}) {
+  const { packList } = prescription;
+  if (!packList) return null;
+
+  const hasBottles = packList.bottles.length > 0;
+  const hasSolids = packList.solids.length > 0;
+  const shortfall = packList.fluidShortfallMl ?? 0;
+
+  if (!hasBottles && !hasSolids && shortfall <= 0) return null;
+
+  return (
+    <div className="space-y-3">
+      {shortfall > 0 ? <FluidShortfallNote shortfallMl={shortfall} /> : null}
+      {hasBottles && (
+        <DividedRowList
+          items={packList.bottles}
+          getKey={(_, i) => `bottle-${i}`}
+          header={<p className="section-kicker text-[0.68rem]">Bottles</p>}
+          renderItem={(alloc, i) => {
+            const product = alloc.productId
+              ? products.find((p) => p.id === alloc.productId)
+              : null;
+            const scoopsLabel =
+              alloc.isWaterOnly
+                ? 'Water'
+                : alloc.mixScoops !== undefined
+                  ? `${alloc.mixScoops} ${alloc.mixScoops === 1 ? 'scoop' : 'scoops'}`
+                  : `${alloc.mixGrams} g`;
+            return (
+              <div className="flex items-center justify-between gap-3 px-3 py-2.5 md:px-4">
+                <div className="flex min-w-0 flex-1 items-baseline gap-2">
+                  <span className="shrink-0 text-sm font-semibold text-ink-900">
+                    Bottle {i + 1}
+                  </span>
+                  <span className="truncate text-xs text-ink-600">
+                    {alloc.capacityMl} ml
+                    {alloc.isWaterOnly ? '' : ` · ${product?.name ?? 'Mix'}`}
+                  </span>
+                </div>
+                <span className="shrink-0 font-sans text-sm font-semibold tabular-nums text-brand-700">
+                  {scoopsLabel}
+                </span>
+              </div>
+            );
+          }}
+        />
+      )}
+      {hasSolids && (
+        <DividedRowList
+          items={packList.solids}
+          getKey={(alloc, i) => `${alloc.productId}-${i}`}
+          header={<p className="section-kicker text-[0.68rem]">Solids</p>}
+          renderItem={(alloc) => {
+            const product = products.find((p) => p.id === alloc.productId);
+            return (
+              <div className="flex items-center justify-between gap-3 px-3 py-2.5 md:px-4">
+                <span className="truncate text-sm font-semibold text-ink-900">
+                  {product?.name ?? 'Solid'}
+                </span>
+                <span className="shrink-0 font-sans text-sm font-semibold tabular-nums text-brand-700">
+                  ×{alloc.quantity}
+                </span>
+              </div>
+            );
+          }}
+        />
+      )}
+    </div>
   );
 }
 
@@ -543,18 +530,14 @@ export function FuelResultV3({
 
   return (
     <div className="space-y-3 md:space-y-4">
+      {showPack && <BringList prescription={prescription} products={products} />}
+      {showGuide && <PreRideCard prescription={prescription} />}
+      {showGuide && <TimelineCard items={prescription.timeline} />}
+      {showGuide && <PostRideCard post={prescription.post} />}
       {showMetrics && <WarningsCard warnings={prescription.warnings} />}
       {showMetrics && <ContextCard prescription={prescription} />}
-      {showPack && <PreRideCard prescription={prescription} />}
-      {showPack && (
-        <DuringCard
-          prescription={prescription}
-          products={products}
-        />
-      )}
-      {showPack && <PostRideCard post={prescription.post} />}
+      {showMetrics && <DuringStatsCard prescription={prescription} />}
       {showMetrics && <DailyCard prescription={prescription} />}
-      {showGuide && <TimelineCard items={prescription.timeline} />}
     </div>
   );
 }
