@@ -48,7 +48,7 @@ export function SpecRow(props: SpecRowProps) {
           aria-label={editAriaLabel}
           className={clsx(
             valueClasses,
-            'rounded-md px-1.5 py-0 -my-0.5 transition-colors hover:bg-shell-50 hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200'
+            'rounded-md px-1.5 py-0 -my-0.5 transition-colors hover:bg-shell-50 hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100'
           )}
         >
           {value}

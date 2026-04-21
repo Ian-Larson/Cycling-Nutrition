@@ -89,7 +89,7 @@ export function CollapsibleTrigger({
       data-state={open ? 'open' : 'closed'}
       className={clsx(
         'flex min-h-11 w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left md:min-h-0 md:rounded-md md:px-2 md:py-1.5',
-        'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
         className
       )}
       onClick={(event) => {
