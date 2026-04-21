@@ -137,14 +137,14 @@ Touch-target misses:
 
 Order chosen so each phase unblocks the next.
 
-### Phase 1 · Primitive + token foundation (Patterns 1, 2, 3)
-- [ ] Add `Badge`, `Alert`, `IconButton`, `Dialog`, `SegmentedControl`, `Tabs` primitives under `src/components/ui/`.
-- [ ] Export them from `src/components/ui/index.ts`.
-- [ ] Introduce `--color-warning-*`, `--color-error-*`, `--color-success-*` token sets in `index.css`.
-- [ ] Introduce `--bg-shell-light` and `--bg-brand-light` vars to replace repeated `color-mix` calls.
-- [ ] Collapse redundant `--surface-panel`, `--surface-panel-strong`, `--surface-soft`.
-- [ ] Normalize focus-ring pattern across Button / Input / Select / Stepper / Checkbox / Collapsible / Toggle.
-- [ ] Enforce `min-h-11` (44 px) on every interactive primitive.
+### Phase 1 · Primitive + token foundation (Patterns 1, 2, 3) — ✅ complete
+- [x] Add `Badge`, `Alert`, `IconButton`, `Dialog`, `SegmentedControl`, `Tabs` primitives under `src/components/ui/`.
+- [x] Export them from `src/components/ui/index.ts`.
+- [x] Introduce `--color-warning-*`, `--color-error-*`, `--color-success-*` token sets in `index.css`.
+- [x] Introduce `--bg-shell-light` and `--bg-brand-light` vars to replace repeated `color-mix` calls.
+- [x] Collapse redundant `--surface-panel`, `--surface-panel-strong`, `--surface-soft` (removed unused `--surface-panel-strong`; documented remaining vars).
+- [x] Normalize focus-ring pattern across Button / Input / Select / Stepper / Checkbox / Collapsible / Toggle / SpecRow.
+- [x] Enforce `min-h-11` (44 px) on every interactive primitive (Button, IconButton, Tabs, SegmentedControl; others already compliant).
 
 ### Phase 2 · Replace hand-rolled with primitives (Pattern 1 follow-through)
 - [ ] Replace inline badges/alerts in `fuel-result-v3.tsx`, `planner.tsx`, `ride-form.tsx`, `account.tsx`, `product-card.tsx`, `bike-system-card.tsx`, `add-part-sheet.tsx`.
