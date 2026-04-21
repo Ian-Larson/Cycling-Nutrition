@@ -6,8 +6,25 @@ export function Header() {
   const location = useLocation();
 
   return (
-    <header className="sticky top-0 z-40 hidden border-b border-[color:var(--border-soft)] bg-shell-50/96 backdrop-blur md:block">
-      <div className="mx-auto flex max-w-6xl items-center justify-center px-4 py-2.5">
+    <>
+      <div className="sticky top-0 z-40 border-b border-[color:var(--border-soft)] bg-shell-50/96 px-4 py-2.5 text-center backdrop-blur md:hidden">
+        <Link
+          to="/"
+          className="font-display text-lg font-semibold tracking-tight text-brand-700"
+          aria-label="Domestique home"
+        >
+          Domestique
+        </Link>
+      </div>
+      <header className="sticky top-0 z-40 hidden border-b border-[color:var(--border-soft)] bg-shell-50/96 backdrop-blur md:block">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2.5">
+        <Link
+          to="/"
+          className="font-display text-xl font-semibold tracking-tight text-brand-700 hover:text-brand-800"
+          aria-label="Domestique home"
+        >
+          Domestique
+        </Link>
         <nav className="flex items-center gap-1.5" aria-label="Primary">
           {primaryNavItems.map((item) => {
             const isActive = isNavItemActive(item, location.pathname);
@@ -29,7 +46,8 @@ export function Header() {
             );
           })}
         </nav>
-      </div>
-    </header>
+        </div>
+      </header>
+    </>
   );
 }
