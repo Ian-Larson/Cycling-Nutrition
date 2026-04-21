@@ -147,10 +147,10 @@ Order chosen so each phase unblocks the next.
 - [x] Enforce `min-h-11` (44 px) on every interactive primitive (Button, IconButton, Tabs, SegmentedControl; others already compliant).
 
 ### Phase 2 · Replace hand-rolled with primitives (Pattern 1 follow-through)
-- [ ] Replace inline badges/alerts in `fuel-result-v3.tsx`, `planner.tsx`, `ride-form.tsx`, `account.tsx`, `product-card.tsx`, `bike-system-card.tsx`, `add-part-sheet.tsx`.
-- [ ] Replace hand-rolled modal scaffolding in gear sheets (`add-part`, `remove-part`, `install-part`, `edit-bike-*`, `overflow-menu`, `edit-bike-name-dialog`).
-- [ ] Replace result-tab and step-button patterns in `planner.tsx` with `Tabs` + new `StepNavigation`.
-- [ ] Replace unit toggle in `athlete.tsx:315-340` with `SegmentedControl`.
+- [x] Replace inline badges/alerts in `fuel-result-v3.tsx`, `planner.tsx`, `ride-form.tsx`, `account.tsx`, `product-card.tsx`, `bike-system-card.tsx`, `add-part-sheet.tsx`.
+- [x] Replace hand-rolled modal scaffolding in gear sheets (`add-part`, `remove-part`, `install-part`, `edit-bike-*`, `log-gear-service`, `edit-service-event`, `edit-bike-name-dialog`). `overflow-menu` kept as a dropdown (not a modal) with focus-ring + color-token normalization.
+- [x] Replace result-tab and step-button patterns in `planner.tsx` with `Tabs` + new `StepNavigation`.
+- [x] Replace unit toggle in `athlete.tsx:315-340` with `SegmentedControl`.
 
 ### Phase 3 · IA cleanup for Account area (#34, #35)
 - [ ] Decide: merge `/athlete` into `/account` with tabs, or rename so "Sync" label matches route/title.

@@ -1,12 +1,14 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-  type MouseEvent,
-} from 'react';
+import { useState, type FormEvent } from 'react';
 import { clsx } from 'clsx';
-import { Button, Input, Select } from '@/components/ui';
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Input,
+  Select,
+} from '@/components/ui';
 import { validateRemoveDraft } from '@/lib/gear/lifecycle';
 import type {
   GearInstallRecord,
@@ -63,35 +65,10 @@ function partTitle(
 
 export function RemovePartSheet(props: RemovePartSheetProps) {
   const { open, onClose } = props;
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
-
-  const handleDialogClick = (event: MouseEvent<HTMLDialogElement>) => {
-    if (event.target === dialogRef.current) onClose();
-  };
-
   return (
-    <dialog
-      ref={dialogRef}
-      onClick={handleDialogClick}
-      onCancel={(event) => {
-        event.preventDefault();
-        onClose();
-      }}
-      className={clsx(
-        'm-0 mt-auto w-full max-w-none rounded-t-2xl bg-white p-4 shadow-xl',
-        'md:m-auto md:max-w-md md:rounded-2xl md:p-6',
-        'backdrop:bg-black/40 backdrop:backdrop-blur-sm'
-      )}
-    >
-      {open ? <RemovePartForm {...props} /> : null}
-    </dialog>
+    <Dialog open={open} onClose={onClose} size="md">
+      <RemovePartForm {...props} />
+    </Dialog>
   );
 }
 
@@ -140,92 +117,93 @@ function RemovePartForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
-            Remove part
-          </h2>
-          <p className="text-sm leading-5 text-ink-600">
-            {partTitle(instance, catalogItem)}
-          </p>
+    <form onSubmit={handleSubmit}>
+      <DialogHeader
+        title="Remove part"
+        description={partTitle(instance, catalogItem)}
+        onClose={onClose}
+      />
+
+      <DialogContent>
+        <div className="grid gap-2">
+          <button
+            type="button"
+            aria-pressed={nextStatus === 'removed'}
+            onClick={() => setNextStatus('removed')}
+            className={clsx(
+              'min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
+              nextStatus === 'removed'
+                ? 'border-brand-500 bg-brand-100 text-brand-900'
+                : 'border-[color:var(--border-soft)] bg-white text-ink-900 hover:bg-shell-50'
+            )}
+          >
+            Remove and keep for later
+          </button>
+          <button
+            type="button"
+            aria-pressed={nextStatus === 'retired'}
+            onClick={() => setNextStatus('retired')}
+            className={clsx(
+              'min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
+              nextStatus === 'retired'
+                ? 'border-brand-500 bg-brand-100 text-brand-900'
+                : 'border-[color:var(--border-soft)] bg-white text-ink-900 hover:bg-shell-50'
+            )}
+          >
+            Retire permanently
+          </button>
+          {errors.nextStatus ? (
+            <p className="text-sm text-error-700">{errors.nextStatus}</p>
+          ) : null}
         </div>
-        <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-          Close
-        </Button>
-      </div>
 
-      <div className="grid gap-2">
-        <button
-          type="button"
-          aria-pressed={nextStatus === 'removed'}
-          onClick={() => setNextStatus('removed')}
-          className={clsx(
-            'min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors',
-            nextStatus === 'removed'
-              ? 'border-brand-500 bg-brand-100 text-brand-900'
-              : 'border-[color:var(--border-soft)] bg-white text-ink-900 hover:bg-shell-50'
-          )}
-        >
-          Remove and keep for later
-        </button>
-        <button
-          type="button"
-          aria-pressed={nextStatus === 'retired'}
-          onClick={() => setNextStatus('retired')}
-          className={clsx(
-            'min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors',
-            nextStatus === 'retired'
-              ? 'border-brand-500 bg-brand-100 text-brand-900'
-              : 'border-[color:var(--border-soft)] bg-white text-ink-900 hover:bg-shell-50'
-          )}
-        >
-          Retire permanently
-        </button>
-        {errors.nextStatus ? (
-          <p className="text-sm text-rose-700">{errors.nextStatus}</p>
+        <Input
+          label="Removal mileage"
+          type="number"
+          min="0"
+          step="1"
+          value={removedAtMileageMi}
+          onChange={(event) => setRemovedAtMileageMi(event.target.value)}
+          error={errors.removedAtMileageMi}
+        />
+
+        <Input
+          label="Removal date"
+          type="date"
+          max={todayIso()}
+          value={removedDateIso}
+          onChange={(event) => setRemovedDateIso(event.target.value)}
+          error={errors.removedDateIso}
+        />
+
+        <Select
+          label="Reason"
+          value={removeReason}
+          onChange={(event) =>
+            setRemoveReason(
+              event.target.value as '' | NonNullable<GearInstallRecord['removeReason']>
+            )
+          }
+          options={REMOVE_REASONS}
+        />
+
+        {errors.installRecordId || errors.activeRecord ? (
+          <p className="text-sm text-error-700">
+            {errors.installRecordId ?? errors.activeRecord}
+          </p>
         ) : null}
-      </div>
+      </DialogContent>
 
-      <Input
-        label="Removal mileage"
-        type="number"
-        min="0"
-        step="1"
-        value={removedAtMileageMi}
-        onChange={(event) => setRemovedAtMileageMi(event.target.value)}
-        error={errors.removedAtMileageMi}
-      />
-
-      <Input
-        label="Removal date"
-        type="date"
-        max={todayIso()}
-        value={removedDateIso}
-        onChange={(event) => setRemovedDateIso(event.target.value)}
-        error={errors.removedDateIso}
-      />
-
-      <Select
-        label="Reason"
-        value={removeReason}
-        onChange={(event) =>
-          setRemoveReason(
-            event.target.value as '' | NonNullable<GearInstallRecord['removeReason']>
-          )
-        }
-        options={REMOVE_REASONS}
-      />
-
-      {errors.installRecordId || errors.activeRecord ? (
-        <p className="text-sm text-rose-700">
-          {errors.installRecordId ?? errors.activeRecord}
-        </p>
-      ) : null}
-
-      <Button type="submit" className="w-full" disabled={!installRecord}>
-        Save removal
-      </Button>
+      <DialogFooter>
+        <Button type="button" variant="secondary" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={!installRecord}>
+          Save removal
+        </Button>
+      </DialogFooter>
     </form>
   );
 }

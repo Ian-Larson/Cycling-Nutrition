@@ -1,5 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Button, Input } from '@/components/ui';
+import { useState } from 'react';
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Input,
+} from '@/components/ui';
 import { useStore } from '@/store';
 import type { Bike } from '@/types/gear';
 
@@ -15,28 +22,10 @@ function gramsToKgInputValue(grams: number | undefined): string {
 }
 
 export function EditBikeWeightDialog({ open, bike, onClose }: EditBikeWeightDialogProps) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-
-  if (!open || !bike) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <button
-        type="button"
-        tabIndex={-1}
-        aria-label="Close"
-        onClick={onClose}
-        className="absolute inset-0 bg-ink-900/40 backdrop-blur-sm"
-      />
-      <EditBikeWeightForm key={bike.id} bike={bike} onClose={onClose} />
-    </div>
+    <Dialog open={open} onClose={onClose} size="sm">
+      {bike ? <EditBikeWeightForm key={bike.id} bike={bike} onClose={onClose} /> : null}
+    </Dialog>
   );
 }
 
@@ -62,19 +51,13 @@ function EditBikeWeightForm({ bike, onClose }: { bike: Bike; onClose: () => void
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="edit-bike-weight-title"
-      className="relative w-full max-w-sm rounded-2xl border border-[color:var(--border-soft)] bg-white p-5 shadow-[var(--shadow-float)]"
-    >
-      <h3 id="edit-bike-weight-title" className="section-title">
-        {bike.name} weight
-      </h3>
-      <p className="mt-1 text-sm leading-5 text-ink-600">
-        Enter the total system weight in kilograms. Leave blank to clear.
-      </p>
-      <div className="mt-4">
+    <>
+      <DialogHeader
+        title={`${bike.name} weight`}
+        description="Enter the total system weight in kilograms. Leave blank to clear."
+        onClose={onClose}
+      />
+      <DialogContent>
         <Input
           id="edit-bike-weight-input"
           label="Weight (kg)"
@@ -87,16 +70,22 @@ function EditBikeWeightForm({ bike, onClose }: { bike: Bike; onClose: () => void
             setValue(event.target.value);
             setError(null);
           }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              handleSave();
+            }
+          }}
           error={error ?? undefined}
           autoFocus
         />
-      </div>
-      <div className="mt-5 grid grid-cols-2 gap-2">
+      </DialogContent>
+      <DialogFooter>
         <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>
         <Button onClick={handleSave}>Save</Button>
-      </div>
-    </div>
+      </DialogFooter>
+    </>
   );
 }

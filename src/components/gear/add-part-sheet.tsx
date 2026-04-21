@@ -1,13 +1,14 @@
+import { useMemo, useState, type FormEvent } from 'react';
 import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type FormEvent,
-  type MouseEvent,
-} from 'react';
-import { clsx } from 'clsx';
-import { Button, Checkbox, Input, Select } from '@/components/ui';
+  Button,
+  Checkbox,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Input,
+  Select,
+} from '@/components/ui';
 import { GEAR_PART_CATEGORIES } from '@/lib/gear/constants';
 import { findCatalogMatch } from '@/lib/gear/catalog-upsert';
 import { useStore } from '@/store';
@@ -97,37 +98,10 @@ function parseRequiredNumber(
 }
 
 export function AddPartSheet({ open, onClose, instanceId }: AddPartSheetProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
-
-  const handleDialogClick = (event: MouseEvent<HTMLDialogElement>) => {
-    if (event.target === dialogRef.current) onClose();
-  };
-
   return (
-    <dialog
-      ref={dialogRef}
-      onClick={handleDialogClick}
-      onCancel={(event) => {
-        event.preventDefault();
-        onClose();
-      }}
-      className={clsx(
-        'm-0 mt-auto w-full max-w-none rounded-t-2xl bg-white p-4 shadow-xl',
-        'md:m-auto md:max-w-lg md:rounded-2xl md:p-6',
-        'backdrop:bg-black/40 backdrop:backdrop-blur-sm'
-      )}
-    >
-      {open ? (
-        <AddPartForm key={instanceId ?? 'new'} instanceId={instanceId ?? null} onClose={onClose} />
-      ) : null}
-    </dialog>
+    <Dialog open={open} onClose={onClose} size="lg">
+      <AddPartForm key={instanceId ?? 'new'} instanceId={instanceId ?? null} onClose={onClose} />
+    </Dialog>
   );
 }
 
@@ -472,23 +446,18 @@ function AddPartForm({ instanceId, onClose }: AddPartFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
-            {isEdit ? 'Edit part' : 'Add part'}
-          </h2>
-          <p className="text-sm leading-5 text-ink-600">
-            {isEdit
-              ? 'Update spec or physical details. Category is fixed after creation.'
-              : 'Log a physical part. Catalog entries are reused automatically.'}
-          </p>
-        </div>
-        <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-          Close
-        </Button>
-      </div>
+    <form onSubmit={handleSubmit}>
+      <DialogHeader
+        title={isEdit ? 'Edit part' : 'Add part'}
+        description={
+          isEdit
+            ? 'Update spec or physical details. Category is fixed after creation.'
+            : 'Log a physical part. Catalog entries are reused automatically.'
+        }
+        onClose={onClose}
+      />
 
+      <DialogContent>
       <section className="space-y-3">
         <p className="section-kicker text-[0.68rem] text-ink-500">Category</p>
         <Select
@@ -792,19 +761,14 @@ function AddPartForm({ instanceId, onClose }: AddPartFormProps) {
         />
       </section>
 
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Button type="submit" className="w-full sm:w-auto">
-          {isEdit ? 'Save changes' : 'Add part'}
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={onClose}
-          className="w-full sm:w-auto"
-        >
+      </DialogContent>
+
+      <DialogFooter>
+        <Button type="button" variant="secondary" onClick={onClose}>
           Cancel
         </Button>
-      </div>
+        <Button type="submit">{isEdit ? 'Save changes' : 'Add part'}</Button>
+      </DialogFooter>
     </form>
   );
 }
