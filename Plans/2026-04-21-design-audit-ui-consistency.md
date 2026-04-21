@@ -153,10 +153,10 @@ Order chosen so each phase unblocks the next.
 - [x] Replace unit toggle in `athlete.tsx:315-340` with `SegmentedControl`.
 
 ### Phase 3 · IA cleanup for Account area (#34, #35)
-- [ ] Decide: merge `/athlete` into `/account` with tabs, or rename so "Sync" label matches route/title.
-- [ ] Add global auth / sync / Strava status pill to `Header` + `MobileNav`.
-- [ ] Extract `CallbackCard` and re-use from both auth and Strava callbacks.
-- [ ] `SyncStatusBadge` component used in account + header.
+- [x] Renamed `/account` sub-nav label from "Sync" to "Account" so the pill, URL, and page title agree. (`/athlete` stays a separate tab for now; merging into tabs is deferred.)
+- [x] Added global status pill to the desktop Header and the mobile top bar (the bottom MobileNav is intentionally kept compact at 4 tabs).
+- [x] Extracted `CallbackCard` used by both `auth-callback.tsx` and `strava-callback.tsx`.
+- [x] `SyncStatusBadge` component in `src/components/layout/sync-status-badge.tsx`, used by the account page (auth + cloud kinds) and the header (combined kind).
 
 ### Phase 4 · Planner polish (#1–#16)
 - [ ] `StepNavigation` + "Current / Done" text on steps.

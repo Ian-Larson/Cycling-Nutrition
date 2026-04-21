@@ -39,7 +39,7 @@ describe('section navigation grouping', () => {
 
   it('keeps athlete preferences inside account', () => {
     expect(getSectionNavItems('account').map((item) => item.label)).toEqual([
-      'Sync',
+      'Account',
       'Athlete',
     ]);
   });

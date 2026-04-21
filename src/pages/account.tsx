@@ -1,7 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { PageIntro } from '@/components/layout/page-intro';
 import { SectionNav } from '@/components/layout/section-nav';
-import { Alert, Badge, Button, Card, CardContent, CardHeader, Input } from '@/components/ui';
+import { SyncStatusBadge } from '@/components/layout/sync-status-badge';
+import { Alert, Button, Card, CardContent, CardHeader, Input } from '@/components/ui';
 import { useAuth } from '@/lib/auth/auth-context';
 
 function formatDateTime(value: string | null | undefined): string {
@@ -13,29 +14,9 @@ function formatDateTime(value: string | null | undefined): string {
   }).format(new Date(value));
 }
 
-function getSyncLabel(status: string): string {
-  if (status === 'syncing') return 'Syncing';
-  if (status === 'synced') return 'Synced';
-  if (status === 'offline') return 'Offline';
-  if (status === 'error') return 'Sync error';
-  if (status === 'conflict') return 'Conflict';
-  return 'Local only';
-}
-
-function getSyncBadgeVariant(
-  status: string
-): 'neutral' | 'brand' | 'success' | 'warning' | 'error' {
-  if (status === 'synced') return 'success';
-  if (status === 'syncing') return 'brand';
-  if (status === 'offline') return 'warning';
-  if (status === 'error' || status === 'conflict') return 'error';
-  return 'neutral';
-}
-
 export function AccountPage() {
   const {
     authStatus,
-    cloudSyncStatus,
     user,
     stravaConnection,
     isSupabaseReady,
@@ -100,9 +81,7 @@ export function AccountPage() {
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="section-title text-lg">Sign in</h2>
-                <Badge variant={signedIn ? 'success' : 'neutral'}>
-                  {signedIn ? 'Signed in' : 'Guest'}
-                </Badge>
+                <SyncStatusBadge kind="auth" />
               </div>
               <p className="section-copy">{statusCopy}</p>
             </CardHeader>
@@ -166,9 +145,7 @@ export function AccountPage() {
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="section-title text-lg">Cloud backup</h2>
-                <Badge variant={getSyncBadgeVariant(cloudSyncStatus)}>
-                  {getSyncLabel(cloudSyncStatus)}
-                </Badge>
+                <SyncStatusBadge kind="cloud" />
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
