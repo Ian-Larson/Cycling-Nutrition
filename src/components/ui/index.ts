@@ -1,3 +1,4 @@
+export { Alert } from './alert';
 export { Badge } from './badge';
 export { Button } from './button';
 export { Card, CardHeader, CardContent } from './card';
