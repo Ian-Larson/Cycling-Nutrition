@@ -29,11 +29,6 @@ export function StepNavigation<S extends number>({
         const isActive = item.step === current;
         const isComplete = item.step < current;
         const isDisabled = !canOpen(item.step);
-        const stateLabel = isActive
-          ? 'Current step'
-          : isComplete
-            ? 'Completed'
-            : undefined;
 
         return (
           <button
@@ -61,30 +56,25 @@ export function StepNavigation<S extends number>({
               <span className="text-[0.7rem] font-semibold opacity-80 md:text-xs">
                 Step {item.step}
               </span>
-              {stateLabel ? (
+              {isComplete ? (
                 <span
-                  className={clsx(
-                    'flex items-center gap-1 text-[0.65rem] font-semibold uppercase tracking-wide md:text-[0.7rem]',
-                    isActive ? 'text-white/90' : 'text-brand-700'
-                  )}
+                  aria-label="Completed"
+                  className="flex items-center text-brand-700"
                 >
-                  {isComplete ? (
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      aria-hidden
-                      className="h-3.5 w-3.5"
-                    >
-                      <path
-                        d="M5.5 10.5 8.5 13.5 14.5 6.5"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  ) : null}
-                  <span>{isComplete ? 'Done' : 'Current'}</span>
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    aria-hidden
+                    className="h-3.5 w-3.5"
+                  >
+                    <path
+                      d="M5.5 10.5 8.5 13.5 14.5 6.5"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </span>
               ) : null}
             </span>

@@ -361,6 +361,22 @@ export function RideForm({
     setDuration(nextMinutes);
   };
 
+  const switchPlanningMode = (
+    nextMode: NonNullable<RideCharacteristics['planningMode']>
+  ) => {
+    if (nextMode === planningMode) return;
+    if (nextMode === 'auto') {
+      setAutoDurationInput(String(durationMinutes));
+    } else {
+      const parsed = parseOptionalNumber(autoDurationInput);
+      if (parsed !== undefined) {
+        const clamped = Math.max(30, Math.min(300, Math.round(parsed)));
+        setDuration(clamped);
+      }
+    }
+    setPlanningMode(nextMode);
+  };
+
   const setManualCarbTarget = (nextCarbTarget: number) => {
     setCarbTarget(nextCarbTarget);
     setCarbTargetInput(String(nextCarbTarget));
@@ -520,7 +536,7 @@ export function RideForm({
                   ? 'text-white'
                   : 'text-ink-600 hover:text-ink-900'
               }`}
-              onClick={() => setPlanningMode('manual')}
+              onClick={() => switchPlanningMode('manual')}
             >
               Manual
             </button>
@@ -532,7 +548,7 @@ export function RideForm({
                   ? 'text-white'
                   : 'text-ink-600 hover:text-ink-900'
               }`}
-              onClick={() => setPlanningMode('auto')}
+              onClick={() => switchPlanningMode('auto')}
             >
               Auto
             </button>
