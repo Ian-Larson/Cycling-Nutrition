@@ -42,9 +42,23 @@ const STATUS_LABELS: Record<GearPartInstanceStatus, string> = {
 
 const STATUS_CLASSES: Record<GearPartInstanceStatus, string> = {
   spare: 'bg-brand-100 text-brand-800',
-  installed: 'bg-emerald-100 text-emerald-800',
-  removed: 'bg-amber-100 text-amber-800',
+  installed: 'bg-success-100 text-success-700',
+  removed: 'bg-warning-100 text-warning-700',
   retired: 'bg-shell-200 text-ink-600',
+};
+
+const STATUS_STAT_CLASSES: Record<GearPartInstanceStatus, string> = {
+  spare: 'border-brand-200 bg-brand-50',
+  installed: 'border-success-200 bg-success-50',
+  removed: 'border-warning-200 bg-warning-50',
+  retired: 'border-[color:var(--border-soft)] bg-shell-50',
+};
+
+const STATUS_STAT_ACCENT: Record<GearPartInstanceStatus, string> = {
+  spare: 'text-brand-700',
+  installed: 'text-success-700',
+  removed: 'text-warning-700',
+  retired: 'text-ink-600',
 };
 
 function formatDate(dateIso?: string): string | null {
@@ -166,14 +180,35 @@ function ChipRow<T extends string>({
         <button
           type="button"
           onClick={onClear}
+          disabled={allSelected}
+          aria-label={allSelected ? 'All selected' : 'Clear filter'}
           className={clsx(
-            'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+            'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
             allSelected
               ? 'bg-brand-100 text-brand-900'
               : 'bg-shell-100 text-ink-700 hover:bg-shell-200'
           )}
         >
-          All
+          {allSelected ? (
+            'All'
+          ) : (
+            <>
+              <svg
+                viewBox="0 0 12 12"
+                fill="none"
+                aria-hidden
+                className="h-3 w-3"
+              >
+                <path
+                  d="m3 3 6 6M9 3l-6 6"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+              Clear
+            </>
+          )}
         </button>
         {options.map((option) => {
           const active = selected.has(option.value);
@@ -182,6 +217,7 @@ function ChipRow<T extends string>({
               key={option.value}
               type="button"
               onClick={() => onToggle(option.value)}
+              aria-pressed={active}
               className={clsx(
                 'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
                 active
@@ -190,7 +226,7 @@ function ChipRow<T extends string>({
               )}
             >
               {option.label}
-              <span className="ml-1 text-[0.66rem] text-ink-500">
+              <span className="ml-1 text-[0.66rem] text-ink-500 tabular-nums">
                 {option.count}
               </span>
             </button>
@@ -319,9 +355,9 @@ export function GearInventory({
   return (
     <div className="space-y-4 md:space-y-5">
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="surface-note px-3 py-2.5">
+        <div className="rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-2.5">
           <p className="section-kicker text-[0.66rem] text-ink-500">Total</p>
-          <p className="mt-1 text-xl font-semibold leading-7 text-ink-900">
+          <p className="mt-1 text-xl font-semibold leading-7 text-ink-900 tabular-nums">
             {instances.length}
           </p>
           <p className="text-sm leading-5 text-ink-600">
@@ -329,11 +365,22 @@ export function GearInventory({
           </p>
         </div>
         {summaryCounts.map(({ status, count }) => (
-          <div key={status} className="surface-note px-3 py-2.5">
+          <div
+            key={status}
+            className={clsx(
+              'rounded-2xl border px-3 py-2.5',
+              STATUS_STAT_CLASSES[status]
+            )}
+          >
             <p className="section-kicker text-[0.66rem] text-ink-500">
               {STATUS_LABELS[status]}
             </p>
-            <p className="mt-1 text-xl font-semibold leading-7 text-ink-900">
+            <p
+              className={clsx(
+                'mt-1 text-xl font-semibold leading-7 tabular-nums',
+                STATUS_STAT_ACCENT[status]
+              )}
+            >
               {count}
             </p>
           </div>
@@ -460,7 +507,7 @@ export function GearInventory({
                                   {title}
                                 </p>
                                 {!catalogItem ? (
-                                  <p className="text-sm leading-5 text-rose-700">
+                                  <p className="text-sm leading-5 text-error-700">
                                     Catalog part unavailable
                                   </p>
                                 ) : null}
@@ -504,16 +551,23 @@ export function GearInventory({
                             ) : null}
 
                             <dl className="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-[color:var(--border-soft)] pt-2.5 text-sm leading-5">
-                              {lifetimeMiles !== null ? (
-                                <div className="flex items-baseline gap-1.5">
-                                  <dt className="section-kicker text-[0.66rem] text-ink-500">
-                                    Miles
-                                  </dt>
-                                  <dd className="font-medium tabular-nums text-ink-900">
-                                    {formatMileage(lifetimeMiles)}
-                                  </dd>
-                                </div>
-                              ) : null}
+                              <div className="flex items-baseline gap-1.5">
+                                <dt className="section-kicker text-[0.66rem] text-ink-500">
+                                  Miles
+                                </dt>
+                                <dd
+                                  className={clsx(
+                                    'tabular-nums',
+                                    lifetimeMiles !== null
+                                      ? 'font-medium text-ink-900'
+                                      : 'text-ink-500'
+                                  )}
+                                >
+                                  {lifetimeMiles !== null
+                                    ? formatMileage(lifetimeMiles)
+                                    : 'Never installed'}
+                                </dd>
+                              </div>
                               {installedBike ? (
                                 <div className="flex items-baseline gap-1.5">
                                   <dt className="section-kicker text-[0.66rem] text-ink-500">

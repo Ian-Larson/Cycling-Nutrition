@@ -42,7 +42,7 @@ export function OverflowMenu({ items, label = 'More' }: OverflowMenuProps) {
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-ink-500 hover:bg-shell-100 hover:text-ink-800 focus:outline-none focus:ring-2 focus:ring-brand-200"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-shell-100 hover:text-ink-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
       >
         <svg
           viewBox="0 0 20 20"
@@ -70,8 +70,8 @@ export function OverflowMenu({ items, label = 'More' }: OverflowMenuProps) {
                 item.onSelect();
               }}
               className={clsx(
-                'block w-full px-3 py-2 text-left text-sm hover:bg-shell-50 focus:outline-none focus:bg-shell-50',
-                item.tone === 'danger' ? 'text-rose-700' : 'text-ink-700'
+                'block w-full px-3 py-2.5 text-left text-sm hover:bg-shell-50 focus:outline-none focus:bg-shell-50',
+                item.tone === 'danger' ? 'text-error-700' : 'text-ink-700'
               )}
             >
               {item.label}

@@ -19,10 +19,46 @@ function urgencyLabel(urgency: GearUrgency): string {
 }
 
 function urgencyClass(urgency: GearUrgency): string {
-  if (urgency === 'overdue') return 'border-rose-200 bg-rose-50 text-rose-800';
-  if (urgency === 'soon') return 'border-amber-200 bg-amber-50 text-amber-800';
-  if (urgency === 'ok') return 'border-emerald-200 bg-emerald-50 text-emerald-800';
+  if (urgency === 'overdue') return 'border-error-200 bg-error-50 text-error-700';
+  if (urgency === 'soon') return 'border-warning-200 bg-warning-50 text-warning-700';
+  if (urgency === 'ok') return 'border-success-200 bg-success-50 text-success-700';
   return 'border-[color:var(--border-soft)] bg-shell-50 text-ink-600';
+}
+
+function UrgencyIcon({ urgency }: { urgency: GearUrgency }) {
+  if (urgency === 'overdue' || urgency === 'soon') {
+    return (
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden className="h-3 w-3">
+        <path
+          d="M8 1.75 14.5 13.5h-13L8 1.75Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M8 6.5v3.25"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <circle cx="8" cy="11.5" r="0.85" fill="currentColor" />
+      </svg>
+    );
+  }
+  if (urgency === 'ok') {
+    return (
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden className="h-3 w-3">
+        <path
+          d="m3.25 8.5 3 3L12.5 5"
+          stroke="currentColor"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  return null;
 }
 
 function formatMilesShort(miles: number | null): string | null {
@@ -66,14 +102,17 @@ function formatPartSummary(row: ActiveSetupRow): string {
 }
 
 function UrgencyPill({ urgency }: { urgency: GearUrgency }) {
+  const label = urgencyLabel(urgency);
   return (
     <span
       className={clsx(
-        'shrink-0 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide',
+        'inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide',
         urgencyClass(urgency)
       )}
     >
-      {urgencyLabel(urgency)}
+      <UrgencyIcon urgency={urgency} />
+      <span aria-hidden>{label}</span>
+      <span className="sr-only">Service status: {label}</span>
     </span>
   );
 }
@@ -130,12 +169,13 @@ export function ActiveSetupList({
           <button
             type="button"
             onClick={() => onInstall(row.slotKey)}
+            aria-label={`Install ${row.slotLabel}`}
             className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left transition-colors hover:bg-shell-50 focus:outline-none focus-visible:bg-shell-50 md:px-4 md:py-2.5"
           >
             <span className="truncate text-sm font-medium leading-6 text-ink-500">
               {row.slotLabel}
             </span>
-            <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold uppercase tracking-wide text-brand-700 transition-colors">
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-800 transition-colors">
               Install
               <ChevronIcon />
             </span>

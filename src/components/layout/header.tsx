@@ -1,19 +1,27 @@
 import { Link, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { isNavItemActive, primaryNavItems } from './navigation';
+import { SyncStatusBadge } from './sync-status-badge';
 
 export function Header() {
   const location = useLocation();
 
   return (
     <>
-      <div className="sticky top-0 z-40 border-b border-[color:var(--border-soft)] bg-shell-50/96 px-4 py-2.5 text-center backdrop-blur md:hidden">
+      <div className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-[color:var(--border-soft)] bg-shell-50/96 px-4 py-2.5 backdrop-blur md:hidden">
         <Link
           to="/"
           className="font-display text-lg font-semibold tracking-tight text-brand-700"
           aria-label="Domestique home"
         >
           Domestique
+        </Link>
+        <Link
+          to="/account"
+          aria-label="Open account"
+          className="inline-flex rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+        >
+          <SyncStatusBadge size="sm" />
         </Link>
       </div>
       <header className="sticky top-0 z-40 hidden border-b border-[color:var(--border-soft)] bg-shell-50/96 backdrop-blur md:block">
@@ -45,6 +53,13 @@ export function Header() {
               </Link>
             );
           })}
+          <Link
+            to="/account"
+            aria-label="Open account"
+            className="ml-1 inline-flex rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+          >
+            <SyncStatusBadge />
+          </Link>
         </nav>
         </div>
       </header>

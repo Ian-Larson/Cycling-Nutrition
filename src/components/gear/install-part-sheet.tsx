@@ -1,12 +1,13 @@
+import { useState, type FormEvent } from 'react';
 import {
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-  type MouseEvent,
-} from 'react';
-import { clsx } from 'clsx';
-import { Button, Input, Select } from '@/components/ui';
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Input,
+  Select,
+} from '@/components/ui';
 import {
   getBikeSlot,
   getGearPartCategory,
@@ -79,35 +80,10 @@ function isInstallCandidate(
 
 export function InstallPartSheet(props: InstallPartSheetProps) {
   const { open, onClose } = props;
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
-
-  const handleDialogClick = (event: MouseEvent<HTMLDialogElement>) => {
-    if (event.target === dialogRef.current) onClose();
-  };
-
   return (
-    <dialog
-      ref={dialogRef}
-      onClick={handleDialogClick}
-      onCancel={(event) => {
-        event.preventDefault();
-        onClose();
-      }}
-      className={clsx(
-        'm-0 mt-auto w-full max-w-none rounded-t-2xl bg-white p-4 shadow-xl',
-        'md:m-auto md:max-w-md md:rounded-2xl md:p-6',
-        'backdrop:bg-black/40 backdrop:backdrop-blur-sm'
-      )}
-    >
-      {open ? <InstallPartForm {...props} /> : null}
-    </dialog>
+    <Dialog open={open} onClose={onClose} size="md">
+      <InstallPartForm {...props} />
+    </Dialog>
   );
 }
 
@@ -164,80 +140,80 @@ function InstallPartForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
-            Install part
-          </h2>
-          <p className="text-sm leading-5 text-ink-600">
-            {slotKey ? `Choose a compatible part for ${slotLabel}.` : 'Choose a bike slot first.'}
-          </p>
+    <form onSubmit={handleSubmit}>
+      <DialogHeader
+        title="Install part"
+        description={
+          slotKey ? `Choose a compatible part for ${slotLabel}.` : 'Choose a bike slot first.'
+        }
+        onClose={onClose}
+      />
+
+      <DialogContent>
+        <div className="space-y-2">
+          <Select
+            label="Part"
+            value={selectedPartInstanceId}
+            disabled={candidates.length === 0}
+            onChange={(event) => setPartInstanceId(event.target.value)}
+            options={
+              candidates.length === 0
+                ? [{ value: '', label: 'No compatible spare or removed parts' }]
+                : candidates.map((instance) => {
+                    const item = catalog.find(
+                      (candidate) => candidate.id === instance.catalogItemId
+                    );
+                    return {
+                      value: instance.id,
+                      label: item
+                        ? `${partTitle(instance, catalog)} - ${getGearPartCategory(item.category).label}`
+                        : partTitle(instance, catalog),
+                    };
+                  })
+            }
+          />
+          {errors.partInstanceId ? (
+            <p className="text-sm text-error-700">{errors.partInstanceId}</p>
+          ) : null}
         </div>
-        <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-          Close
-        </Button>
-      </div>
 
-      <div className="space-y-2">
-        <Select
-          label="Part"
-          value={selectedPartInstanceId}
-          disabled={candidates.length === 0}
-          onChange={(event) => setPartInstanceId(event.target.value)}
-          options={
-            candidates.length === 0
-              ? [{ value: '', label: 'No compatible spare or removed parts' }]
-              : candidates.map((instance) => {
-                  const item = catalog.find(
-                    (candidate) => candidate.id === instance.catalogItemId
-                  );
-                  return {
-                    value: instance.id,
-                    label: item
-                      ? `${partTitle(instance, catalog)} - ${getGearPartCategory(item.category).label}`
-                      : partTitle(instance, catalog),
-                  };
-                })
-          }
+        <Input
+          label="Install mileage"
+          type="number"
+          min="0"
+          step="1"
+          value={installedAtMileageMi}
+          onChange={(event) => setInstalledAtMileageMi(event.target.value)}
+          error={errors.installedAtMileageMi}
         />
-        {errors.partInstanceId ? (
-          <p className="text-sm text-rose-700">{errors.partInstanceId}</p>
+
+        <Input
+          label="Install date"
+          type="date"
+          max={todayIso()}
+          value={installedDateIso}
+          onChange={(event) => setInstalledDateIso(event.target.value)}
+          error={errors.installedDateIso}
+        />
+
+        {errors.bikeId || errors.slotKey ? (
+          <p className="text-sm text-error-700">
+            {errors.bikeId ?? errors.slotKey}
+          </p>
         ) : null}
-      </div>
+      </DialogContent>
 
-      <Input
-        label="Install mileage"
-        type="number"
-        min="0"
-        step="1"
-        value={installedAtMileageMi}
-        onChange={(event) => setInstalledAtMileageMi(event.target.value)}
-        error={errors.installedAtMileageMi}
-      />
-
-      <Input
-        label="Install date"
-        type="date"
-        max={todayIso()}
-        value={installedDateIso}
-        onChange={(event) => setInstalledDateIso(event.target.value)}
-        error={errors.installedDateIso}
-      />
-
-      {errors.bikeId || errors.slotKey ? (
-        <p className="text-sm text-rose-700">
-          {errors.bikeId ?? errors.slotKey}
-        </p>
-      ) : null}
-
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={!bikeId || !slotKey || candidates.length === 0}
-      >
-        Install part
-      </Button>
+      <DialogFooter>
+        <Button type="button" variant="secondary" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={!bikeId || !slotKey || candidates.length === 0}
+        >
+          Install part
+        </Button>
+      </DialogFooter>
     </form>
   );
 }

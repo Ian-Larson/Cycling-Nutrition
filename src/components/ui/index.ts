@@ -1,11 +1,18 @@
+export { Alert } from './alert';
+export { Badge } from './badge';
 export { Button } from './button';
 export { Card, CardHeader, CardContent } from './card';
 export { Checkbox } from './checkbox';
 export { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsible';
+export { Dialog, DialogHeader, DialogContent, DialogFooter } from './dialog';
+export { IconButton } from './icon-button';
 export { Input } from './input';
 export { PresetButtons } from './preset-buttons';
+export { SegmentedControl } from './segmented-control';
+export type { SegmentedControlOption } from './segmented-control';
 export { Select } from './select';
 export { SpecRow } from './spec-row';
+export { Tabs, TabList, Tab, TabPanel } from './tabs';
 export { DividedRowList } from './divided-row-list';
 export { Stepper } from './stepper';
 export { Toast } from './toast';

@@ -246,8 +246,8 @@ export function GearHistoryTable({
       )}
     >
       <span>{label}</span>
-      <span aria-hidden className="text-[0.6rem] text-ink-500">
-        {sortIndicator(column)}
+      <span aria-hidden className="text-xs leading-none text-ink-500">
+        {sortIndicator(column) || '↕'}
       </span>
     </button>
   );
@@ -292,10 +292,10 @@ export function GearHistoryTable({
               <td className="whitespace-nowrap px-3 py-2">
                 <span
                   className={clsx(
-                    'rounded-full px-2 py-0.5 text-xs font-medium',
-                    row.kind === 'Service' && 'bg-brand-100 text-brand-900',
-                    row.kind === 'Install' && 'bg-emerald-100 text-emerald-800',
-                    row.kind === 'Remove' && 'bg-amber-100 text-amber-800'
+                    'rounded-full border px-2 py-0.5 text-xs font-medium',
+                    row.kind === 'Service' && 'border-brand-200 bg-brand-50 text-brand-800',
+                    row.kind === 'Install' && 'border-success-200 bg-success-50 text-success-700',
+                    row.kind === 'Remove' && 'border-warning-200 bg-warning-50 text-warning-700'
                   )}
                 >
                   {row.kind}
@@ -356,7 +356,7 @@ function RowActions({
           <button
             type="button"
             onClick={() => onEditEvent(eventId)}
-            className="rounded-md px-2 py-1 text-xs font-medium text-ink-700 hover:bg-shell-100"
+            className="rounded-md border border-[color:var(--border-soft)] bg-white px-2 py-1 text-xs font-medium text-ink-700 transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
             aria-label="Edit service event"
           >
             Edit
@@ -365,7 +365,7 @@ function RowActions({
         <button
           type="button"
           onClick={() => onDeleteService(eventId)}
-          className="rounded-md px-2 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50"
+          className="rounded-md border border-error-200 bg-white px-2 py-1 text-xs font-medium text-error-700 transition-colors hover:bg-error-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-error-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
           aria-label="Delete service event"
         >
           Delete
@@ -381,7 +381,7 @@ function RowActions({
         <button
           type="button"
           onClick={() => onDeleteInstall(installRecordId)}
-          className="rounded-md px-2 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50"
+          className="rounded-md border border-error-200 bg-white px-2 py-1 text-xs font-medium text-error-700 transition-colors hover:bg-error-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-error-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
           aria-label="Delete install entry"
         >
           Delete
@@ -397,7 +397,7 @@ function RowActions({
         <button
           type="button"
           onClick={() => onDeleteRemoval(installRecordId)}
-          className="rounded-md px-2 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50"
+          className="rounded-md border border-error-200 bg-white px-2 py-1 text-xs font-medium text-error-700 transition-colors hover:bg-error-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-error-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
           aria-label="Delete remove entry"
         >
           Delete

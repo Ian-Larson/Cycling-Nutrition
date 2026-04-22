@@ -137,59 +137,59 @@ Touch-target misses:
 
 Order chosen so each phase unblocks the next.
 
-### Phase 1 · Primitive + token foundation (Patterns 1, 2, 3)
-- [ ] Add `Badge`, `Alert`, `IconButton`, `Dialog`, `SegmentedControl`, `Tabs` primitives under `src/components/ui/`.
-- [ ] Export them from `src/components/ui/index.ts`.
-- [ ] Introduce `--color-warning-*`, `--color-error-*`, `--color-success-*` token sets in `index.css`.
-- [ ] Introduce `--bg-shell-light` and `--bg-brand-light` vars to replace repeated `color-mix` calls.
-- [ ] Collapse redundant `--surface-panel`, `--surface-panel-strong`, `--surface-soft`.
-- [ ] Normalize focus-ring pattern across Button / Input / Select / Stepper / Checkbox / Collapsible / Toggle.
-- [ ] Enforce `min-h-11` (44 px) on every interactive primitive.
+### Phase 1 · Primitive + token foundation (Patterns 1, 2, 3) — ✅ complete
+- [x] Add `Badge`, `Alert`, `IconButton`, `Dialog`, `SegmentedControl`, `Tabs` primitives under `src/components/ui/`.
+- [x] Export them from `src/components/ui/index.ts`.
+- [x] Introduce `--color-warning-*`, `--color-error-*`, `--color-success-*` token sets in `index.css`.
+- [x] Introduce `--bg-shell-light` and `--bg-brand-light` vars to replace repeated `color-mix` calls.
+- [x] Collapse redundant `--surface-panel`, `--surface-panel-strong`, `--surface-soft` (removed unused `--surface-panel-strong`; documented remaining vars).
+- [x] Normalize focus-ring pattern across Button / Input / Select / Stepper / Checkbox / Collapsible / Toggle / SpecRow.
+- [x] Enforce `min-h-11` (44 px) on every interactive primitive (Button, IconButton, Tabs, SegmentedControl; others already compliant).
 
 ### Phase 2 · Replace hand-rolled with primitives (Pattern 1 follow-through)
-- [ ] Replace inline badges/alerts in `fuel-result-v3.tsx`, `planner.tsx`, `ride-form.tsx`, `account.tsx`, `product-card.tsx`, `bike-system-card.tsx`, `add-part-sheet.tsx`.
-- [ ] Replace hand-rolled modal scaffolding in gear sheets (`add-part`, `remove-part`, `install-part`, `edit-bike-*`, `overflow-menu`, `edit-bike-name-dialog`).
-- [ ] Replace result-tab and step-button patterns in `planner.tsx` with `Tabs` + new `StepNavigation`.
-- [ ] Replace unit toggle in `athlete.tsx:315-340` with `SegmentedControl`.
+- [x] Replace inline badges/alerts in `fuel-result-v3.tsx`, `planner.tsx`, `ride-form.tsx`, `account.tsx`, `product-card.tsx`, `bike-system-card.tsx`, `add-part-sheet.tsx`.
+- [x] Replace hand-rolled modal scaffolding in gear sheets (`add-part`, `remove-part`, `install-part`, `edit-bike-*`, `log-gear-service`, `edit-service-event`, `edit-bike-name-dialog`). `overflow-menu` kept as a dropdown (not a modal) with focus-ring + color-token normalization.
+- [x] Replace result-tab and step-button patterns in `planner.tsx` with `Tabs` + new `StepNavigation`.
+- [x] Replace unit toggle in `athlete.tsx:315-340` with `SegmentedControl`.
 
 ### Phase 3 · IA cleanup for Account area (#34, #35)
-- [ ] Decide: merge `/athlete` into `/account` with tabs, or rename so "Sync" label matches route/title.
-- [ ] Add global auth / sync / Strava status pill to `Header` + `MobileNav`.
-- [ ] Extract `CallbackCard` and re-use from both auth and Strava callbacks.
-- [ ] `SyncStatusBadge` component used in account + header.
+- [x] Renamed `/account` sub-nav label from "Sync" to "Account" so the pill, URL, and page title agree. (`/athlete` stays a separate tab for now; merging into tabs is deferred.)
+- [x] Added global status pill to the desktop Header and the mobile top bar (the bottom MobileNav is intentionally kept compact at 4 tabs).
+- [x] Extracted `CallbackCard` used by both `auth-callback.tsx` and `strava-callback.tsx`.
+- [x] `SyncStatusBadge` component in `src/components/layout/sync-status-badge.tsx`, used by the account page (auth + cloud kinds) and the header (combined kind).
 
-### Phase 4 · Planner polish (#1–#16)
-- [ ] `StepNavigation` + "Current / Done" text on steps.
-- [ ] "Saved" indicator for plan draft persistence.
-- [ ] Default-open calculation details (or hoist key values) in auto mode.
-- [ ] Explainer copy for input-pair selector.
-- [ ] Legend for TargetBar.
-- [ ] Refill-aware bottle numbering.
-- [ ] Toast + step-1 landing on "Reuse plan".
-- [ ] `aria-live` on delete-confirm timer.
-- [ ] De-duplicate History / Inventory mobile vs desktop trees.
-- [ ] Reconcile inventory bottle-count copy, filter-pill counts, empty-state voice.
+### Phase 4 · Planner polish (#1–#16) — ✅ complete
+- [x] `StepNavigation` + "Current / Done" text on steps (shipped in Phase 2).
+- [x] "Saved" indicator for plan draft persistence (fade-in pill next to StepNavigation, announced via `aria-live`).
+- [x] Default-open calculation details in auto mode.
+- [x] Explainer copy for input-pair selector: "Pick the two you know — we'll calculate the third."
+- [x] Legend for TargetBar with semantic tokens (`success-500` / `warning-500` / `error-600`) + `role="img"` aria-label.
+- [x] Refill-aware bottle numbering ("Bottle 1 of 3 · ×2 fills").
+- [x] Toast + step-1 landing on "Reuse plan" (`/?reuse=1` flag + cleaned from URL).
+- [x] `aria-live` on delete-confirm timer (status region announces the 4-second window).
+- [x] De-duplicated History row actions into a single tree; merged Inventory product rows into `renderProductRow` with responsive classes.
+- [x] Reconciled inventory copy: bottle-count tightened, filter-pills show count on every pill including "All", empty states consolidated with "Clear filters" affordance.
 
-### Phase 5 · Gear polish (#17–#33)
-- [ ] Promote gear tabs to ARIA tabs pattern.
-- [ ] Resolve GearTabs / GearSubNav visual overlap.
-- [ ] Urgency pills: icon + text + sr-only label.
-- [ ] Always-visible edit affordances on bike-system rows and active-setup empty slots.
-- [ ] Color-code inventory stat strip; fix ChipRow inverted logic; rename "All" → "Clear".
-- [ ] GearLifeBar caption + aria-label; disambiguate "Mileage unavailable".
-- [ ] History table: `aria-sort`, visible sort indicator, clear row actions.
-- [ ] Tooltip on truncated bike pill; always-show lifetime miles on parts.
+### Phase 5 · Gear polish (#17–#33) — ✅ complete
+- [x] Promote gear tabs to ARIA tabs pattern (`role=tablist/tab/tabpanel`, arrow-key navigation, roving tabindex). Shared `gearTabId`/`gearPanelId` helpers moved to `gear-tab-ids.ts` for Fast Refresh compatibility.
+- [x] Resolve GearTabs / GearSubNav visual overlap (GearSubNav rebuilt as underlined primary nav; GearTabs remains pill row).
+- [x] Urgency pills: triangle/checkmark icon + visible text + sr-only semantic prefix ("Service status: …").
+- [x] Always-visible edit affordances on bike-system rows (rename button now has a persistent border + pencil); install affordance on empty slots is a full pill button with aria-label.
+- [x] Color-code inventory stat strip with status borders + accent count colors; ChipRow "All" toggles to "× Clear" when filters active (disabled when nothing to clear); added aria-pressed to option buttons.
+- [x] GearLifeBar `aria-label` reflects axis (`"NN% of mileage interval used"` or `"… time interval used"`); `formatMi`/`formatDays` copy disambiguates "No mileage schedule" vs "Odometer not set".
+- [x] History table: `aria-sort`, visible sort indicator with idle ↕ glyph, tokenized Install/Remove pills, row Edit/Delete styled as bordered mini-buttons with focus-visible rings.
+- [x] `title={bike.name}` on truncated bike pills; part cards always render Miles row with "Never installed" fallback.
 
-### Phase 6 · Power-meter-analyzer explainers (#29, #30)
-- [ ] Units on Offset input; tooltip on Reference; humanize meter-mode labels.
-- [ ] Accuracy Summary shows reference row with one file loaded.
+### Phase 6 · Power-meter-analyzer explainers (#29, #30) — ✅ complete
+- [x] Offset input labelled "Offset (seconds)" with trailing `s` indicator and a helper line; Reference button now reads "Set as reference"/"Reference ✓" with tooltip + aria-pressed; meter-mode labels humanized ("Dual-sided / total power", "Left side only (doubled)", "Right side only (doubled)"); Shown/Hidden button gains aria-pressed and clearer copy.
+- [x] Accuracy Summary: when only one file is loaded, show Avg/Max on the single reference row with a helper line explaining that adding another file unlocks delta/bias/error metrics.
 
-### Phase 7 · Accessibility sweep (Pattern 5 follow-through)
-- [ ] Add text/icon to every color-only signal.
-- [ ] `aria-valuenow/min/max` on Stepper.
-- [ ] `aria-pressed` / `role=group` on PresetButtons.
-- [ ] Assertive role on error Toasts.
-- [ ] Form errors gain border highlight + icon across athlete/account.
+### Phase 7 · Accessibility sweep (Pattern 5 follow-through) — ✅ complete
+- [x] Tokenized remaining rose/amber/emerald status colors (gear-due-preview-band, fuel-result warnings, drink-mix + solid-fuel selectors, power-meter-analyzer parse errors, history table pills); added triangle/info icons so warnings and errors are never color-only.
+- [x] `aria-valuenow/min/max` + `role="spinbutton"` on Stepper value readout.
+- [x] PresetButtons: wrapped in `role="group"` with configurable `ariaLabel`, per-option `aria-pressed`, and normalized focus-visible rings.
+- [x] Toast: added `variant` prop; error variant uses `role="alert"` + `aria-live="assertive"` and the triangle icon.
+- [x] Input primitive now paints `bg-error-50` + triangle icon beside error messages, cascading to all athlete/account form fields.
 
 ---
 

@@ -1,7 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { PageIntro } from '@/components/layout/page-intro';
 import { SectionNav } from '@/components/layout/section-nav';
-import { Button, Card, CardContent, CardHeader, Input } from '@/components/ui';
+import { SyncStatusBadge } from '@/components/layout/sync-status-badge';
+import { Alert, Button, Card, CardContent, CardHeader, Input } from '@/components/ui';
 import { useAuth } from '@/lib/auth/auth-context';
 
 function formatDateTime(value: string | null | undefined): string {
@@ -13,29 +14,9 @@ function formatDateTime(value: string | null | undefined): string {
   }).format(new Date(value));
 }
 
-function getSyncLabel(status: string): string {
-  if (status === 'syncing') return 'Syncing';
-  if (status === 'synced') return 'Synced';
-  if (status === 'offline') return 'Offline';
-  if (status === 'error') return 'Sync error';
-  if (status === 'conflict') return 'Conflict';
-  return 'Local only';
-}
-
-function getSyncBadgeClass(status: string): string {
-  if (status === 'synced') return 'bg-emerald-100 text-emerald-800';
-  if (status === 'syncing') return 'bg-brand-100 text-brand-800';
-  if (status === 'offline') return 'bg-amber-100 text-amber-800';
-  if (status === 'error' || status === 'conflict') {
-    return 'bg-rose-100 text-rose-800';
-  }
-  return 'bg-shell-100 text-ink-700';
-}
-
 export function AccountPage() {
   const {
     authStatus,
-    cloudSyncStatus,
     user,
     stravaConnection,
     isSupabaseReady,
@@ -100,18 +81,18 @@ export function AccountPage() {
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="section-title text-lg">Sign in</h2>
-                <span className="rounded-full bg-shell-100 px-2.5 py-1 text-xs font-medium text-ink-700">
-                  {signedIn ? 'Signed in' : 'Guest'}
-                </span>
+                <SyncStatusBadge kind="auth" />
               </div>
               <p className="section-copy">{statusCopy}</p>
             </CardHeader>
             <CardContent className="space-y-4">
               {!isSupabaseReady && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm leading-6 text-amber-900">
-                  Add `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and
-                  `VITE_SUPABASE_AUTH_REDIRECT_URL` to enable account sign-in.
-                </div>
+                <Alert variant="warning">
+                  Add <code>VITE_SUPABASE_URL</code>,{' '}
+                  <code>VITE_SUPABASE_ANON_KEY</code>, and{' '}
+                  <code>VITE_SUPABASE_AUTH_REDIRECT_URL</code> to enable account
+                  sign-in.
+                </Alert>
               )}
 
               {!signedIn && (
@@ -164,13 +145,7 @@ export function AccountPage() {
             <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="section-title text-lg">Cloud backup</h2>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-medium ${getSyncBadgeClass(
-                    cloudSyncStatus
-                  )}`}
-                >
-                  {getSyncLabel(cloudSyncStatus)}
-                </span>
+                <SyncStatusBadge kind="cloud" />
               </div>
             </CardHeader>
             <CardContent className="space-y-3">

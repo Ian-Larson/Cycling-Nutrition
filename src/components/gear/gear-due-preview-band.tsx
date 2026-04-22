@@ -38,7 +38,7 @@ export function GearDuePreviewBand({
       <header className="flex items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.68rem]">
           {overdueCount > 0 ? (
-            <span className="section-kicker text-rose-700">
+            <span className="section-kicker text-error-700">
               Overdue · {overdueCount}
             </span>
           ) : null}
@@ -46,7 +46,7 @@ export function GearDuePreviewBand({
             <span aria-hidden className="text-ink-400">·</span>
           ) : null}
           {soonCount > 0 ? (
-            <span className="section-kicker text-amber-700">
+            <span className="section-kicker text-warning-700">
               Due soon · {soonCount}
             </span>
           ) : null}

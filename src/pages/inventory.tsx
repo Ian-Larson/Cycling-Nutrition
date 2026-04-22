@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { clsx } from 'clsx';
 import { useStore } from '@/store';
-import { Button, Card, CardContent, CardHeader, Toggle } from '@/components/ui';
+import { Badge, Button, Card, CardContent, CardHeader, Toggle } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
 import { SectionNav } from '@/components/layout/section-nav';
 import { ProductForm } from '@/components/products/product-form';
@@ -110,32 +110,42 @@ export function InventoryPage() {
 
   const availableProductCount = products.filter((product) => product.isAvailable).length;
 
-  const visibleMobileProducts = availabilityFilteredProducts.filter(
+  const visibleProducts = availabilityFilteredProducts.filter(
     (product) => product.id !== editingProduct?.id
   );
 
-  const renderMobileProductRow = (product: Product, isLast: boolean) => (
+  const renderProductRow = (product: Product, isLast: boolean) => (
     <div
       key={product.id}
-      className={`space-y-2.5 px-3 py-3 ${
+      className={`grid items-start gap-3 px-3 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-3 md:px-4 md:py-3.5 lg:px-5 ${
         isLast ? '' : 'border-b border-[color:var(--border-soft)]'
       } ${product.isAvailable ? '' : 'opacity-60'}`}
     >
-      <div className="flex items-start gap-3">
-        <div className="min-w-0 flex-1 space-y-1">
-          <p className="truncate font-semibold text-ink-900">{product.name}</p>
-          <p className="text-sm leading-5 text-brand-700">
+      <div className="flex items-start gap-3 md:block md:gap-0">
+        <div className="min-w-0 flex-1 space-y-1 md:space-y-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="truncate font-semibold text-ink-900">{product.name}</p>
+            <Badge variant="neutral" className="hidden md:inline-flex">
+              {PRODUCT_TYPE_LABELS[product.type]}
+            </Badge>
+            {product.brand ? (
+              <span className="hidden text-sm leading-5 text-ink-600 md:inline">
+                {product.brand}
+              </span>
+            ) : null}
+          </div>
+          <p className="text-sm leading-5 text-brand-700 md:hidden">
             {PRODUCT_TYPE_LABELS[product.type]}
             {product.brand ? ` • ${product.brand}` : ''}
           </p>
-          <p className="text-sm leading-5 text-ink-700">
+          <p className="text-sm leading-5 text-ink-700 md:mt-1">
             {product.nutrition.carbsGrams}g carbs • {product.nutrition.calories} kcal
             {product.serving.servingSizeGrams
               ? ` / ${product.serving.servingSizeGrams}g`
               : ''}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3 md:hidden">
           <button
             type="button"
             onClick={() => {
@@ -155,34 +165,7 @@ export function InventoryPage() {
           />
         </div>
       </div>
-    </div>
-  );
-
-  const renderDesktopProductRow = (product: Product, isLast: boolean) => (
-    <div
-      key={product.id}
-      className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3.5 lg:px-5 ${
-        isLast ? '' : 'border-b border-[color:var(--border-soft)]'
-      } ${product.isAvailable ? '' : 'opacity-60'}`}
-    >
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="truncate font-semibold text-ink-900">{product.name}</p>
-          <span className="rounded-full bg-shell-100 px-2.5 py-1 text-xs font-medium text-ink-600">
-            {PRODUCT_TYPE_LABELS[product.type]}
-          </span>
-          {product.brand ? (
-            <span className="text-sm leading-5 text-ink-600">{product.brand}</span>
-          ) : null}
-        </div>
-        <p className="mt-1 text-sm leading-5 text-ink-700">
-          {product.nutrition.carbsGrams}g carbs • {product.nutrition.calories} kcal
-          {product.serving.servingSizeGrams
-            ? ` / ${product.serving.servingSizeGrams}g`
-            : ''}
-        </p>
-      </div>
-      <div className="flex items-center justify-end gap-3">
+      <div className="hidden items-center justify-end gap-3 md:flex">
         <button
           type="button"
           onClick={() => {
@@ -238,7 +221,7 @@ export function InventoryPage() {
         </div>
 
         <p className="text-xs leading-5 text-ink-500">
-          These counts are your bottle inventory. In the planner you can choose how many of each to bring on a ride.
+          Your on-hand bottle inventory. Pick how many to bring per ride in the planner.
         </p>
       </section>
 
@@ -317,11 +300,9 @@ export function InventoryPage() {
                       )}
                     >
                       {filter.label}
-                      {filter.value !== 'all' && (
-                        <span className="ml-1 text-[0.66rem] text-ink-500">
-                          {count}
-                        </span>
-                      )}
+                      <span className="ml-1 text-[0.66rem] text-ink-500 tabular-nums">
+                        {count}
+                      </span>
                     </button>
                   );
                 })}
@@ -359,11 +340,9 @@ export function InventoryPage() {
                       )}
                     >
                       {label}
-                      {value !== 'all' && (
-                        <span className="ml-1 text-[0.66rem] text-ink-500">
-                          {count}
-                        </span>
-                      )}
+                      <span className="ml-1 text-[0.66rem] text-ink-500 tabular-nums">
+                        {count}
+                      </span>
                     </button>
                   );
                 })}
@@ -375,7 +354,9 @@ export function InventoryPage() {
         {products.length === 0 && !showProductForm ? (
           <Card>
             <CardContent className="py-5 text-center md:py-6">
-              <p className="mb-4 text-ink-600">No fuel added yet.</p>
+              <p className="mb-4 text-ink-600">
+                No fuel in your inventory yet.
+              </p>
               <Button className="w-full sm:w-auto" onClick={() => setShowProductForm(true)}>
                 Add fuel
               </Button>
@@ -383,44 +364,37 @@ export function InventoryPage() {
           </Card>
         ) : (
           <>
-            <div className="md:hidden">
-              {visibleMobileProducts.length > 0 && (
-                <Card className="overflow-hidden">
-                  <CardContent className="p-0">
-                    {visibleMobileProducts.map((product, index) =>
-                      renderMobileProductRow(
-                        product,
-                        index === visibleMobileProducts.length - 1
-                      )
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-              {visibleMobileProducts.length === 0 && products.length > 0 && (
-                <p className="py-5 text-center text-ink-500">
-                  No fuel matches these filters.
-                </p>
-              )}
-            </div>
-            <div className="hidden md:block">
-              {visibleMobileProducts.length > 0 && (
-                <Card className="overflow-hidden">
-                  <CardContent className="p-0">
-                    {visibleMobileProducts.map((product, index) =>
-                      renderDesktopProductRow(
-                        product,
-                        index === visibleMobileProducts.length - 1
-                      )
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-              {availabilityFilteredProducts.length === 0 && products.length > 0 && (
-                <p className="py-6 text-center text-ink-500">
-                  No fuel matches these filters.
-                </p>
-              )}
-            </div>
+            {visibleProducts.length > 0 && (
+              <Card className="overflow-hidden">
+                <CardContent className="p-0">
+                  {visibleProducts.map((product, index) =>
+                    renderProductRow(
+                      product,
+                      index === visibleProducts.length - 1
+                    )
+                  )}
+                </CardContent>
+              </Card>
+            )}
+            {visibleProducts.length === 0 && products.length > 0 && (
+              <Card>
+                <CardContent className="py-5 text-center md:py-6">
+                  <p className="mb-3 text-ink-600">
+                    No fuel matches the current filters.
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setFilterType('all');
+                      setAvailabilityFilter('all');
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
       </section>

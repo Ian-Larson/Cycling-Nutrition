@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader } from '@/components/ui';
-import { PageIntro } from '@/components/layout/page-intro';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  CallbackCard,
+  type CallbackState,
+} from '@/components/layout/callback-card';
 import { validateStravaAuthState } from '@/lib/auth/strava-provider';
 import { exchangeStravaCode } from '@/lib/auth/strava-service';
 import { getSupabaseClient } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
-
-type CallbackState = 'loading' | 'success' | 'error';
 
 export function StravaCallbackPage() {
   const navigate = useNavigate();
@@ -85,48 +85,18 @@ export function StravaCallbackPage() {
   }, [navigate, state]);
 
   return (
-    <div className="page-shell max-w-3xl space-y-4 md:space-y-6">
-      <PageIntro
-        title="Strava"
-        description={
-          <>
-            Finishing connection.
-          </>
-        }
-      />
-
-      <Card className="overflow-hidden">
-        <CardHeader className="space-y-2 bg-white/55">
-          <h2 className="section-title text-lg">
-            {state === 'loading'
-              ? 'Connecting...'
-              : state === 'success'
-                ? 'Connected'
-                : 'Connection failed'}
-          </h2>
-        </CardHeader>
-        <CardContent className="space-y-2.5 md:space-y-3">
-          <p
-            className={
-              state === 'error'
-                ? 'text-sm leading-5 text-rose-700 md:leading-6'
-                : 'text-sm leading-5 text-ink-700 md:leading-6'
-            }
-          >
-            {message}
-          </p>
-
-          {state !== 'loading' && (
-            <p className="text-sm leading-5 text-ink-600 md:leading-6">
-              Redirecting to{' '}
-              <Link to="/account" className="underline font-semibold text-brand-700">
-                Account
-              </Link>{' '}
-              now.
-            </p>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <CallbackCard
+      introTitle="Strava"
+      introDescription="Finishing connection."
+      state={state}
+      stateTitles={{
+        loading: 'Connecting...',
+        success: 'Connected',
+        error: 'Connection failed',
+      }}
+      message={message}
+      redirectTo="/account"
+      redirectLabel="Account"
+    />
   );
 }

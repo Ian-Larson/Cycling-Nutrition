@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  Alert,
   Button,
   Collapsible,
   CollapsibleContent,
@@ -675,7 +676,7 @@ export function RideForm({
               <div className="space-y-1">
                 <p className="section-kicker text-[0.68rem]">Known values</p>
                 <p className="text-sm leading-6 text-ink-600">
-                  Enter any two of duration, IF, and TSS.
+                  Pick the two you know &mdash; we&rsquo;ll calculate the third.
                 </p>
               </div>
               <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
@@ -791,13 +792,13 @@ export function RideForm({
 
           <div className="lg:pt-1">
             {!hasFtp ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800 md:p-5">
+              <Alert variant="warning">
                 Add FTP in{' '}
                 <Link className="font-medium underline" to="/athlete?return=planner-step2">
                   Athlete
                 </Link>{' '}
                 to use auto mode.
-              </div>
+              </Alert>
             ) : autoPreview.result && previewAutoMetrics ? (
               <div className="rounded-2xl border border-brand-300 bg-[color:color-mix(in_oklch,var(--color-brand-100)_72%,white)] p-4 text-brand-900 md:p-5">
                 <p className="section-kicker text-[0.68rem] text-brand-700">
@@ -848,7 +849,7 @@ export function RideForm({
                     </div>
                   )}
 
-                <Collapsible defaultOpen={false} className="mt-4 border-t border-brand-200/80 pt-3">
+                <Collapsible defaultOpen className="mt-4 border-t border-brand-200/80 pt-3">
                   <CollapsibleTrigger className="min-h-0 rounded-lg bg-white/55 px-3 py-2.5 text-sm text-ink-800 md:px-3.5">
                     <div>
                       <p className="font-medium text-ink-900">Calculation details</p>
