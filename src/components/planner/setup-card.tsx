@@ -24,6 +24,7 @@ interface SetupCardProps {
   onBottleCountChange: (size: BottleSize, count: number) => void;
   onDrinkMixChange: (id: string | null) => void;
   onSolidChange: (ids: string[]) => void;
+  variant?: 'card' | 'embedded';
 }
 
 function SelectionRow({
@@ -140,6 +141,7 @@ export function SetupCard({
   onBottleCountChange,
   onDrinkMixChange,
   onSolidChange,
+  variant = 'card',
 }: SetupCardProps) {
   const selectedCount = totalBottleCount(selectedBottleCounts);
   const inventoryTotal = totalBottleCount(bottleCounts);
@@ -157,13 +159,8 @@ export function SetupCard({
     onSolidChange([...selectedSolidIds, productId]);
   };
 
-  return (
-    <Card className="overflow-hidden">
-      <CardHeader className="space-y-1.5 bg-[var(--surface-soft)]">
-        <h2 className="section-title">Setup</h2>
-        <p className="section-copy">Choose bottles and fuel.</p>
-      </CardHeader>
-      <CardContent className="space-y-3 md:space-y-4">
+  const content = (
+    <div className="space-y-3 md:space-y-4">
         <Collapsible
           open={bottlesOpen}
           onOpenChange={setBottlesOpen}
@@ -285,7 +282,20 @@ export function SetupCard({
             </section>
           </CollapsibleContent>
         </Collapsible>
-      </CardContent>
+    </div>
+  );
+
+  if (variant === 'embedded') {
+    return content;
+  }
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="space-y-1.5 bg-[var(--surface-soft)]">
+        <h2 className="section-title">Setup</h2>
+        <p className="section-copy">Choose bottles and fuel.</p>
+      </CardHeader>
+      <CardContent>{content}</CardContent>
     </Card>
   );
 }
