@@ -5,14 +5,13 @@ import { Card, CardContent, Button } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
 import { SectionNav } from '@/components/layout/section-nav';
 import { FuelResult } from '@/components/planner/fuel-result';
+import { buildPlannerDraftFromSavedPlan } from '@/lib/planner/saved-plan-draft';
+import {
+  formatDateTime,
+  formatDuration,
+  getFuelResultPlan,
+} from '@/lib/planner/planner-summaries';
 import type { FuelPlan } from '@/types';
-
-function getFuelResultPlan(plan: FuelPlan): Omit<FuelPlan, 'id' | 'createdAt'> {
-  const { id, createdAt, ...rest } = plan;
-  void id;
-  void createdAt;
-  return rest;
-}
 
 export function HistoryPage() {
   const navigate = useNavigate();
@@ -29,21 +28,6 @@ export function HistoryPage() {
     const timer = setTimeout(() => setConfirmingDeleteId(null), 4000);
     return () => clearTimeout(timer);
   }, [confirmingDeleteId]);
-
-  const formatDuration = (mins: number) => {
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
-  };
-
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
 
   const sortedPlans = [...fuelPlans].sort((a, b) => b.createdAt - a.createdAt);
 
@@ -73,39 +57,7 @@ export function HistoryPage() {
   };
 
   const handleReusePlan = (plan: FuelPlan) => {
-    // Derive bottle counts from the saved allocation's capacityMl
-    const selectedBottleCounts = { 550: 0, 750: 0, 950: 0 } as Record<number, number>;
-    for (const alloc of plan.bottles) {
-      const cap = alloc.capacityMl;
-      selectedBottleCounts[cap] = (selectedBottleCounts[cap] ?? 0) + 1;
-    }
-
-    const selectedDrinkMixId =
-      plan.bottles.find((allocation) => !allocation.isWaterOnly)?.productId ?? null;
-    const selectedSolidIds = plan.solids.map((solid) => solid.productId);
-
-    const usedProductIds = [
-      ...(selectedDrinkMixId ? [selectedDrinkMixId] : []),
-      ...selectedSolidIds,
-    ];
-    const includeUnavailableProducts = usedProductIds.some((productId) => {
-      const product = products.find((candidate) => candidate.id === productId);
-      return product ? !product.isAvailable : false;
-    });
-
-    setPlannerDraft({
-      ride: plan.rideCharacteristics,
-      selectedBottleCounts: {
-        550: selectedBottleCounts[550] ?? 0,
-        750: selectedBottleCounts[750] ?? 0,
-        950: selectedBottleCounts[950] ?? 0,
-      },
-      selectedDrinkMixId,
-      selectedSolidIds,
-      includeUnavailableProducts,
-      title: plan.title,
-    });
-
+    setPlannerDraft(buildPlannerDraftFromSavedPlan(plan, products));
     navigate('/?step=2');
   };
 
@@ -153,7 +105,7 @@ export function HistoryPage() {
                   <div className="space-y-3 md:grid md:grid-cols-[minmax(0,1fr)_11rem] md:items-start md:gap-4 md:space-y-0">
                     <div className="space-y-2 md:space-y-2.5">
                       <p className="section-kicker text-[0.66rem] text-ink-500">
-                        {formatDate(plan.createdAt)}
+                        {formatDateTime(plan.createdAt)}
                       </p>
                       <div className="space-y-1.5">
                         {plan.title ? (
