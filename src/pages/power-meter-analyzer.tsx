@@ -5,7 +5,7 @@ import { MeanMaxChart } from '@/components/analyzer/mean-max-chart';
 import { PowerTimeSeriesChart } from '@/components/analyzer/power-time-series-chart';
 import { ScatterChart } from '@/components/analyzer/scatter-chart';
 import { PageIntro } from '@/components/layout/page-intro';
-import { Button, Card, CardContent, CardHeader, Select } from '@/components/ui';
+import { Badge, Button, Card, CardContent, CardHeader, Select } from '@/components/ui';
 import {
   buildChartSeries,
   buildFileSummaries,
@@ -40,9 +40,9 @@ const VIEW_OPTIONS: { value: PowerViewMode; label: string }[] = [
 ];
 
 const METER_MODE_OPTIONS: { value: MeterMode; label: string }[] = [
-  { value: 'total', label: 'Total or dual-sided' },
-  { value: 'leftOnlyDoubled', label: 'Left-only doubled' },
-  { value: 'rightOnlyDoubled', label: 'Right-only doubled' },
+  { value: 'total', label: 'Dual-sided / total power' },
+  { value: 'leftOnlyDoubled', label: 'Left side only (doubled)' },
+  { value: 'rightOnlyDoubled', label: 'Right side only (doubled)' },
 ];
 
 function createId(): string {
@@ -359,8 +359,31 @@ export function PowerMeterAnalyzerPage() {
             {(parseErrors.length > 0 || allWarnings.length > 0) && (
               <CardContent className="space-y-2 border-b border-[color:var(--border-soft)]">
                 {[...parseErrors, ...allWarnings].map((message) => (
-                  <p key={message} className="text-sm leading-5 text-amber-800">
-                    {message}
+                  <p
+                    key={message}
+                    className="flex items-start gap-1.5 text-sm leading-5 text-warning-700"
+                  >
+                    <svg
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      aria-hidden
+                      className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                    >
+                      <path
+                        d="M8 1.75 14.5 13.5h-13L8 1.75Z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M8 6.5v3.25"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                      <circle cx="8" cy="11.5" r="0.85" fill="currentColor" />
+                    </svg>
+                    <span>{message}</span>
                   </p>
                 ))}
               </CardContent>
@@ -391,17 +414,35 @@ export function PowerMeterAnalyzerPage() {
                     </label>
 
                     <label className="space-y-2">
-                      <span className="text-sm font-medium text-ink-700">Offset</span>
-                      <input
-                        type="number"
-                        value={file.offsetSeconds}
-                        onChange={(event) =>
-                          updateFile(file.id, {
-                            offsetSeconds: Number(event.target.value) || 0,
-                          })
-                        }
-                        className="block min-h-11 w-full rounded-lg border border-[color:var(--border-soft)] bg-white px-3 py-2 text-sm text-ink-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
-                      />
+                      <span className="text-sm font-medium text-ink-700">
+                        Offset (seconds)
+                      </span>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          value={file.offsetSeconds}
+                          onChange={(event) =>
+                            updateFile(file.id, {
+                              offsetSeconds: Number(event.target.value) || 0,
+                            })
+                          }
+                          aria-describedby={`offset-help-${file.id}`}
+                          className="block min-h-11 w-full rounded-lg border border-[color:var(--border-soft)] bg-white px-3 py-2 pr-10 text-sm text-ink-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                        />
+                        <span
+                          aria-hidden
+                          className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-ink-500"
+                        >
+                          s
+                        </span>
+                      </div>
+                      <span
+                        id={`offset-help-${file.id}`}
+                        className="block text-xs leading-4 text-ink-500"
+                      >
+                        Shift this file forward or back to align with the reference.
+                      </span>
                     </label>
 
                     <label className="space-y-2">
@@ -431,6 +472,7 @@ export function PowerMeterAnalyzerPage() {
                         onClick={() =>
                           updateFile(file.id, { visible: !file.visible })
                         }
+                        aria-pressed={file.visible}
                         className={clsx(
                           'min-h-11 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors',
                           file.visible
@@ -438,11 +480,13 @@ export function PowerMeterAnalyzerPage() {
                             : 'border-[color:var(--border-soft)] bg-white text-ink-600'
                         )}
                       >
-                        {file.visible ? 'Shown' : 'Hidden'}
+                        {file.visible ? 'Shown on chart' : 'Hidden from chart'}
                       </button>
                       <button
                         type="button"
                         onClick={() => setReferenceId(file.id)}
+                        aria-pressed={activeReferenceId === file.id}
+                        title="Compare every other file against this one"
                         className={clsx(
                           'min-h-11 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors md:w-full',
                           activeReferenceId === file.id
@@ -450,7 +494,7 @@ export function PowerMeterAnalyzerPage() {
                             : 'border-[color:var(--border-soft)] bg-white text-ink-600'
                         )}
                       >
-                        Reference
+                        {activeReferenceId === file.id ? 'Reference ✓' : 'Set as reference'}
                       </button>
                     </div>
 
@@ -537,81 +581,93 @@ export function PowerMeterAnalyzerPage() {
               {summaries.length === 0 ? (
                 <CardContent>
                   <p className="text-sm leading-5 text-ink-600">
-                    Load two or more files to compare against a reference meter.
+                    Load a file to see its power summary. Add a second file to
+                    compare it against the reference.
                   </p>
                 </CardContent>
               ) : (
-                summaries.map((summary) => (
-                  <div key={summary.id} className="space-y-3 px-4 py-3 md:px-5">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="flex min-w-0 items-center gap-2 font-semibold text-ink-900">
-                        <span
-                          className="h-2.5 w-2.5 shrink-0 rounded-full"
-                          style={{ backgroundColor: summary.color }}
-                        />
-                        <span className="truncate">{summary.name}</span>
-                      </p>
-                      {summary.id === activeReferenceId && (
-                        <span className="rounded-full bg-brand-100 px-2 py-1 text-xs font-semibold text-brand-800">
-                          reference
-                        </span>
+                summaries.map((summary) => {
+                  const isReference = summary.id === activeReferenceId;
+                  const soloReference = isReference && summaries.length === 1;
+                  return (
+                    <div key={summary.id} className="space-y-3 px-4 py-3 md:px-5">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="flex min-w-0 items-center gap-2 font-semibold text-ink-900">
+                          <span
+                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                            style={{ backgroundColor: summary.color }}
+                          />
+                          <span className="truncate">{summary.name}</span>
+                        </p>
+                        {isReference && <Badge variant="brand">reference</Badge>}
+                      </div>
+
+                      <dl className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <dt className="text-xs font-semibold text-ink-500">Avg</dt>
+                          <dd className="font-semibold text-ink-900">
+                            {formatWatts(summary.averagePower)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs font-semibold text-ink-500">Max</dt>
+                          <dd className="font-semibold text-ink-900">
+                            {formatWatts(summary.maxPower)}
+                          </dd>
+                        </div>
+                        {!soloReference && (
+                          <>
+                            <div>
+                              <dt className="text-xs font-semibold text-ink-500">Delta</dt>
+                              <dd className="font-semibold text-ink-900">
+                                {formatWatts(summary.averageDeltaWatts)}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-xs font-semibold text-ink-500">Bias</dt>
+                              <dd className="font-semibold text-ink-900">
+                                {formatPercent(summary.biasPercent)}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-xs font-semibold text-ink-500">MAE</dt>
+                              <dd className="font-semibold text-ink-900">
+                                {formatWatts(summary.meanAbsoluteError)}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-xs font-semibold text-ink-500">RMSE</dt>
+                              <dd className="font-semibold text-ink-900">
+                                {formatWatts(summary.rootMeanSquareError)}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-xs font-semibold text-ink-500">r</dt>
+                              <dd className="font-semibold text-ink-900">
+                                {formatNumber(summary.correlation, 3)}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-xs font-semibold text-ink-500">
+                                Within 3%
+                              </dt>
+                              <dd className="font-semibold text-ink-900">
+                                {formatPercent(summary.withinThreePercent, 0)}
+                              </dd>
+                            </div>
+                          </>
+                        )}
+                      </dl>
+
+                      {soloReference && (
+                        <p className="text-xs leading-5 text-ink-500">
+                          Add another file to see delta, bias, and error metrics
+                          against this reference.
+                        </p>
                       )}
                     </div>
-
-                    <dl className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <dt className="text-xs font-semibold text-ink-500">Avg</dt>
-                        <dd className="font-semibold text-ink-900">
-                          {formatWatts(summary.averagePower)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs font-semibold text-ink-500">Max</dt>
-                        <dd className="font-semibold text-ink-900">
-                          {formatWatts(summary.maxPower)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs font-semibold text-ink-500">Delta</dt>
-                        <dd className="font-semibold text-ink-900">
-                          {formatWatts(summary.averageDeltaWatts)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs font-semibold text-ink-500">Bias</dt>
-                        <dd className="font-semibold text-ink-900">
-                          {formatPercent(summary.biasPercent)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs font-semibold text-ink-500">MAE</dt>
-                        <dd className="font-semibold text-ink-900">
-                          {formatWatts(summary.meanAbsoluteError)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs font-semibold text-ink-500">RMSE</dt>
-                        <dd className="font-semibold text-ink-900">
-                          {formatWatts(summary.rootMeanSquareError)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs font-semibold text-ink-500">r</dt>
-                        <dd className="font-semibold text-ink-900">
-                          {formatNumber(summary.correlation, 3)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs font-semibold text-ink-500">
-                          Within 3%
-                        </dt>
-                        <dd className="font-semibold text-ink-900">
-                          {formatPercent(summary.withinThreePercent, 0)}
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </Card>

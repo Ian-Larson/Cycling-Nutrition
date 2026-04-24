@@ -21,7 +21,7 @@ export function Checkbox({ className, onChange, ...props }: CheckboxProps) {
           'peer absolute inset-0 h-full w-full cursor-pointer appearance-none rounded-md border bg-white transition-colors',
           'border-[color:var(--border-soft)] hover:border-brand-300',
           'checked:border-brand-500 checked:bg-brand-500',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-1 focus-visible:ring-offset-shell-100',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
           'disabled:cursor-not-allowed disabled:opacity-50'
         )}
         {...props}

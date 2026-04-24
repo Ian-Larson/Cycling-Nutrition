@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Card, CardContent, SpecRow } from '@/components/ui';
+import { Badge, Card, CardContent, SpecRow } from '@/components/ui';
 import { EditBikeWeightDialog } from './edit-bike-weight-dialog';
 import { EditBikeNameDialog } from './edit-bike-name-dialog';
 import {
@@ -50,7 +50,7 @@ export function BikeSystemCard({ bike, installRecords, instances, catalog }: Bik
               type="button"
               onClick={() => setNameOpen(true)}
               aria-label={`Rename ${bike.name}`}
-              className="group -mx-1.5 -my-0.5 inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200"
+              className="-mx-1.5 -my-0.5 inline-flex min-w-0 items-center gap-1.5 rounded-md border border-transparent px-1.5 py-0.5 transition-colors hover:border-[color:var(--border-soft)] hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
             >
               <span className="truncate font-heading text-sm font-semibold tracking-tight text-ink-900">
                 {bike.name}
@@ -59,7 +59,7 @@ export function BikeSystemCard({ bike, installRecords, instances, catalog }: Bik
                 viewBox="0 0 20 20"
                 fill="none"
                 aria-hidden
-                className="h-3.5 w-3.5 shrink-0 text-ink-400 transition-colors group-hover:text-ink-600"
+                className="h-3.5 w-3.5 shrink-0 text-ink-500"
               >
                 <path
                   d="M4 14.5 14 4.5l2 2L6 16.5H4v-2Z"
@@ -71,9 +71,13 @@ export function BikeSystemCard({ bike, installRecords, instances, catalog }: Bik
               </svg>
             </button>
             {bike.isPrimary ? (
-              <span className="shrink-0 rounded-full border border-brand-200 bg-brand-50 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-brand-700">
+              <Badge
+                variant="brand"
+                size="sm"
+                className="shrink-0 font-semibold uppercase tracking-wide"
+              >
                 Default
-              </span>
+              </Badge>
             ) : null}
           </div>
           <div className="space-y-1.5 pt-0.5">

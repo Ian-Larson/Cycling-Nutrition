@@ -1,12 +1,13 @@
+import { useState, type FormEvent } from 'react';
 import {
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-  type MouseEvent,
-} from 'react';
-import { clsx } from 'clsx';
-import { Button, Input, Select } from '@/components/ui';
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Input,
+  Select,
+} from '@/components/ui';
 import {
   FIXED_BIKE_SLOTS,
   GEAR_SERVICE_TYPES,
@@ -84,35 +85,10 @@ function parseOptionalNumber(
 
 export function EditServiceEventSheet(props: EditServiceEventSheetProps) {
   const { open, onClose, event } = props;
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
-
-  const handleDialogClick = (e: MouseEvent<HTMLDialogElement>) => {
-    if (e.target === dialogRef.current) onClose();
-  };
-
   return (
-    <dialog
-      ref={dialogRef}
-      onClick={handleDialogClick}
-      onCancel={(e) => {
-        e.preventDefault();
-        onClose();
-      }}
-      className={clsx(
-        'm-0 mt-auto w-full max-w-none rounded-t-2xl bg-white p-4 shadow-xl',
-        'md:m-auto md:max-w-lg md:rounded-2xl md:p-6',
-        'backdrop:bg-black/40 backdrop:backdrop-blur-sm'
-      )}
-    >
-      {open && event ? <EditServiceEventForm {...props} event={event} /> : null}
-    </dialog>
+    <Dialog open={open} onClose={onClose} size="lg">
+      {event ? <EditServiceEventForm {...props} event={event} /> : null}
+    </Dialog>
   );
 }
 
@@ -254,21 +230,14 @@ function EditServiceEventForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="font-display text-lg font-semibold text-ink-900">
-            Edit service event
-          </h2>
-          <p className="text-sm leading-5 text-ink-600">
-            Update details for this service log entry.
-          </p>
-        </div>
-        <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-          Close
-        </Button>
-      </div>
+    <form onSubmit={handleSubmit}>
+      <DialogHeader
+        title="Edit service event"
+        description="Update details for this service log entry."
+        onClose={onClose}
+      />
 
+      <DialogContent>
       <Select
         label="Service type"
         value={typeKey}
@@ -295,7 +264,7 @@ function EditServiceEventForm({
         }
       />
       {errors.bikeId ? (
-        <p className="text-sm text-rose-700">{errors.bikeId}</p>
+        <p className="text-sm text-error-700">{errors.bikeId}</p>
       ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -385,12 +354,18 @@ function EditServiceEventForm({
       />
 
       {errors.typeKey ? (
-        <p className="text-sm text-rose-700">{errors.typeKey}</p>
+        <p className="text-sm text-error-700">{errors.typeKey}</p>
       ) : null}
+      </DialogContent>
 
-      <Button type="submit" className="w-full" disabled={bikes.length === 0}>
-        Save changes
-      </Button>
+      <DialogFooter>
+        <Button type="button" variant="secondary" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={bikes.length === 0}>
+          Save changes
+        </Button>
+      </DialogFooter>
     </form>
   );
 }

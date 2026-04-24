@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader } from '@/components/ui';
-import { PageIntro } from '@/components/layout/page-intro';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  CallbackCard,
+  type CallbackState,
+} from '@/components/layout/callback-card';
 import { getSupabaseClient } from '@/lib/supabase/client';
-
-type CallbackState = 'loading' | 'success' | 'error';
 
 export function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -64,48 +64,18 @@ export function AuthCallbackPage() {
   }, [navigate, state]);
 
   return (
-    <div className="page-shell max-w-3xl space-y-4 md:space-y-6">
-      <PageIntro
-        title="Account"
-        description={
-          <>
-            Finishing account sign-in.
-          </>
-        }
-      />
-
-      <Card className="overflow-hidden">
-        <CardHeader className="space-y-2 bg-white/55">
-          <h2 className="section-title text-lg">
-            {state === 'loading'
-              ? 'Signing in...'
-              : state === 'success'
-                ? 'Signed in'
-                : 'Sign-in failed'}
-          </h2>
-        </CardHeader>
-        <CardContent className="space-y-2.5 md:space-y-3">
-          <p
-            className={
-              state === 'error'
-                ? 'text-sm leading-5 text-rose-700 md:leading-6'
-                : 'text-sm leading-5 text-ink-700 md:leading-6'
-            }
-          >
-            {message}
-          </p>
-
-          {state !== 'loading' && (
-            <p className="text-sm leading-5 text-ink-600 md:leading-6">
-              Redirecting to{' '}
-              <Link to="/account" className="underline font-semibold text-brand-700">
-                Account
-              </Link>{' '}
-              now.
-            </p>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <CallbackCard
+      introTitle="Account"
+      introDescription="Finishing account sign-in."
+      state={state}
+      stateTitles={{
+        loading: 'Signing in...',
+        success: 'Signed in',
+        error: 'Sign-in failed',
+      }}
+      message={message}
+      redirectTo="/account"
+      redirectLabel="Account"
+    />
   );
 }

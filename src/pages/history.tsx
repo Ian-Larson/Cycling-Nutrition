@@ -58,7 +58,7 @@ export function HistoryPage() {
 
   const handleReusePlan = (plan: FuelPlan) => {
     setPlannerDraft(buildPlannerDraftFromSavedPlan(plan, products));
-    navigate('/?step=2');
+    navigate('/?reuse=1');
   };
 
   return (
@@ -73,6 +73,12 @@ export function HistoryPage() {
       />
 
       <SectionNav section="nutrition" />
+
+      <div role="status" aria-live="polite" className="sr-only">
+        {confirmingDeleteId
+          ? 'Confirm delete within 4 seconds or the request will cancel.'
+          : ''}
+      </div>
 
       {sortedPlans.length === 0 ? (
         <Card>
@@ -189,45 +195,7 @@ export function HistoryPage() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 md:hidden">
-                      <Button
-                        size="sm"
-                        className="col-span-2 w-full"
-                        onClick={() => handleReusePlan(plan)}
-                      >
-                        Reuse
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full"
-                        onClick={() => toggleExpanded(plan.id)}
-                      >
-                        {isExpanded ? 'Hide details' : 'Details'}
-                      </Button>
-                      {isConfirming ? (
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={() => handleDeletePlan(plan.id)}
-                          className="relative w-full overflow-hidden"
-                        >
-                          Confirm?
-                          <span className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards]" />
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full"
-                          onClick={() => setConfirmingDeleteId(plan.id)}
-                        >
-                          Delete
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="hidden md:flex md:flex-col md:items-stretch md:gap-2">
+                    <div className="flex flex-col gap-2">
                       <Button
                         size="sm"
                         className="w-full"
@@ -253,7 +221,10 @@ export function HistoryPage() {
                             className="relative w-full overflow-hidden"
                           >
                             Confirm?
-                            <span className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards]" />
+                            <span
+                              aria-hidden
+                              className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards] motion-reduce:hidden"
+                            />
                           </Button>
                         ) : (
                           <Button

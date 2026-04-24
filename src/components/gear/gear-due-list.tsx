@@ -17,16 +17,20 @@ interface GearDueRowProps {
   onLogService: (item: GearDueItem) => void;
 }
 
-function formatMi(value: number | null): string {
-  if (value === null) return 'Mileage unavailable';
+function formatMi(value: number | null, intervalMi: number | null): string {
+  if (value === null) {
+    return intervalMi === null ? 'No mileage schedule' : 'Odometer not set';
+  }
   const abs = Math.abs(Math.round(value)).toLocaleString();
   if (value < 0) return `${abs} mi overdue`;
   if (value === 0) return 'Due now by mileage';
   return `${abs} mi remaining`;
 }
 
-function formatDays(value: number | null): string {
-  if (value === null) return 'Date unavailable';
+function formatDays(value: number | null, intervalDays: number | null): string {
+  if (value === null) {
+    return intervalDays === null ? 'No time schedule' : 'Date unavailable';
+  }
   const abs = Math.abs(Math.round(value)).toLocaleString();
   if (value < 0) return `${abs} days overdue`;
   if (value === 0) return 'Due today';
@@ -41,10 +45,46 @@ function urgencyLabel(urgency: GearDueItem['urgency']): string {
 }
 
 function urgencyClass(urgency: GearDueItem['urgency']): string {
-  if (urgency === 'overdue') return 'border-rose-200 bg-rose-50 text-rose-800';
-  if (urgency === 'soon') return 'border-amber-200 bg-amber-50 text-amber-800';
-  if (urgency === 'ok') return 'border-emerald-200 bg-emerald-50 text-emerald-800';
+  if (urgency === 'overdue') return 'border-error-200 bg-error-50 text-error-700';
+  if (urgency === 'soon') return 'border-warning-200 bg-warning-50 text-warning-700';
+  if (urgency === 'ok') return 'border-success-200 bg-success-50 text-success-700';
   return 'border-[color:var(--border-soft)] bg-shell-50 text-ink-600';
+}
+
+function UrgencyIcon({ urgency }: { urgency: GearDueItem['urgency'] }) {
+  if (urgency === 'overdue' || urgency === 'soon') {
+    return (
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden className="h-3 w-3">
+        <path
+          d="M8 1.75 14.5 13.5h-13L8 1.75Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M8 6.5v3.25"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <circle cx="8" cy="11.5" r="0.85" fill="currentColor" />
+      </svg>
+    );
+  }
+  if (urgency === 'ok') {
+    return (
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden className="h-3 w-3">
+        <path
+          d="m3.25 8.5 3 3L12.5 5"
+          stroke="currentColor"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  return null;
 }
 
 function resolveBikeName(item: GearDueItem, bikes: Bike[]): string {
@@ -72,11 +112,15 @@ export function GearDueRow({
               </p>
               <span
                 className={clsx(
-                  'shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold',
+                  'inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold',
                   urgencyClass(item.urgency)
                 )}
               >
-                {urgencyLabel(item.urgency)}
+                <UrgencyIcon urgency={item.urgency} />
+                <span aria-hidden>{urgencyLabel(item.urgency)}</span>
+                <span className="sr-only">
+                  Service status: {urgencyLabel(item.urgency)}
+                </span>
               </span>
             </div>
             {showBikeName ? (
@@ -85,8 +129,8 @@ export function GearDueRow({
               </p>
             ) : null}
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm leading-5 text-ink-700">
-              <span>{formatMi(item.remainingMi)}</span>
-              <span>{formatDays(item.remainingDays)}</span>
+              <span>{formatMi(item.remainingMi, item.intervalMi)}</span>
+              <span>{formatDays(item.remainingDays, item.intervalDays)}</span>
             </div>
             <GearLifeBar
               remainingMi={item.remainingMi}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Card, CardContent, Toggle } from '@/components/ui';
+import { Badge, Button, Card, CardContent, Toggle } from '@/components/ui';
 import type { Product } from '@/types';
 import { clsx } from 'clsx';
 
@@ -38,9 +38,7 @@ export function ProductCard({
         <div className="space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-semibold text-ink-900">{product.name}</h3>
-            <span className="rounded-full bg-shell-100 px-2.5 py-1 text-xs font-medium text-ink-600">
-              {typeLabels[product.type]}
-            </span>
+            <Badge variant="neutral">{typeLabels[product.type]}</Badge>
           </div>
           {product.brand && (
             <p className="text-sm leading-5 text-ink-600 md:leading-6">

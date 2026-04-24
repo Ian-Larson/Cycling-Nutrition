@@ -9,6 +9,7 @@ import {
   CardHeader,
   Input,
   PresetButtons,
+  SegmentedControl,
   Toggle,
 } from '@/components/ui';
 import {
@@ -312,32 +313,16 @@ export function AthletePage() {
                 <div>
                   <h2 className="section-title text-lg">Profile</h2>
                 </div>
-                <div className="inline-flex w-full rounded-full border border-[color:var(--border-soft)] bg-white p-1 sm:w-auto">
-                  <button
-                    type="button"
-                    onClick={() => handleAnthropometricsUnitChange('metric')}
-                    className={clsx(
-                      'flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors sm:flex-none',
-                      anthropometricsUnit === 'metric'
-                        ? 'bg-brand-100 text-brand-800'
-                        : 'text-ink-700 hover:bg-shell-50'
-                    )}
-                  >
-                    Metric
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAnthropometricsUnitChange('imperial')}
-                    className={clsx(
-                      'flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors sm:flex-none',
-                      anthropometricsUnit === 'imperial'
-                        ? 'bg-brand-100 text-brand-800'
-                        : 'text-ink-700 hover:bg-shell-50'
-                    )}
-                  >
-                    Imperial
-                  </button>
-                </div>
+                <SegmentedControl<AnthropometricsUnit>
+                  label="Measurement units"
+                  value={anthropometricsUnit}
+                  onChange={handleAnthropometricsUnitChange}
+                  className="w-full sm:w-auto"
+                  options={[
+                    { value: 'metric', label: 'Metric' },
+                    { value: 'imperial', label: 'Imperial' },
+                  ]}
+                />
               </div>
             </CardHeader>
             <CardContent className="space-y-3 md:space-y-4">

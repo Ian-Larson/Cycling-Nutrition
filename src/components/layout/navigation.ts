@@ -73,7 +73,7 @@ const sectionNavItems: Record<NavSection, readonly NavRouteItem[]> = {
   account: [
     {
       path: '/account',
-      label: 'Sync',
+      label: 'Account',
       matchPaths: ['/account', '/auth/callback', '/auth/strava/callback'],
     },
     { path: '/athlete', label: 'Athlete', matchPaths: ['/athlete', '/settings'] },

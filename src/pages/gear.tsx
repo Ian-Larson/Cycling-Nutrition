@@ -5,7 +5,12 @@ import { useStravaGear } from '@/hooks/use-strava-gear';
 import { BikePillRow } from '@/components/gear/bike-pill-row';
 import { BikeSystemCard } from '@/components/gear/bike-system-card';
 import { GearSubNav } from '@/components/gear/gear-sub-nav';
-import { GearTabs, type GearTabValue } from '@/components/gear/gear-tabs';
+import { GearTabs } from '@/components/gear/gear-tabs';
+import {
+  gearPanelId,
+  gearTabId,
+  type GearTabValue,
+} from '@/components/gear/gear-tab-ids';
 import { ActiveSetupList } from '@/components/gear/active-setup-list';
 import { GearDueList } from '@/components/gear/gear-due-list';
 import { GearDuePreviewBand } from '@/components/gear/gear-due-preview-band';
@@ -262,55 +267,73 @@ export function GearPage() {
             </p>
           </div>
 
-          {tab === 'active' && !selectedBike ? (
-            <Card>
-              <CardContent className="py-5 md:py-6">
-                <p className="text-sm leading-5 text-ink-600">
-                  Choose a bike to view its active setup.
-                </p>
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {tab === 'active' && selectedBike ? (
-            <ActiveSetupList
-              rows={activeRows}
-              onInstall={handleQueueInstall}
-              onRemove={handleQueueRemove}
-              onService={(row) =>
-                handleQueueService({
-                  bikeId: selectedBike.id,
-                  slotKey: row.slotKey,
-                  partInstanceId: row.instance?.id,
-                  typeKey: row.latestService?.typeKey,
-                })
-              }
-            />
+          {tab === 'active' ? (
+            <div
+              role="tabpanel"
+              id={gearPanelId('active')}
+              aria-labelledby={gearTabId('active')}
+            >
+              {!selectedBike ? (
+                <Card>
+                  <CardContent className="py-5 md:py-6">
+                    <p className="text-sm leading-5 text-ink-600">
+                      Choose a bike to view its active setup.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <ActiveSetupList
+                  rows={activeRows}
+                  onInstall={handleQueueInstall}
+                  onRemove={handleQueueRemove}
+                  onService={(row) =>
+                    handleQueueService({
+                      bikeId: selectedBike.id,
+                      slotKey: row.slotKey,
+                      partInstanceId: row.instance?.id,
+                      typeKey: row.latestService?.typeKey,
+                    })
+                  }
+                />
+              )}
+            </div>
           ) : null}
 
           {tab === 'due' ? (
-            <GearDueList
-              items={filteredDueItems}
-              bikes={bikes}
-              onLogService={handleQueueDueService}
-            />
+            <div
+              role="tabpanel"
+              id={gearPanelId('due')}
+              aria-labelledby={gearTabId('due')}
+            >
+              <GearDueList
+                items={filteredDueItems}
+                bikes={bikes}
+                onLogService={handleQueueDueService}
+              />
+            </div>
           ) : null}
 
           {tab === 'history' ? (
-            <GearHistoryTable
-              events={filteredServiceEvents}
-              installRecords={
-                selectedBikeIdForView
-                  ? gearInstallRecords.filter(
-                      (record) => record.bikeId === selectedBikeIdForView
-                    )
-                  : gearInstallRecords
-              }
-              bikes={bikes}
-              catalog={gearPartCatalog}
-              instances={gearPartInstances}
-              onEditEvent={(id) => setEditEventId(id)}
-            />
+            <div
+              role="tabpanel"
+              id={gearPanelId('history')}
+              aria-labelledby={gearTabId('history')}
+            >
+              <GearHistoryTable
+                events={filteredServiceEvents}
+                installRecords={
+                  selectedBikeIdForView
+                    ? gearInstallRecords.filter(
+                        (record) => record.bikeId === selectedBikeIdForView
+                      )
+                    : gearInstallRecords
+                }
+                bikes={bikes}
+                catalog={gearPartCatalog}
+                instances={gearPartInstances}
+                onEditEvent={(id) => setEditEventId(id)}
+              />
+            </div>
           ) : null}
         </section>
       </div>

@@ -46,7 +46,7 @@ export function BikePillRow({
           <p
             className={clsx(
               'text-sm leading-5',
-              stravaError ? 'text-rose-700' : 'text-ink-600'
+              stravaError ? 'text-error-700' : 'text-ink-600'
             )}
           >
             {syncLabel}
@@ -106,6 +106,7 @@ export function BikePillRow({
                 type="button"
                 onClick={() => onSelect(bike.id)}
                 aria-pressed={active}
+                title={bike.name}
                 className={clsx(
                   'min-h-10 max-w-full shrink-0 whitespace-nowrap rounded-lg border border-[color:var(--border-soft)] px-3 py-1.5 text-sm font-medium transition-colors',
                   active
