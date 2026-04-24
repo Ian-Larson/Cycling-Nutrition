@@ -11,6 +11,7 @@ interface PlanningStepPanelProps {
   disabled?: boolean;
   disabledReason?: string;
   stale?: boolean;
+  keepMounted?: boolean;
   children: ReactNode;
   onToggle: () => void;
 }
@@ -24,9 +25,12 @@ export function PlanningStepPanel({
   disabled,
   disabledReason,
   stale,
+  keepMounted,
   children,
   onToggle,
 }: PlanningStepPanelProps) {
+  const shouldRenderContent = active || keepMounted;
+
   return (
     <Card
       className={clsx(
@@ -89,8 +93,11 @@ export function PlanningStepPanel({
           />
         </svg>
       </button>
-      {active ? (
-        <CardContent className="border-t border-[color:var(--border-soft)]">
+      {shouldRenderContent ? (
+        <CardContent
+          hidden={!active}
+          className="border-t border-[color:var(--border-soft)]"
+        >
           {children}
         </CardContent>
       ) : null}

@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
   Input,
   Toast,
 } from '@/components/ui';
@@ -13,11 +12,23 @@ import { SectionNav } from '@/components/layout/section-nav';
 import { DebugCopyButton } from '@/components/planner/debug-copy-button';
 import { FuelResult } from '@/components/planner/fuel-result';
 import { FuelResultV3 } from '@/components/planner/fuel-result-v3';
+import { InventoryRailPanel } from '@/components/planner/inventory-rail-panel';
+import { NutritionRail } from '@/components/planner/nutrition-rail';
+import { NutritionWorkspaceLayout } from '@/components/planner/nutrition-workspace-layout';
+import { PlanningStepPanel } from '@/components/planner/planning-step-panel';
 import { RideForm, type RideFormSnapshot } from '@/components/planner/ride-form';
+import { SavedPlansRailPanel } from '@/components/planner/saved-plans-rail-panel';
 import { SetupCard } from '@/components/planner/setup-card';
 import { calculateFuelPlan, recalculatePlan, type CalculatorInput } from '@/lib/calculator';
 import { useFuelingEngine } from '@/hooks/use-fueling-engine';
 import type { FuelingPrescription } from '@/lib/fueling';
+import { buildPlannerDraftFromSavedPlan } from '@/lib/planner/saved-plan-draft';
+import {
+  formatRideSummary,
+  formatSetupSummary,
+  getPlanTitleSuggestion,
+  isRideSnapshotEquivalentToRide,
+} from '@/lib/planner/planner-summaries';
 import { useStore } from '@/store';
 import { BOTTLE_SIZES, totalBottleCount, cloneBottleInventory } from '@/types/bottle';
 import type { BottleInventory, BottleSize } from '@/types/bottle';
@@ -31,17 +42,6 @@ function parseInitialStep(stepParam: string | null): PlannerStep {
   if (stepParam === '2') return 2;
   if (stepParam === '3') return 3;
   return 1;
-}
-
-function formatDuration(mins: number): string {
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-}
-
-function getPlanTitleSuggestion(ride: RideCharacteristics): string {
-  const intensity = `${ride.intensity[0].toUpperCase()}${ride.intensity.slice(1)}`;
-  return `${formatDuration(ride.durationMinutes)} ${intensity} Plan`;
 }
 
 function estimateCaloriesForCarbs(
@@ -178,26 +178,24 @@ function getDefaultSelectedSolidIds(
     .map((product) => product.id);
 }
 
-const STEP_LABELS: Array<{ step: PlannerStep; label: string }> = [
-  { step: 1, label: 'Setup' },
-  { step: 2, label: 'Ride data' },
-  { step: 3, label: 'Plan' },
-];
-
 export function PlannerPage() {
   const [searchParams] = useSearchParams();
   const bottleCounts = useStore((s) => s.bottleCounts);
   const products = useStore((s) => s.products);
+  const fuelPlans = useStore((s) => s.fuelPlans);
   const saveFuelPlan = useStore((s) => s.saveFuelPlan);
+  const deleteFuelPlan = useStore((s) => s.deleteFuelPlan);
   const setPlannerDraft = useStore((s) => s.setPlannerDraft);
+  const updateProduct = useStore((s) => s.updateProduct);
   const [initialDraft] = useState<PlannerDraft | null>(() => {
     const current = useStore.getState().plannerDraft;
     return isPlannerDraftShape(current) ? current : null;
   });
 
-  const [step, setStep] = useState<PlannerStep>(
+  const [activeStep, setActiveStep] = useState<PlannerStep>(
     initialDraft?.ride ? 2 : parseInitialStep(searchParams.get('step'))
   );
+  const [planIsStale, setPlanIsStale] = useState(false);
   const [resultTab, setResultTab] = useState<ResultTab>('pack');
   const [plan, setPlan] = useState<Omit<FuelPlan, 'id' | 'createdAt'> | null>(
     null
@@ -232,6 +230,23 @@ export function PlannerPage() {
 
   const lastInputRef = useRef<CalculatorInput | null>(null);
 
+  const markPlanStale = useCallback(() => {
+    setPlanIsStale((current) => (plan ? true : current));
+  }, [plan]);
+
+  const handleRideSnapshotChange = useCallback(
+    (snapshot: RideFormSnapshot) => {
+      setRideFormSnapshot(snapshot);
+      if (
+        plan &&
+        !isRideSnapshotEquivalentToRide(snapshot, plan.rideCharacteristics)
+      ) {
+        setPlanIsStale(true);
+      }
+    },
+    [plan]
+  );
+
   useEffect(() => {
     setPlannerDraft({
       ride: persistedRide,
@@ -250,10 +265,21 @@ export function PlannerPage() {
   ]);
 
   const handleBottleCountChange = (size: BottleSize, count: number) => {
+    markPlanStale();
     setSelectedBottleCounts((prev) => ({
       ...prev,
       [size]: Math.max(0, Math.min(count, bottleCounts[size])),
     }));
+  };
+
+  const handleDrinkMixChange = (id: string | null) => {
+    markPlanStale();
+    setSelectedDrinkMixId(id);
+  };
+
+  const handleSolidSelectionChange = (ids: string[]) => {
+    markPlanStale();
+    setSelectedSolidIds(ids);
   };
 
   const drinkMixOptions = useMemo(
@@ -385,7 +411,8 @@ export function PlannerPage() {
     }
 
     setPlanTitle((current) => current || getPlanTitleSuggestion(ride));
-    setStep(3);
+    setPlanIsStale(false);
+    setActiveStep(3);
     setResultTab('pack');
   };
 
@@ -416,43 +443,66 @@ export function PlannerPage() {
     setV3Prescription(null);
     setPlanTitle('');
     setResultTab('pack');
-    setStep(1);
+    setPlanIsStale(false);
+    setActiveStep(1);
     setRideFormInitialSnapshot(rideFormSnapshot);
     setRideFormInstanceKey((current) => current + 1);
   };
 
-  const dismissToast = useCallback(() => setToastMessage(null), []);
-
-  const handleStepSelect = (targetStep: PlannerStep) => {
-    if (targetStep === step) return;
-
-    if (targetStep < step) {
-      setStep(targetStep);
-      return;
-    }
-
-    if (targetStep === 2) {
-      if (canCalculate) {
-        setStep(2);
-      }
-      return;
-    }
-
-    if (targetStep === 3) {
-      if (step === 2 && canCalculate && rideFormCanCalculate) {
-        setRideFormSubmitTrigger((current) => current + 1);
-      }
-    }
+  const handleReuseSavedPlan = (savedPlan: FuelPlan) => {
+    const draft = buildPlannerDraftFromSavedPlan(savedPlan, products);
+    setPlannerDraft(draft);
+    setSelectedBottleCounts(
+      draft.selectedBottleCounts ?? cloneBottleInventory(bottleCounts)
+    );
+    setSelectedDrinkMixId(draft.selectedDrinkMixId ?? null);
+    setSelectedSolidIds(draft.selectedSolidIds ?? []);
+    setPersistedRide(draft.ride);
+    setRideFormInitialSnapshot(
+      draft.ride ? getRideFormSnapshotFromRide(draft.ride) : undefined
+    );
+    setRideFormInstanceKey((current) => current + 1);
+    setPlan(null);
+    setV3Prescription(null);
+    setPlanIsStale(false);
+    setPlanTitle(draft.title ?? '');
+    setResultTab('pack');
+    setActiveStep(2);
+    setToastMessage('Saved plan loaded. Review ride data, then rebuild.');
   };
 
+  const dismissToast = useCallback(() => setToastMessage(null), []);
+
   const canOpenStep = (targetStep: PlannerStep) => {
-    if (targetStep <= step) return true;
+    if (targetStep === 1) return true;
     if (targetStep === 2) return canCalculate;
     if (targetStep === 3) {
-      return step === 2 && canCalculate && rideFormCanCalculate;
+      return Boolean(plan) || (canCalculate && rideFormCanCalculate);
     }
     return false;
   };
+
+  const handleStepSelect = (targetStep: PlannerStep) => {
+    if (!canOpenStep(targetStep)) return;
+    setActiveStep((current) => (current === targetStep ? current : targetStep));
+  };
+
+  const handleBuildPlanRequest = () => {
+    if (canCalculate && rideFormCanCalculate) {
+      setActiveStep(3);
+      setRideFormSubmitTrigger((current) => current + 1);
+    }
+  };
+
+  const setupSummary = formatSetupSummary({
+    selectedBottleCounts,
+    selectedDrinkMix,
+    selectedSolidIds: effectiveSelectedSolidIds,
+  });
+  const rideSummary = formatRideSummary(persistedRide);
+  const setupComplete = canCalculate;
+  const rideComplete = Boolean(persistedRide) && rideFormCanCalculate;
+  const canOpenPlan = canOpenStep(3);
 
   return (
     <>
@@ -468,332 +518,336 @@ export function PlannerPage() {
 
         <SectionNav section="nutrition" />
 
-        <section className="grid grid-cols-3 gap-2 md:gap-3" aria-label="Plan steps">
-          {STEP_LABELS.map((item) => {
-            const isActive = item.step === step;
-            const isComplete = item.step < step;
-            const isDisabled = !canOpenStep(item.step);
-
-            return (
-              <button
-                key={item.step}
-                type="button"
-                disabled={isDisabled}
-                aria-current={isActive ? 'step' : undefined}
-                onClick={() => handleStepSelect(item.step)}
-                className={`min-h-[4rem] rounded-lg border px-3 py-2 text-left transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-brand-200 focus:ring-offset-2 focus:ring-offset-shell-100 disabled:cursor-not-allowed md:min-h-[4.25rem] md:px-4 md:py-2.5 ${
-                  isActive
-                    ? 'border-brand-500 bg-brand-500 text-white shadow-[0_12px_26px_-16px_rgba(248,98,46,0.74)]'
-                    : isComplete
-                      ? 'border-brand-200 bg-white text-ink-900 hover:bg-brand-50'
-                      : 'border-[color:var(--border-soft)] bg-white text-ink-600 hover:bg-shell-50 disabled:text-ink-400 disabled:hover:bg-white'
-                }`}
+        <NutritionWorkspaceLayout
+          main={
+            <>
+              <PlanningStepPanel
+                step={1}
+                title="Setup"
+                summary={setupSummary}
+                active={activeStep === 1}
+                complete={setupComplete}
+                onToggle={() => handleStepSelect(1)}
               >
-                <span className="flex items-center justify-between gap-2">
-                  <span className="text-[0.7rem] font-semibold opacity-80 md:text-xs">
-                    Step {item.step}
-                  </span>
-                  {isComplete ? (
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full ${
-                        isActive
-                          ? 'bg-white/18 text-white'
-                          : 'bg-brand-100 text-brand-700'
-                      }`}
+                <SetupCard
+                  variant="embedded"
+                  bottleCounts={bottleCounts}
+                  selectedBottleCounts={selectedBottleCounts}
+                  drinkMixes={drinkMixOptions}
+                  solidProducts={solidOptions}
+                  selectedDrinkMixId={effectiveSelectedDrinkMixId}
+                  selectedSolidIds={effectiveSelectedSolidIds}
+                  onBottleCountChange={handleBottleCountChange}
+                  onDrinkMixChange={handleDrinkMixChange}
+                  onSolidChange={handleSolidSelectionChange}
+                />
+                {canCalculate ? (
+                  <div className="mt-4 flex justify-end">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => handleStepSelect(2)}
                     >
-                      <svg
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        className="h-3.5 w-3.5"
-                        aria-hidden
-                      >
-                        <path
-                          d="M5.5 10.5 8.5 13.5 14.5 6.5"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>
-                  ) : null}
-                </span>
-                <span className="mt-1 block font-sans text-sm font-semibold leading-none md:text-base">
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </section>
+                      Continue to ride data
+                    </Button>
+                  </div>
+                ) : null}
+              </PlanningStepPanel>
 
-        {step === 1 && (
-          <>
-            <SetupCard
-              bottleCounts={bottleCounts}
-              selectedBottleCounts={selectedBottleCounts}
-              drinkMixes={drinkMixOptions}
-              solidProducts={solidOptions}
-              selectedDrinkMixId={effectiveSelectedDrinkMixId}
-              selectedSolidIds={effectiveSelectedSolidIds}
-              onBottleCountChange={handleBottleCountChange}
-              onDrinkMixChange={setSelectedDrinkMixId}
-              onSolidChange={setSelectedSolidIds}
-            />
-            {canCalculate && (
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => handleStepSelect(2)}
-                  aria-label="Go to ride data"
-                >
-                  Next
-                  <svg viewBox="0 0 20 20" fill="none" aria-hidden className="h-4 w-4">
-                    <path d="M7.5 5 13 10l-5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-
-        {step === 2 && (
-          <section className="space-y-4 md:space-y-5">
-            <div className="space-y-2 border-b border-[color:var(--border-soft)] pb-4 md:pb-5">
-              <h2 className="section-title">Ride data</h2>
-              <p className="section-copy hidden md:block">
-                Manual sets carbs. Auto uses workload.
-              </p>
-            </div>
-            {!canCalculate && (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-sm leading-6 text-amber-800 md:px-5 md:py-4">
-                Select at least one bottle and one mix in setup.
-              </div>
-            )}
-            <RideForm
-              key={rideFormInstanceKey}
-              initialSnapshot={rideFormInitialSnapshot}
-              onCalculate={handleCalculate}
-              onSnapshotChange={setRideFormSnapshot}
-              onCanCalculateChange={setRideFormCanCalculate}
-              showCalculateButton={false}
-              submitTrigger={rideFormSubmitTrigger}
-              disabled={!canCalculate}
-            />
-            {canCalculate && rideFormCanCalculate && (
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => handleStepSelect(3)}
-                  aria-label="Build plan"
-                >
-                  Next
-                  <svg viewBox="0 0 20 20" fill="none" aria-hidden className="h-4 w-4">
-                    <path d="M7.5 5 13 10l-5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </Button>
-              </div>
-            )}
-          </section>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-4">
-            {plan ? (
-              <>
-                <Card className="overflow-hidden">
-                  <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-                    <h2 className="section-title">Review plan</h2>
-                    <p className="section-copy hidden md:block">Save a title to reuse it later.</p>
-                  </CardHeader>
-                  <CardContent className="space-y-3 md:space-y-4">
-                    <Input
-                      id="plan-title"
-                      label="Plan name"
-                      value={planTitle}
-                      onChange={(event) => setPlanTitle(event.target.value)}
-                      placeholder="Optional"
-                    />
-
-                    <div className="grid gap-2 sm:flex sm:flex-wrap">
+              <PlanningStepPanel
+                step={2}
+                title="Ride data"
+                summary={rideSummary}
+                active={activeStep === 2}
+                complete={rideComplete}
+                disabled={!canCalculate}
+                disabledReason="Select bottles and drink mix first."
+                keepMounted
+                onToggle={() => handleStepSelect(2)}
+              >
+                <section className="space-y-4 md:space-y-5">
+                  <RideForm
+                    key={rideFormInstanceKey}
+                    initialSnapshot={rideFormInitialSnapshot}
+                    onCalculate={handleCalculate}
+                    onSnapshotChange={handleRideSnapshotChange}
+                    onCanCalculateChange={setRideFormCanCalculate}
+                    showCalculateButton={false}
+                    submitTrigger={rideFormSubmitTrigger}
+                    disabled={!canCalculate}
+                  />
+                  {canCalculate && rideFormCanCalculate ? (
+                    <div className="flex justify-end">
                       <Button
                         type="button"
-                        className="w-full sm:w-auto"
-                        onClick={handleSavePlan}
+                        size="sm"
+                        onClick={handleBuildPlanRequest}
                       >
-                        Save plan
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        className="w-full sm:w-auto"
-                        onClick={handleResetPlan}
-                      >
-                        Reset
+                        Build plan
                       </Button>
                     </div>
+                  ) : null}
+                </section>
+              </PlanningStepPanel>
 
-                    {fuelBreakdown && (
-                      <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_90%,white)] p-3 md:p-4">
-                        <div className="mb-2.5 md:mb-3">
-                          <h3 className="section-title text-lg">Fuel breakdown</h3>
+              <PlanningStepPanel
+                step={3}
+                title="Plan"
+                summary={
+                  plan
+                    ? planIsStale
+                      ? 'Review old result or rebuild'
+                      : 'Plan ready'
+                    : 'Build from ride data'
+                }
+                active={activeStep === 3}
+                complete={Boolean(plan) && !planIsStale}
+                stale={planIsStale}
+                disabled={!canOpenPlan}
+                disabledReason="Enter valid ride data first."
+                onToggle={() => handleStepSelect(3)}
+              >
+                {planIsStale ? (
+                  <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
+                    This result uses previous inputs. Rebuild to use the current
+                    setup and ride data.
+                  </div>
+                ) : null}
+
+                {plan ? (
+                  <div className="space-y-4">
+                    <Card className="overflow-hidden">
+                      <CardContent className="space-y-3 md:space-y-4">
+                        <Input
+                          id="plan-title"
+                          label="Plan name"
+                          value={planTitle}
+                          onChange={(event) => setPlanTitle(event.target.value)}
+                          placeholder="Optional"
+                        />
+
+                        <div className="grid gap-2 sm:flex sm:flex-wrap">
+                          <Button
+                            type="button"
+                            className="w-full sm:w-auto"
+                            onClick={
+                              planIsStale ? handleBuildPlanRequest : handleSavePlan
+                            }
+                          >
+                            {planIsStale ? 'Rebuild plan' : 'Save plan'}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="w-full sm:w-auto"
+                            onClick={handleResetPlan}
+                          >
+                            Reset
+                          </Button>
                         </div>
-                        <table className="w-full table-fixed border-collapse text-[0.82rem] md:text-sm">
-                          <colgroup>
-                            <col />
-                            <col className="w-[5.5rem] md:w-[6.5rem]" />
-                            <col className="w-[6rem] md:w-[7rem]" />
-                          </colgroup>
-                          <thead>
-                            <tr>
-                              <th scope="col" className="page-stat-label px-2.5 pb-2 text-left md:px-3">
-                                Source
-                              </th>
-                              <th scope="col" className="page-stat-label px-2.5 pb-2 text-right md:px-3">
-                                Carbs
-                              </th>
-                              <th scope="col" className="page-stat-label px-2.5 pb-2 text-right md:px-3">
-                                Calories
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td className="rounded-l-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">
-                                Drinks
-                              </td>
-                              <td className="bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
-                                {fuelBreakdown.drinks.carbs} g
-                              </td>
-                              <td className="rounded-r-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
-                                {fuelBreakdown.drinks.calories} kcal
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="pt-2" />
-                              <td className="pt-2" />
-                              <td className="pt-2" />
-                            </tr>
-                            <tr>
-                              <td className="rounded-l-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">
-                                Solids
-                              </td>
-                              <td className="bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
-                                {fuelBreakdown.solids.carbs} g
-                              </td>
-                              <td className="rounded-r-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
-                                {fuelBreakdown.solids.calories} kcal
-                              </td>
-                            </tr>
-                          </tbody>
-                          <tfoot>
-                            <tr>
-                              <td colSpan={3} className="pt-3">
-                                <div className="border-t border-[color:var(--border-soft)]" />
-                              </td>
-                            </tr>
-                            <tr className="font-semibold text-ink-900">
-                              <td className="rounded-l-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 md:px-3 md:py-3">
-                                Total
-                              </td>
-                              <td className="bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 text-right tabular-nums md:px-3 md:py-3">
-                                {fuelBreakdown.total.carbs} g
-                              </td>
-                              <td className="rounded-r-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 text-right tabular-nums md:px-3 md:py-3">
-                                {fuelBreakdown.total.calories} kcal
-                              </td>
-                            </tr>
-                          </tfoot>
-                        </table>
-                      </div>
+
+                        {fuelBreakdown && (
+                          <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_90%,white)] p-3 md:p-4">
+                            <div className="mb-2.5 md:mb-3">
+                              <h3 className="section-title text-lg">
+                                Fuel breakdown
+                              </h3>
+                            </div>
+                            <table className="w-full table-fixed border-collapse text-[0.82rem] md:text-sm">
+                              <colgroup>
+                                <col />
+                                <col className="w-[5.5rem] md:w-[6.5rem]" />
+                                <col className="w-[6rem] md:w-[7rem]" />
+                              </colgroup>
+                              <thead>
+                                <tr>
+                                  <th
+                                    scope="col"
+                                    className="page-stat-label px-2.5 pb-2 text-left md:px-3"
+                                  >
+                                    Source
+                                  </th>
+                                  <th
+                                    scope="col"
+                                    className="page-stat-label px-2.5 pb-2 text-right md:px-3"
+                                  >
+                                    Carbs
+                                  </th>
+                                  <th
+                                    scope="col"
+                                    className="page-stat-label px-2.5 pb-2 text-right md:px-3"
+                                  >
+                                    Calories
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td className="rounded-l-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">
+                                    Drinks
+                                  </td>
+                                  <td className="bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
+                                    {fuelBreakdown.drinks.carbs} g
+                                  </td>
+                                  <td className="rounded-r-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
+                                    {fuelBreakdown.drinks.calories} kcal
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td className="pt-2" />
+                                  <td className="pt-2" />
+                                  <td className="pt-2" />
+                                </tr>
+                                <tr>
+                                  <td className="rounded-l-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">
+                                    Solids
+                                  </td>
+                                  <td className="bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
+                                    {fuelBreakdown.solids.carbs} g
+                                  </td>
+                                  <td className="rounded-r-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
+                                    {fuelBreakdown.solids.calories} kcal
+                                  </td>
+                                </tr>
+                              </tbody>
+                              <tfoot>
+                                <tr>
+                                  <td colSpan={3} className="pt-3">
+                                    <div className="border-t border-[color:var(--border-soft)]" />
+                                  </td>
+                                </tr>
+                                <tr className="font-semibold text-ink-900">
+                                  <td className="rounded-l-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 md:px-3 md:py-3">
+                                    Total
+                                  </td>
+                                  <td className="bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 text-right tabular-nums md:px-3 md:py-3">
+                                    {fuelBreakdown.total.carbs} g
+                                  </td>
+                                  <td className="rounded-r-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 text-right tabular-nums md:px-3 md:py-3">
+                                    {fuelBreakdown.total.calories} kcal
+                                  </td>
+                                </tr>
+                              </tfoot>
+                            </table>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-3 gap-1.5 md:gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setResultTab('pack')}
+                            className={`rounded-lg border px-2 py-2.5 text-[0.78rem] font-medium md:px-4 md:py-2 md:text-sm ${
+                              resultTab === 'pack'
+                                ? 'border-brand-300 bg-brand-100 text-brand-800'
+                                : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                            }`}
+                          >
+                            Pack
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setResultTab('guide')}
+                            className={`rounded-lg border px-2 py-2.5 text-[0.78rem] font-medium md:px-4 md:py-2 md:text-sm ${
+                              resultTab === 'guide'
+                                ? 'border-brand-300 bg-brand-100 text-brand-800'
+                                : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                            }`}
+                          >
+                            Ride guide
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setResultTab('metrics')}
+                            className={`rounded-lg border px-2 py-2.5 text-[0.78rem] font-medium md:px-4 md:py-2 md:text-sm ${
+                              resultTab === 'metrics'
+                                ? 'border-brand-300 bg-brand-100 text-brand-800'
+                                : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                            }`}
+                          >
+                            Stats
+                          </button>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {isV3 && v3Prescription ? (
+                      <FuelResultV3
+                        section={resultTab}
+                        prescription={v3Prescription}
+                        products={products}
+                      />
+                    ) : (
+                      <FuelResult
+                        section={resultTab}
+                        plan={plan}
+                        products={products}
+                        onSolidQuantityChange={handleSolidQuantityChange}
+                      />
+                    )}
+                    {isV3 && !v3Prescription && (
+                      <Card>
+                        <CardContent className="py-6 text-center text-ink-600">
+                          <p className="font-semibold text-ink-900">
+                            v3 engine needs your weight
+                          </p>
+                          <p className="mt-1 text-sm leading-6">
+                            Set weight on the Athlete page to unlock the
+                            science-backed prescription. Showing the v2 plan
+                            below.
+                          </p>
+                        </CardContent>
+                      </Card>
                     )}
 
-                    <div className="grid grid-cols-3 gap-1.5 md:gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setResultTab('pack')}
-                        className={`rounded-lg border px-2 py-2.5 text-[0.78rem] font-medium md:px-4 md:py-2 md:text-sm ${
-                          resultTab === 'pack'
-                            ? 'border-brand-300 bg-brand-100 text-brand-800'
-                            : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                        }`}
-                      >
-                        Pack
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setResultTab('guide')}
-                        className={`rounded-lg border px-2 py-2.5 text-[0.78rem] font-medium md:px-4 md:py-2 md:text-sm ${
-                          resultTab === 'guide'
-                            ? 'border-brand-300 bg-brand-100 text-brand-800'
-                            : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                        }`}
-                      >
-                        Ride guide
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setResultTab('metrics')}
-                        className={`rounded-lg border px-2 py-2.5 text-[0.78rem] font-medium md:px-4 md:py-2 md:text-sm ${
-                          resultTab === 'metrics'
-                            ? 'border-brand-300 bg-brand-100 text-brand-800'
-                            : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                        }`}
-                      >
-                        Stats
-                      </button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {isV3 && v3Prescription ? (
-                  <FuelResultV3
-                    section={resultTab}
-                    prescription={v3Prescription}
-                    products={products}
-                  />
+                    {import.meta.env.DEV && (
+                      <DebugCopyButton
+                        plan={plan}
+                        products={products}
+                        selectedBottleCounts={selectedBottleCounts}
+                        selectedDrinkMixId={effectiveSelectedDrinkMixId}
+                        selectedSolidIds={effectiveSelectedSolidIds}
+                      />
+                    )}
+                  </div>
                 ) : (
-                  <FuelResult
-                    section={resultTab}
-                    plan={plan}
-                    products={products}
-                    onSolidQuantityChange={handleSolidQuantityChange}
-                  />
-                )}
-                {isV3 && !v3Prescription && (
                   <Card>
-                    <CardContent className="py-6 text-center text-ink-600">
-                      <p className="font-semibold text-ink-900">
-                        v3 engine needs your weight
+                    <CardContent className="space-y-3 py-8 text-center">
+                      <p className="text-ink-600">
+                        Build a plan from the current ride data.
                       </p>
-                      <p className="mt-1 text-sm leading-6">
-                        Set weight on the Athlete page to unlock the science-backed
-                        prescription. Showing the v2 plan below.
-                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleBuildPlanRequest}
+                        disabled={!canCalculate || !rideFormCanCalculate}
+                      >
+                        Build plan
+                      </Button>
                     </CardContent>
                   </Card>
                 )}
-
-                {import.meta.env.DEV && (
-                  <DebugCopyButton
-                    plan={plan}
-                    products={products}
-                    selectedBottleCounts={selectedBottleCounts}
-                    selectedDrinkMixId={effectiveSelectedDrinkMixId}
-                    selectedSolidIds={effectiveSelectedSolidIds}
-                  />
-                )}
-              </>
-            ) : (
-              <Card>
-                <CardContent className="py-10 text-center text-ink-500">
-                  Create a plan in step 2.
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
+              </PlanningStepPanel>
+            </>
+          }
+          rail={
+            <NutritionRail>
+              <InventoryRailPanel
+                bottleCounts={bottleCounts}
+                products={products}
+                onToggleProductAvailability={(productId, isAvailable) => {
+                  markPlanStale();
+                  updateProduct(productId, { isAvailable });
+                }}
+              />
+              <SavedPlansRailPanel
+                plans={fuelPlans}
+                products={products}
+                onReusePlan={handleReuseSavedPlan}
+                onDeletePlan={deleteFuelPlan}
+              />
+            </NutritionRail>
+          }
+        />
       </div>
 
       {toastMessage && <Toast message={toastMessage} onDismiss={dismissToast} />}
