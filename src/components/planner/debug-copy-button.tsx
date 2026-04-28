@@ -29,7 +29,7 @@ function buildDebugText(
   const ride = plan.rideCharacteristics;
   const lines: string[] = [];
 
-  lines.push('=== Cycling Nutrition Debug ===');
+  lines.push('=== Domestique Debug ===');
   lines.push('');
 
   // Ride Settings
