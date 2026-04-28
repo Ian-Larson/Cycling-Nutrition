@@ -348,6 +348,14 @@ export function PlannerPage() {
     [selectedSolidIds, solidOptions]
   );
 
+  const selectedSolidProducts = useMemo(
+    () =>
+      effectiveSelectedSolidIds
+        .map((id) => solidOptions.find((product) => product.id === id))
+        .filter((product): product is Product => product !== undefined),
+    [effectiveSelectedSolidIds, solidOptions]
+  );
+
   const effectiveSelectedDrinkMixId = useMemo(() => {
     if (selectedDrinkMixId === null) return null;
     return drinkMixOptions.some((mix) => mix.id === selectedDrinkMixId)
@@ -448,13 +456,33 @@ export function PlannerPage() {
   const handleSolidQuantityChange = (productId: string, quantity: number) => {
     if (!plan || !lastInputRef.current) return;
 
-    const solidOverrides = plan.solids.map((solid) => ({
-      productId: solid.productId,
-      quantity: solid.productId === productId ? quantity : solid.quantity,
-    }));
+    // Merge current plan quantities with the change. Including products the
+    // auto-plan didn't allocate lets the rider pull a previously-zero product
+    // into the plan via the stepper.
+    const overridesByProductId = new Map<string, number>();
+    plan.solids.forEach((solid) => {
+      overridesByProductId.set(solid.productId, solid.quantity);
+    });
+    overridesByProductId.set(productId, quantity);
+
+    const solidOverrides = Array.from(overridesByProductId.entries()).map(
+      ([id, qty]) => ({ productId: id, quantity: qty })
+    );
 
     const updated = recalculatePlan(lastInputRef.current, plan, { solidOverrides });
     setPlan(updated);
+
+    if (isV3 && lastInputRef.current.drinkMix) {
+      const overridesRecord = Object.fromEntries(overridesByProductId);
+      const rebuilt = fuelingEngine.buildV3({
+        ride: lastInputRef.current.ride,
+        selectedBottles: lastInputRef.current.availableBottles,
+        selectedDrinkMix: lastInputRef.current.drinkMix,
+        selectedSolids: lastInputRef.current.availableSolids,
+        solidOverrides: overridesRecord,
+      });
+      setV3Prescription(rebuilt);
+    }
   };
 
   const handleSavePlan = () => {
@@ -811,12 +839,15 @@ export function PlannerPage() {
                         section={resultTab}
                         prescription={v3Prescription}
                         products={products}
+                        availableSolids={selectedSolidProducts}
+                        onSolidQuantityChange={handleSolidQuantityChange}
                       />
                     ) : (
                       <FuelResult
                         section={resultTab}
                         plan={plan}
                         products={products}
+                        availableSolids={selectedSolidProducts}
                         onSolidQuantityChange={handleSolidQuantityChange}
                       />
                     )}

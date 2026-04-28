@@ -6,6 +6,8 @@ import type { FuelPlan, Product } from '@/types';
 interface FuelResultProps {
   plan: Omit<FuelPlan, 'id' | 'createdAt'>;
   products: Product[];
+  /** All solids the rider selected in setup, even those the auto-plan allocated zero of. */
+  availableSolids?: Product[];
   onSolidQuantityChange?: (productId: string, quantity: number) => void;
   section?: 'all' | 'pack' | 'guide' | 'metrics';
 }
@@ -81,6 +83,7 @@ function formatDuration(mins: number): string {
 export function FuelResult({
   plan,
   products,
+  availableSolids,
   onSolidQuantityChange,
   section = 'all',
 }: FuelResultProps) {
@@ -278,52 +281,105 @@ export function FuelResult({
               </div>
             )}
 
-            {plan.solids.length > 0 && (
-              <div className="space-y-3">
-                <div>
-                  <h4 className="section-title text-lg">Solids</h4>
-                </div>
-                {plan.solids.map((alloc, i) => {
-                  const product = products.find((p) => p.id === alloc.productId);
-                  return (
-                    <div
-                      key={`${alloc.productId}-${i}`}
-                      className="grid gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:px-4 md:py-4"
-                    >
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900 tabular-nums md:h-10 md:w-10">
-                        {String(i + 1).padStart(2, '0')}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-ink-900">
-                          {product?.name || 'Solid fuel'}
-                        </p>
-                        <p className="mt-1 text-sm leading-6 text-ink-600 tabular-nums">
-                          {alloc.carbsTotal}g carbs total • aim for one every ~
-                          {alloc.timingIntervalMinutes} minutes
-                        </p>
-                      </div>
-                      {onSolidQuantityChange ? (
-                        <Stepper
-                          value={alloc.quantity}
-                          onChange={(qty) => onSolidQuantityChange(alloc.productId, qty)}
-                          min={0}
-                          max={10}
-                        />
-                      ) : (
-                        <div className="text-left md:text-right">
-                          <p className="font-sans text-[1.15rem] font-semibold leading-none text-brand-700 tabular-nums">
-                            x{alloc.quantity}
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-ink-600">
-                            Quantity
-                          </p>
+            {(() => {
+              const editable = Boolean(onSolidQuantityChange && availableSolids);
+              const solidsByProductId = new Map(
+                plan.solids.map((alloc) => [alloc.productId, alloc])
+              );
+
+              const rows = editable
+                ? availableSolids!.map((product) => {
+                    const alloc = solidsByProductId.get(product.id);
+                    return {
+                      product,
+                      quantity: alloc?.quantity ?? 0,
+                      carbsTotal: alloc?.carbsTotal ?? 0,
+                      timingIntervalMinutes:
+                        alloc?.timingIntervalMinutes ?? 0,
+                    };
+                  })
+                : plan.solids.map((alloc) => ({
+                    product: products.find((p) => p.id === alloc.productId),
+                    quantity: alloc.quantity,
+                    carbsTotal: alloc.carbsTotal,
+                    timingIntervalMinutes: alloc.timingIntervalMinutes,
+                  }));
+
+              if (rows.length === 0) return null;
+
+              return (
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <h4 className="section-title text-lg">Solids</h4>
+                    {editable && (
+                      <p className="text-xs leading-5 text-ink-500">
+                        Tap +/− to adjust — the plan rebalances automatically.
+                      </p>
+                    )}
+                  </div>
+                  {rows.map((row, i) => {
+                    const productId = row.product?.id ?? '';
+                    const isEmpty = row.quantity === 0;
+                    return (
+                      <div
+                        key={`${productId}-${i}`}
+                        className={`grid gap-3 rounded-2xl border bg-white px-3 py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4 md:px-4 md:py-4 ${
+                          editable && isEmpty
+                            ? 'border-dashed border-[color:var(--border-soft)] bg-shell-50/40'
+                            : 'border-[color:var(--border-soft)]'
+                        }`}
+                      >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shell-100 font-sans text-sm font-semibold text-ink-900 tabular-nums md:h-10 md:w-10">
+                          {String(i + 1).padStart(2, '0')}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                        <div>
+                          <p
+                            className={`font-semibold ${
+                              isEmpty && editable
+                                ? 'text-ink-700'
+                                : 'text-ink-900'
+                            }`}
+                          >
+                            {row.product?.name || 'Solid fuel'}
+                          </p>
+                          {row.quantity > 0 ? (
+                            <p className="mt-1 text-sm leading-6 text-ink-600 tabular-nums">
+                              {row.carbsTotal}g carbs total • aim for one every ~
+                              {row.timingIntervalMinutes} minutes
+                            </p>
+                          ) : (
+                            <p className="mt-1 text-sm leading-6 text-ink-500 tabular-nums">
+                              {row.product
+                                ? `${row.product.nutrition.carbsGrams}g carbs each • not in plan`
+                                : 'Not in plan'}
+                            </p>
+                          )}
+                        </div>
+                        {onSolidQuantityChange && productId ? (
+                          <Stepper
+                            value={row.quantity}
+                            onChange={(qty) =>
+                              onSolidQuantityChange(productId, qty)
+                            }
+                            min={0}
+                            max={20}
+                          />
+                        ) : (
+                          <div className="text-left md:text-right">
+                            <p className="font-sans text-[1.15rem] font-semibold leading-none text-brand-700 tabular-nums">
+                              x{row.quantity}
+                            </p>
+                            <p className="mt-2 text-sm leading-6 text-ink-600">
+                              Quantity
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
 
             {refuelStops > 0 && (
               <div className="surface-note border-brand-200 bg-[color:color-mix(in_oklch,var(--color-brand-50)_58%,white)] p-4">

@@ -10,6 +10,8 @@ export interface BuildV3Args {
   selectedBottles: BottleSlot[];
   selectedDrinkMix: Product | null;
   selectedSolids: Product[];
+  /** Optional manual per-product solid quantities (productId → quantity). */
+  solidOverrides?: Record<string, number>;
 }
 
 export type BuildV3Fn = (args: BuildV3Args) => FuelingPrescription | null;
@@ -62,7 +64,10 @@ export function useFuelingEngine(): UseFuelingEngineResult {
       });
 
       if (!input) return null;
-      return buildPrescription(input);
+      return buildPrescription({
+        ...input,
+        solidOverrides: args.solidOverrides,
+      });
     };
   }, [engineVersion, athleteProfile, temperatureUnit]);
 

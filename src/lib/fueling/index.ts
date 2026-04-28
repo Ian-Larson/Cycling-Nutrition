@@ -19,7 +19,12 @@ import {
   dailyTargets,
   carbLoadProtocol,
 } from './targets';
-import { selectBottles, allocateMix, allocateSolids } from './inventory';
+import {
+  selectBottles,
+  allocateMix,
+  allocateSolids,
+  buildSolidAllocationsFromOverrides,
+} from './inventory';
 import {
   buildPreRideTimeline,
   buildDuringTimeline,
@@ -35,6 +40,12 @@ export interface FuelingInput {
   bottles: BottleSlot[];
   products: Product[];
   todaysTotalSessionMinutes?: number;
+  /**
+   * Per-product solid quantities the rider has fixed manually. When present,
+   * the engine pins solid carbs to these values and lets drink-mix fill the
+   * remaining gap, instead of running the auto-fill solid allocator.
+   */
+  solidOverrides?: Record<string, number>;
 }
 
 export function buildPrescription(input: FuelingInput): FuelingPrescription {
@@ -70,23 +81,49 @@ export function buildPrescription(input: FuelingInput): FuelingPrescription {
   const drinkMix =
     input.products.find((p) => p.type === 'drink_mix' && p.isAvailable) ?? null;
 
-  const mixAllocation = allocateMix(
-    bottleSelection.selectedBottles,
-    drinkMix,
-    carbs.totalCarbsGrams,
-    sodium.sodiumMgPerLiterTargetInBottles,
-  );
+  let mixAllocation;
+  let solidAllocation;
 
-  const carbsRemaining = Math.max(
-    0,
-    carbs.totalCarbsGrams - mixAllocation.totalCarbsFromDrink,
-  );
+  if (input.solidOverrides) {
+    // Rider has pinned solid quantities. Compute solids first, then let the
+    // drink mix cover whatever carbs remain.
+    solidAllocation = buildSolidAllocationsFromOverrides(
+      input.products,
+      input.solidOverrides,
+      context.session.durationMinutes,
+    );
 
-  const solidAllocation = allocateSolids(
-    input.products,
-    carbsRemaining,
-    context.session.durationMinutes,
-  );
+    const carbsForMix = Math.max(
+      0,
+      carbs.totalCarbsGrams - solidAllocation.totalCarbsFromSolids,
+    );
+
+    mixAllocation = allocateMix(
+      bottleSelection.selectedBottles,
+      drinkMix,
+      carbsForMix,
+      sodium.sodiumMgPerLiterTargetInBottles,
+    );
+  } else {
+    // Default: drink mix fills first up to its concentration ceiling, solids fill the gap.
+    mixAllocation = allocateMix(
+      bottleSelection.selectedBottles,
+      drinkMix,
+      carbs.totalCarbsGrams,
+      sodium.sodiumMgPerLiterTargetInBottles,
+    );
+
+    const carbsRemaining = Math.max(
+      0,
+      carbs.totalCarbsGrams - mixAllocation.totalCarbsFromDrink,
+    );
+
+    solidAllocation = allocateSolids(
+      input.products,
+      carbsRemaining,
+      context.session.durationMinutes,
+    );
+  }
 
   // 6. Caffeine (needs solid caffeine total from inventory step)
   const caffeineResult = caffeineTarget(

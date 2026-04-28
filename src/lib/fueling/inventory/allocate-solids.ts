@@ -12,6 +12,58 @@ export interface SolidAllocationResult {
 const MAX_UNITS_PER_PRODUCT = 10;
 
 /**
+ * Build solid allocations directly from explicit per-product quantities,
+ * bypassing the auto-fill greedy allocator. Used when the rider has
+ * adjusted solid counts after the auto-plan was generated.
+ */
+export function buildSolidAllocationsFromOverrides(
+  products: Product[],
+  overrides: Record<string, number>,
+  durationMinutes: number,
+): SolidAllocationResult {
+  const warnings: Warning[] = [];
+  const allocations: SolidAllocation[] = [];
+  let totalCarbsFromSolids = 0;
+  let totalCaffeineMgFromSolids = 0;
+
+  for (const product of products) {
+    if (product.type === 'drink_mix') continue;
+    const qty = overrides[product.id];
+    if (typeof qty !== 'number' || qty <= 0) continue;
+
+    const carbsPerUnit = product.nutrition.carbsGrams;
+    if (carbsPerUnit <= 0) continue;
+
+    const carbsTotal = qty * carbsPerUnit;
+    const caffeineMgTotal = (product.nutrition.caffeineMg ?? 0) * qty;
+    const sodiumMgTotal = (product.nutrition.sodiumMg ?? 0) * qty;
+    const timingIntervalMinutes = Math.max(
+      1,
+      Math.round(durationMinutes / (qty + 1)),
+    );
+
+    allocations.push({
+      productId: product.id,
+      quantity: qty,
+      carbsTotal,
+      sodiumMgTotal: sodiumMgTotal > 0 ? sodiumMgTotal : undefined,
+      caffeineMgTotal: caffeineMgTotal > 0 ? caffeineMgTotal : undefined,
+      timingIntervalMinutes,
+    });
+
+    totalCarbsFromSolids += carbsTotal;
+    totalCaffeineMgFromSolids += caffeineMgTotal;
+  }
+
+  return {
+    allocations,
+    totalCarbsFromSolids,
+    totalCaffeineMgFromSolids,
+    warnings,
+  };
+}
+
+/**
  * Fill the carb gap between drink mix and total target using solid products.
  * Distributes greedily, highest-carb products first, and computes timing
  * intervals for each product.

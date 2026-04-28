@@ -1,4 +1,13 @@
-import { Alert, Badge, Card, CardContent, CardHeader, SpecRow, DividedRowList } from '@/components/ui';
+import {
+  Alert,
+  Badge,
+  Card,
+  CardContent,
+  CardHeader,
+  SpecRow,
+  DividedRowList,
+  Stepper,
+} from '@/components/ui';
 import { formatTime } from '@/lib/calculator/timing';
 import {
   formatPercent,
@@ -23,6 +32,9 @@ import type {
 interface FuelResultV3Props {
   prescription: FuelingPrescription;
   products: Product[];
+  /** All solids the rider selected, even those allocated zero by the auto-plan. */
+  availableSolids?: Product[];
+  onSolidQuantityChange?: (productId: string, quantity: number) => void;
   section?: 'all' | 'pack' | 'guide' | 'metrics';
 }
 
@@ -338,15 +350,20 @@ function FluidShortfallNote({ shortfallMl }: { shortfallMl: number }) {
 function BringList({
   prescription,
   products,
+  availableSolids,
+  onSolidQuantityChange,
 }: {
   prescription: FuelingPrescription;
   products: Product[];
+  availableSolids?: Product[];
+  onSolidQuantityChange?: (productId: string, quantity: number) => void;
 }) {
   const { packList } = prescription;
   if (!packList) return null;
 
+  const editableSolids = Boolean(onSolidQuantityChange && availableSolids);
   const hasBottles = packList.bottles.length > 0;
-  const hasSolids = packList.solids.length > 0;
+  const hasSolids = packList.solids.length > 0 || editableSolids;
   const shortfall = packList.fluidShortfallMl ?? 0;
 
   if (!hasBottles && !hasSolids && shortfall <= 0) return null;
@@ -388,26 +405,80 @@ function BringList({
           }}
         />
       )}
-      {hasSolids && (
-        <DividedRowList
-          items={packList.solids}
-          getKey={(alloc, i) => `${alloc.productId}-${i}`}
-          header={<p className="section-kicker text-[0.68rem]">Solids</p>}
-          renderItem={(alloc) => {
-            const product = products.find((p) => p.id === alloc.productId);
-            return (
-              <div className="flex items-center justify-between gap-3 px-3 py-2.5 md:px-4">
-                <span className="truncate text-sm font-semibold text-ink-900">
-                  {product?.name ?? 'Solid'}
-                </span>
-                <span className="shrink-0 font-sans text-sm font-semibold tabular-nums text-brand-700">
-                  ×{alloc.quantity}
-                </span>
-              </div>
+      {hasSolids &&
+        (editableSolids ? (
+          (() => {
+            const allocByProductId = new Map(
+              packList.solids.map((alloc) => [alloc.productId, alloc])
             );
-          }}
-        />
-      )}
+            const rows = availableSolids!.map((product) => ({
+              product,
+              quantity:
+                allocByProductId.get(product.id)?.quantity ?? 0,
+            }));
+            return (
+              <DividedRowList
+                items={rows}
+                getKey={(row) => row.product.id}
+                header={
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="section-kicker text-[0.68rem]">Solids</p>
+                    <p className="text-[0.7rem] leading-5 text-ink-500">
+                      +/− adjusts the plan
+                    </p>
+                  </div>
+                }
+                renderItem={(row) => {
+                  const isEmpty = row.quantity === 0;
+                  return (
+                    <div className="flex items-center justify-between gap-3 px-3 py-2.5 md:px-4">
+                      <div className="min-w-0">
+                        <p
+                          className={`truncate text-sm font-semibold ${
+                            isEmpty ? 'text-ink-700' : 'text-ink-900'
+                          }`}
+                        >
+                          {row.product.name}
+                        </p>
+                        <p className="text-xs leading-5 text-ink-500 tabular-nums">
+                          {row.product.nutrition.carbsGrams}g carbs each
+                          {isEmpty ? ' • not in plan' : ''}
+                        </p>
+                      </div>
+                      <Stepper
+                        value={row.quantity}
+                        onChange={(qty) =>
+                          onSolidQuantityChange!(row.product.id, qty)
+                        }
+                        min={0}
+                        max={20}
+                      />
+                    </div>
+                  );
+                }}
+              />
+            );
+          })()
+        ) : (
+          <DividedRowList
+            items={packList.solids}
+            getKey={(alloc, i) => `${alloc.productId}-${i}`}
+            header={<p className="section-kicker text-[0.68rem]">Solids</p>}
+            renderItem={(alloc) => {
+              const product = products.find((p) => p.id === alloc.productId);
+              return (
+                <div className="flex items-center justify-between gap-3 px-3 py-2.5 md:px-4">
+                  <span className="truncate text-sm font-semibold text-ink-900">
+                    {product?.name ?? 'Solid'}
+                  </span>
+                  <span className="shrink-0 font-sans text-sm font-semibold tabular-nums text-brand-700">
+                    ×{alloc.quantity}
+                  </span>
+                </div>
+              );
+            }}
+          />
+        ))}
     </div>
   );
 }
@@ -561,6 +632,8 @@ function TimelineCard({ items }: { items: TimelineItem[] | undefined }) {
 export function FuelResultV3({
   prescription,
   products,
+  availableSolids,
+  onSolidQuantityChange,
   section = 'all',
 }: FuelResultV3Props) {
   const showMetrics = section === 'all' || section === 'metrics';
@@ -569,7 +642,14 @@ export function FuelResultV3({
 
   return (
     <div className="space-y-3 md:space-y-4">
-      {showPack && <BringList prescription={prescription} products={products} />}
+      {showPack && (
+        <BringList
+          prescription={prescription}
+          products={products}
+          availableSolids={availableSolids}
+          onSolidQuantityChange={onSolidQuantityChange}
+        />
+      )}
       {showGuide && <PreRideCard prescription={prescription} />}
       {showGuide && <TimelineCard items={prescription.timeline} />}
       {showGuide && <PostRideCard post={prescription.post} />}
