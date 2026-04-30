@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 4 complete — Plan 04-02 closed ACCT-01; /account is the consolidated 2-pane page; /athlete + /settings redirect; lint+build+tests green. Phase 5 (Documentation Realignment) is unblocked.
-last_updated: "2026-04-30T19:42:45.724Z"
-last_activity: 2026-04-30 -- Phase 5 planning complete
+status: milestone-complete
+stopped_at: "Milestone v1.0 (Polish & Redesign Sweep) COMPLETE — all 5 phases shipped, all 13 v1 requirements satisfied (LAYOUT-01/02, FUEL-01..04, GEAR-01..04, ACCT-01, DOC-01/02). PRODUCT.md is now tracked. Final commits: 3482a04 (PRODUCT.md rewrite), 24fe36a (CLAUDE.md font fix)."
+last_updated: "2026-04-30T22:55:00.000Z"
+last_activity: 2026-04-30 -- Milestone v1.0 complete (5/5 phases, 11/11 plans)
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 11
-  completed_plans: 9
-  percent: 82
+  completed_plans: 11
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-30)
 
 **Core value:** Every screen feels consistent, dense, and dependable — same controls in the same places with the same spacing — so a rider can produce a precise fueling plan and confirm kit readiness in seconds.
-**Current focus:** Phase 4 — Account Consolidation
+**Current focus:** Milestone v1.0 complete — ready to start a new milestone or close the workspace
 
 ## Current Position
 
-Phase: 5 (Documentation Realignment) — UNBLOCKED (next)
-Plan: TBD (Phase 5 plans not yet drafted)
-Status: Ready to execute
-Last activity: 2026-04-30 -- Phase 5 planning complete
+Phase: 5 (Documentation Realignment) — COMPLETE
+Plan: 2 of 2 complete
+Status: Milestone v1.0 (Polish & Redesign Sweep) COMPLETE
+Last activity: 2026-04-30 -- Milestone v1.0 complete (5/5 phases, 11/11 plans)
 
-Progress: [██████████] 100% (9 of 9 v1 plans complete; 4 of 5 phases complete — Phase 5 plans TBD)
+Progress: [██████████] 100% (5 of 5 phases complete; 11 of 11 plans complete; 13 of 13 requirements satisfied)
 
 ## Performance Metrics
 

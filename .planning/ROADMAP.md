@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Fuel Plan Cleanup** - Right-rail simplification, setup-flow label renames, and quick-counter copy fixes (completed 2026-04-30)
 - [x] **Phase 3: Garage Cleanup** - Service-only "Due Soon," pinned tab strip, and a denser Inventory sub-page (completed 2026-04-30)
 - [x] **Phase 4: Account Consolidation** - Single 2-pane Athlete + Account/Sync/Login page replacing the dedicated sync route (completed 2026-04-30)
-- [ ] **Phase 5: Documentation Realignment** - PRODUCT.md rewritten to shipped reality and CLAUDE.md font reference corrected
+- [x] **Phase 5: Documentation Realignment** - PRODUCT.md rewritten to shipped reality and CLAUDE.md font reference corrected (completed 2026-04-30)
 
 ## Phase Details
 
@@ -102,8 +102,8 @@ Plans:
 **Plans**: 2 plans
 Plans:
 **Wave 1**
-- [ ] 05-01-PLAN.md — Rewrite PRODUCT.md to shipped reality (orange #f8622e brand, light-mode only, real primitives/tokens/IA) and commit (DOC-01)
-- [ ] 05-02-PLAN.md — Correct CLAUDE.md font reference: (Outfit, Source Sans 3) → (IBM Plex Sans) (DOC-02)
+- [x] 05-01-PLAN.md — Rewrite PRODUCT.md to shipped reality (orange #f8622e brand, light-mode only, real primitives/tokens/IA) and commit (DOC-01)
+- [x] 05-02-PLAN.md — Correct CLAUDE.md font reference: (Outfit, Source Sans 3) → (IBM Plex Sans) (DOC-02)
 **UI hint**: no
 
 ## Progress
@@ -117,4 +117,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5. With `parallelizatio
 | 2. Fuel Plan Cleanup | 2/2 | Complete   | 2026-04-30 |
 | 3. Garage Cleanup | 2/2 | Complete   | 2026-04-30 |
 | 4. Account Consolidation | 2/2 | Complete   | 2026-04-30 |
-| 5. Documentation Realignment | 0/TBD | Not started | - |
+| 5. Documentation Realignment | 2/2 | Complete   | 2026-04-30 |

@@ -34,8 +34,8 @@ Cross-cutting fixes that propagate to every per-surface phase.
 
 ### Docs
 
-- [ ] **DOC-01**: PRODUCT.md is rewritten to match shipped reality. The orange `#f8622e` brand stays. References to a `#547597`-anchored palette and dark-mode parity are removed. The document is grounded in actual primitives (`src/components/ui/`), actual tokens (`src/index.css` `@theme` block), and actual IA. Once accurate, PRODUCT.md is committed (currently untracked).
-- [ ] **DOC-02**: CLAUDE.md's font reference is updated to match the code. "Outfit, Source Sans 3" is replaced with "IBM Plex Sans" (the actual `--font-sans / --font-body / --font-display` values).
+- [x] **DOC-01**: PRODUCT.md is rewritten to match shipped reality. The orange `#f8622e` brand stays. References to a `#547597`-anchored palette and dark-mode parity are removed. The document is grounded in actual primitives (`src/components/ui/`), actual tokens (`src/index.css` `@theme` block), and actual IA. Once accurate, PRODUCT.md is committed (currently untracked).
+- [x] **DOC-02**: CLAUDE.md's font reference is updated to match the code. "Outfit, Source Sans 3" is replaced with "IBM Plex Sans" (the actual `--font-sans / --font-body / --font-display` values).
 
 ## v2 Requirements
 
@@ -70,8 +70,8 @@ Mapped during roadmap creation by `gsd-roadmapper` on 2026-04-30.
 | GEAR-03 | Phase 3 | Complete |
 | GEAR-04 | Phase 3 | Complete |
 | ACCT-01 | Phase 4 | Complete |
-| DOC-01 | Phase 5 | Pending |
-| DOC-02 | Phase 5 | Pending |
+| DOC-01 | Phase 5 | Complete |
+| DOC-02 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 13 total
