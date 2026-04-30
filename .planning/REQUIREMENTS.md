@@ -55,29 +55,29 @@ No deferred-but-tracked requirements for this milestone. Future polish/redesign 
 
 ## Traceability
 
-Filled in during roadmap creation by `gsd-roadmapper`.
+Mapped during roadmap creation by `gsd-roadmapper` on 2026-04-30.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LAYOUT-01 | TBD | Pending |
-| LAYOUT-02 | TBD | Pending |
-| FUEL-01 | TBD | Pending |
-| FUEL-02 | TBD | Pending |
-| FUEL-03 | TBD | Pending |
-| FUEL-04 | TBD | Pending |
-| GEAR-01 | TBD | Pending |
-| GEAR-02 | TBD | Pending |
-| GEAR-03 | TBD | Pending |
-| GEAR-04 | TBD | Pending |
-| ACCT-01 | TBD | Pending |
-| DOC-01 | TBD | Pending |
-| DOC-02 | TBD | Pending |
+| LAYOUT-01 | Phase 1 | Pending |
+| LAYOUT-02 | Phase 1 | Pending |
+| FUEL-01 | Phase 2 | Pending |
+| FUEL-02 | Phase 2 | Pending |
+| FUEL-03 | Phase 2 | Pending |
+| FUEL-04 | Phase 2 | Pending |
+| GEAR-01 | Phase 3 | Pending |
+| GEAR-02 | Phase 3 | Pending |
+| GEAR-03 | Phase 3 | Pending |
+| GEAR-04 | Phase 3 | Pending |
+| ACCT-01 | Phase 4 | Pending |
+| DOC-01 | Phase 5 | Pending |
+| DOC-02 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 13 total
-- Mapped to phases: pending roadmap
-- Unmapped: pending roadmap
+- Mapped to phases: 13 (100%)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-30*
-*Last updated: 2026-04-30 after initial definition*
+*Last updated: 2026-04-30 — Traceability table populated by gsd-roadmapper*
