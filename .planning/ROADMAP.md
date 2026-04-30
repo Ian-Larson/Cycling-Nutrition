@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 Plans:
 **Wave 1**
-- [ ] 01-01-PLAN.md — Page-shell padding consolidation (strip max-w-6xl from 8 pages)
+- [x] 01-01-PLAN.md — Page-shell padding consolidation (strip max-w-6xl from 8 pages) ✓ 2026-04-30 (a8991b5)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 01-02-PLAN.md — Migrate Garage tabs to canonical Tabs/TabList/Tab/TabPanel
@@ -95,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5. With `parallelizatio
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Layout & Tab Foundations | 0/3 | Not started | - |
+| 1. Layout & Tab Foundations | 1/3 | In progress | - |
 | 2. Fuel Plan Cleanup | 0/TBD | Not started | - |
 | 3. Garage Cleanup | 0/TBD | Not started | - |
 | 4. Account Consolidation | 0/TBD | Not started | - |
