@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Layout & Tab Foundations** - Cross-cutting page-shell padding + a single canonical tab/segmented switcher that every surface consumes (completed 2026-04-30)
 - [x] **Phase 2: Fuel Plan Cleanup** - Right-rail simplification, setup-flow label renames, and quick-counter copy fixes (completed 2026-04-30)
 - [x] **Phase 3: Garage Cleanup** - Service-only "Due Soon," pinned tab strip, and a denser Inventory sub-page (completed 2026-04-30)
-- [ ] **Phase 4: Account Consolidation** - Single 2-pane Athlete + Account/Sync/Login page replacing the dedicated sync route
+- [x] **Phase 4: Account Consolidation** - Single 2-pane Athlete + Account/Sync/Login page replacing the dedicated sync route (completed 2026-04-30)
 - [ ] **Phase 5: Documentation Realignment** - PRODUCT.md rewritten to shipped reality and CLAUDE.md font reference corrected
 
 ## Phase Details
@@ -88,7 +88,7 @@ Plans:
 - [x] 04-01-PLAN.md — Extract <AthletePane /> from athlete.tsx into src/components/account/ (pure refactor, no behavior change) ✓ 2026-04-30 (9bcd7f9)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 04-02-PLAN.md — Consolidate /account into a 2-pane page; redirect /athlete + /settings; rewire internal links (ACCT-01)
+- [x] 04-02-PLAN.md — Consolidate /account into a 2-pane page; redirect /athlete + /settings; rewire internal links (ACCT-01) ✓ 2026-04-30 (fa1c116)
 **UI hint**: yes
 
 ### Phase 5: Documentation Realignment
@@ -112,5 +112,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5. With `parallelizatio
 | 1. Layout & Tab Foundations | 3/3 | Complete   | 2026-04-30 |
 | 2. Fuel Plan Cleanup | 2/2 | Complete   | 2026-04-30 |
 | 3. Garage Cleanup | 2/2 | Complete   | 2026-04-30 |
-| 4. Account Consolidation | 1/2 | In progress | - |
+| 4. Account Consolidation | 2/2 | Complete   | 2026-04-30 |
 | 5. Documentation Realignment | 0/TBD | Not started | - |

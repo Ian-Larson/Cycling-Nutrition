@@ -30,7 +30,7 @@ Cross-cutting fixes that propagate to every per-surface phase.
 
 ### Account
 
-- [ ] **ACCT-01**: The Account section consolidates into a single 2-pane page — **Athlete information** on top, **Account / Sync / Login** as a condensed bottom section. The previously separate sync/login page is replaced. Spacing matches the rest of the app (per LAYOUT-01).
+- [x] **ACCT-01**: The Account section consolidates into a single 2-pane page — **Athlete information** on top, **Account / Sync / Login** as a condensed bottom section. The previously separate sync/login page is replaced. Spacing matches the rest of the app (per LAYOUT-01).
 
 ### Docs
 
@@ -69,7 +69,7 @@ Mapped during roadmap creation by `gsd-roadmapper` on 2026-04-30.
 | GEAR-02 | Phase 3 | Complete |
 | GEAR-03 | Phase 3 | Complete |
 | GEAR-04 | Phase 3 | Complete |
-| ACCT-01 | Phase 4 | Pending |
+| ACCT-01 | Phase 4 | Complete |
 | DOC-01 | Phase 5 | Pending |
 | DOC-02 | Phase 5 | Pending |
 
@@ -80,4 +80,4 @@ Mapped during roadmap creation by `gsd-roadmapper` on 2026-04-30.
 
 ---
 *Requirements defined: 2026-04-30*
-*Last updated: 2026-04-30 — Traceability table populated by gsd-roadmapper*
+*Last updated: 2026-04-30 — ACCT-01 marked Complete after Phase 4 Plan 02 closed.*

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 4 Plan 04-01 complete (Wave 1) — AthletePane extracted; lint+build+tests green. Plan 04-02 (Wave 2) is unblocked.
-last_updated: "2026-04-30T19:21:35Z"
-last_activity: 2026-04-30 -- Plan 04-01 complete (Wave 1)
+stopped_at: Phase 4 complete (ACCT-01 Complete) — /account is now the consolidated 2-pane page; /athlete + /settings redirect; lint+build+tests green. Phase 5 (Documentation Realignment) is unblocked.
+last_updated: "2026-04-30T22:30:00Z"
+last_activity: 2026-04-30 -- Plan 04-02 complete; Phase 4 closed
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
-  percent: 89
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State
@@ -25,20 +25,20 @@ See: .planning/PROJECT.md (updated 2026-04-30)
 
 ## Current Position
 
-Phase: 4 (Account Consolidation) — EXECUTING
-Plan: 2 of 2
-Status: Executing Phase 4 (Wave 1 complete; Wave 2 unblocked)
-Last activity: 2026-04-30 -- Plan 04-01 complete (Wave 1)
+Phase: 5 (Documentation Realignment) — UNBLOCKED (next)
+Plan: TBD (Phase 5 plans not yet drafted)
+Status: Phase 4 complete — Account Consolidation closed; ACCT-01 satisfied
+Last activity: 2026-04-30 -- Plan 04-02 complete; Phase 4 closed
 
-Progress: [████████▉░] 89% (8 of 9 plans complete; 3 of 5 phases complete)
+Progress: [██████████] 100% (9 of 9 v1 plans complete; 4 of 5 phases complete — Phase 5 plans TBD)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 3
-- Average duration: ~2m 11s
-- Total execution time: ~5m 51s
+- Total plans completed: 4 (recorded sample)
+- Average duration: ~3m
+- Total execution time: ~10m 51s
 
 **By Phase:**
 
@@ -47,13 +47,13 @@ Progress: [████████▉░] 89% (8 of 9 plans complete; 3 of 5 ph
 | 1. Layout & Tab Foundations | 2 | ~2m 44s | ~1m 22s |
 | 2. Fuel Plan Cleanup | 0 | — | — |
 | 3. Garage Cleanup | 0 | — | — |
-| 4. Account Consolidation | 1 | ~2m 47s | ~2m 47s |
+| 4. Account Consolidation | 2 | ~7m 47s | ~3m 53s |
 | 5. Documentation Realignment | 0 | — | — |
 
 **Recent Trend:**
 
-- Last 5 plans: 04-01 (~2m 47s, 2 files, refactor) → 01-02 (~1m 33s, 1 file, refactor) → 01-01 (~1m 11s, 8 files, refactor)
-- Trend: stable (~2m/plan, all refactors, all first-try clean — no deviations)
+- Last 5 plans: 04-02 (~5m, 6 files, refactor + delete) → 04-01 (~2m 47s, 2 files, refactor) → 01-02 (~1m 33s, 1 file, refactor) → 01-01 (~1m 11s, 8 files, refactor)
+- Trend: stable (~2-5m/plan, all refactors, all first-try clean — no deviations across 4+ consecutive plans)
 
 *Updated after each plan completion*
 
@@ -85,6 +85,8 @@ Recent decisions affecting current work:
 - Phase 4 planning: Skipped UI-SPEC + CONTEXT + RESEARCH. 2 plans extracted via 2-wave decomposition. Plan 04-01 (Wave 1, pure refactor) extracts AthletePage body into `src/components/account/athlete-pane.tsx` — `/athlete` route still works post-extraction. Plan 04-02 (Wave 2, depends_on [04-01]) consolidates `src/pages/account.tsx` to render <AthletePane /> on top + condensed Sign-in/Sync/Strava cards below; deletes athlete.tsx; redirects `/athlete` → `/account` and `/settings#preferences` → `/account#preferences`; sets `sectionNavItems.account = []`; rewires 2 internal links (ride-form.tsx:813, power-meter-analyzer.tsx:249); updates navigation.test.ts. Preserves `id="preferences"` deep-link anchor. plan-checker PASS on 14/14 dimensions. Lessons applied from Plan 03-02 indent regression — every old_string block aligned to file column.
 - Plan 04-01 execution: New file `src/components/account/athlete-pane.tsx` (536 lines) exports `AthletePane`; `src/pages/athlete.tsx` thinned 562 → 34 lines as a shell rendering `PageIntro` + `SectionNav` + `<AthletePane />` inside `page-shell`. Pane keeps `Link` import (Preferences and Connections cards have internal Links to `/account` and `/power-meter-analyzer`); drops `useSearchParams`/`PageIntro`/`SectionNav` (those stay at the page-shell level). All types, constants, and helpers (`OptionalNumericAthleteField`, `AthleteFieldErrorKey`, `GUT_TARGET_PRESETS`, `TEMPERATURE_OPTIONS`, `roundTo`, `getGutTargetLabel`, `parseDraftNumber`, `getWeightDraftFromProfile`) move with AthletePane — they are pane-internal implementation, not page-shell concerns. `id="preferences"` deep-link anchor preserved (grep = 1). `?return=planner-step2` Back-to-plan plumbing stays at the page level byte-for-byte. Lint + build + 515/515 vitest tests green first-try. No deviations.
 - ACCT-01 status: kept Pending in REQUIREMENTS.md after Plan 04-01 because the requirement contract is satisfied only when /account becomes the consolidated 2-pane page (current Plan 04-01 only completes the AthletePane extraction half — /athlete still exists as its own route). Will mark complete when Plan 04-02 lands. Same per-requirement deferral pattern used for LAYOUT-01/02 and FUEL-01..FUEL-04 in earlier phases.
+- Plan 04-02 execution: Rewrote `src/pages/account.tsx` (242 → 254 lines) as the consolidated 2-pane page — `<AthletePane />` on top + condensed Account/Sync/Strava `<section>` below, all wrapped in `page-shell space-y-4 md:space-y-6`. Bottom-pane heading hierarchy: section `<h2>` 'Account, sync, and Strava' wraps three cards whose titles drop to `<h3>` ('Sign in', 'Cloud backup', 'Strava'); `aria-labelledby='account-sync-heading'` for screen-reader continuity. `?return=planner-step2` Back-to-plan action surfaced conditionally (avoids cluttering on every visit; hard-coded `?step=2` substitution prevents open-redirect injection). Deleted `src/pages/athlete.tsx` (34 lines). App.tsx: dropped AthletePage import, replaced /athlete route with `<Navigate to="/account" replace />`, retargeted /settings redirect from /athlete#preferences to /account#preferences. navigation.ts: `sectionNavItems.account = []`; primaryNavItems[3].matchPaths kept '/athlete' + '/settings' for highlight continuity. navigation.test.ts: assertion rewritten to `expect(getSectionNavItems('account')).toEqual([])`. Two internal-link rewires: ride-form.tsx Add-FTP banner → /account, power-meter-analyzer.tsx Athlete-settings action → /account#preferences. AthletePane's two `to="/account"` self-links left in place (refresh-on-self-click is harmless; plan-checker INFO-level note). All 5 useAuth handlers preserved verbatim; both `<SyncStatusBadge>` instances + Supabase-not-configured Alert + `id="strava"` anchor preserved. Lint + build + 515/515 vitest tests green first-try. No deviations.
+- Phase 4 closeout: ACCT-01 marked Complete in REQUIREMENTS.md traceability table. Phase 4 marked Complete in ROADMAP.md. All 4 ROADMAP success criteria satisfied at the code level (single-route 2-pane layout / sync-page retired with redirects / page-shell padding match / sign-in+sync+Strava all functional). Phase 5 (Documentation Realignment) is unblocked — pure docs work (PRODUCT.md rewrite + CLAUDE.md font reference correction).
 
 ### Pending Todos
 
@@ -105,5 +107,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Phase 4 Plan 04-01 complete (Wave 1) — AthletePane extracted; lint+build+tests green. Plan 04-02 (Wave 2) is unblocked.
-Resume file: .planning/phases/04-account-consolidation/04-02-PLAN.md
+Stopped at: Phase 4 complete — Plan 04-02 closed ACCT-01; /account is the consolidated 2-pane page; /athlete + /settings redirect; lint+build+tests green. Phase 5 (Documentation Realignment) is unblocked.
+Resume file: .planning/phases/05-documentation-realignment/ (Phase 5 planning not yet started)
