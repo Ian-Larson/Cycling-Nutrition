@@ -7,7 +7,6 @@ import {
   CardHeader,
   Input,
   PresetButtons,
-  SegmentedControl,
   Toggle,
 } from '@/components/ui';
 import {
@@ -284,21 +283,7 @@ export function AthletePane() {
       <div className="space-y-4">
         <Card className="overflow-hidden">
           <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-              <div>
-                <h2 className="section-title text-lg">Profile</h2>
-              </div>
-              <SegmentedControl<AnthropometricsUnit>
-                label="Measurement units"
-                value={anthropometricsUnit}
-                onChange={handleAnthropometricsUnitChange}
-                className="w-full sm:w-auto"
-                options={[
-                  { value: 'metric', label: 'Metric' },
-                  { value: 'imperial', label: 'Imperial' },
-                ]}
-              />
-            </div>
+            <h2 className="section-title text-lg">Profile</h2>
           </CardHeader>
           <CardContent className="space-y-3 md:space-y-4">
             <div className="grid gap-2.5 sm:grid-cols-2 md:gap-3">
@@ -444,6 +429,35 @@ export function AthletePane() {
           </CardHeader>
           <CardContent className="space-y-3 md:space-y-4">
             <div className="space-y-2">
+              <p className="text-sm font-medium text-ink-900">Units</p>
+              <div className="grid grid-cols-2 gap-2">
+                {(
+                  [
+                    { value: 'metric', label: 'Metric' },
+                    { value: 'imperial', label: 'Imperial' },
+                  ] as const
+                ).map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleAnthropometricsUnitChange(option.value)}
+                    className={clsx(
+                      'min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors md:min-h-10',
+                      anthropometricsUnit === option.value
+                        ? 'border-brand-300 bg-brand-100 text-brand-800'
+                        : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-sm leading-5 text-ink-600 md:leading-6">
+                Applies to weight and other body inputs.
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <p className="text-sm font-medium text-ink-900">Temperature</p>
               <div className="grid grid-cols-2 gap-2">
                 {TEMPERATURE_OPTIONS.map((option) => (
@@ -498,35 +512,10 @@ export function AthletePane() {
             </div>
 
             <Link
-              to="/account"
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-white px-3.5 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 md:min-h-10"
-            >
-              Account and cloud backup
-            </Link>
-
-            <Link
               to="/power-meter-analyzer"
               className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-white px-3.5 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 md:min-h-10"
             >
               Open labs
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden">
-          <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-            <h2 className="section-title text-lg">Connections</h2>
-          </CardHeader>
-          <CardContent className="space-y-3 md:space-y-4">
-            <p className="text-sm leading-5 text-ink-600 md:leading-6">
-              Sign in to back up this device and connect Strava.
-            </p>
-
-            <Link
-              to="/account"
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[color:var(--border-soft)] bg-white px-4 py-2 text-sm font-medium text-ink-900 transition-colors hover:bg-shell-50 md:min-h-10"
-            >
-              Open account
             </Link>
           </CardContent>
         </Card>
