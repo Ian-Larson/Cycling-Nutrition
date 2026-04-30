@@ -191,7 +191,6 @@ export function PlannerPage() {
   const deleteFuelPlan = useStore((s) => s.deleteFuelPlan);
   const setPlannerDraft = useStore((s) => s.setPlannerDraft);
   const updateProduct = useStore((s) => s.updateProduct);
-  const incrementBottleCount = useStore((s) => s.incrementBottleCount);
   const [initialDraft] = useState<PlannerDraft | null>(() => {
     const current = useStore.getState().plannerDraft;
     return isPlannerDraftShape(current) ? current : null;
@@ -899,12 +898,7 @@ export function PlannerPage() {
           rail={
             <NutritionRail>
               <InventoryRailPanel
-                bottleCounts={bottleCounts}
                 products={products}
-                onIncrementBottle={(size, delta) => {
-                  markPlanStale();
-                  incrementBottleCount(size, delta);
-                }}
                 onToggleProductAvailability={(productId, isAvailable) => {
                   markPlanStale();
                   updateProduct(productId, { isAvailable });
