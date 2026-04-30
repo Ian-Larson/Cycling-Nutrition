@@ -168,7 +168,7 @@ export function SetupCard({
         >
           <CollapsibleTrigger className="px-4 py-3.5 md:px-5 md:py-4">
             <div className="min-w-0">
-              <p className="section-title text-base">Bottles</p>
+              <p className="section-title text-base">Available bottles</p>
               <p className="mt-1 text-sm leading-5 text-brand-800">
                 {selectedCount === 0
                   ? 'Select bottles'
@@ -208,7 +208,7 @@ export function SetupCard({
         >
           <CollapsibleTrigger className="px-4 py-3.5 md:px-5 md:py-4">
             <div className="min-w-0">
-              <p className="section-title text-base">Fuel</p>
+              <p className="section-title text-base">Fuel selections</p>
               <p className="mt-1 truncate text-sm leading-5 text-brand-800">
                 {getFuelSummary(selectedDrinkMix, selectedSolidIds.length)}
               </p>
