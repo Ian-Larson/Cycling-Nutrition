@@ -10,7 +10,7 @@ export function GearSubNav() {
   return (
     <nav
       aria-label="Gear sections"
-      className="-mb-px flex w-full gap-1 border-b border-[color:var(--border-soft)]"
+      className="mb-2 flex w-full gap-1 border-b border-[color:var(--border-soft)] md:mb-3"
     >
       {LINKS.map((link) => (
         <NavLink
