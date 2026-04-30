@@ -37,11 +37,8 @@ describe('section navigation grouping', () => {
     ]);
   });
 
-  it('keeps athlete preferences inside account', () => {
-    expect(getSectionNavItems('account').map((item) => item.label)).toEqual([
-      'Account',
-      'Athlete',
-    ]);
+  it('exposes no sub-nav for the consolidated account section', () => {
+    expect(getSectionNavItems('account')).toEqual([]);
   });
 
   it('places the power meter tool inside labs', () => {

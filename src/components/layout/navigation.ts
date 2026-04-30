@@ -70,14 +70,7 @@ const sectionNavItems: Record<NavSection, readonly NavRouteItem[]> = {
       matchPaths: ['/labs', '/power-meter-analyzer'],
     },
   ],
-  account: [
-    {
-      path: '/account',
-      label: 'Account',
-      matchPaths: ['/account', '/auth/callback', '/auth/strava/callback'],
-    },
-    { path: '/athlete', label: 'Athlete', matchPaths: ['/athlete', '/settings'] },
-  ],
+  account: [],
 };
 
 function normalizePathname(pathname: string): string {
