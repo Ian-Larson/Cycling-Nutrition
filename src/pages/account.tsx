@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { AthletePane } from '@/components/account/athlete-pane';
 import { PageIntro } from '@/components/layout/page-intro';
-import { SectionNav } from '@/components/layout/section-nav';
 import { SyncStatusBadge } from '@/components/layout/sync-status-badge';
 import { Alert, Button, Card, CardContent, CardHeader, Input } from '@/components/ui';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -30,6 +31,8 @@ export function AccountPage() {
     connectStrava,
     disconnectStrava,
   } = useAuth();
+  const [searchParams] = useSearchParams();
+  const plannerReturnStep = searchParams.get('return') === 'planner-step2' ? '?step=2' : '';
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSyncingNow, setIsSyncingNow] = useState(false);
@@ -67,175 +70,184 @@ export function AccountPage() {
         title="Account"
         description={
           <>
-            Keep planning locally as a guest, or sign in to back up and sync
-            this data across devices.
+            Profile, planning defaults, and the sign-in that backs them up across devices.
           </>
+        }
+        actions={
+          plannerReturnStep ? (
+            <Link
+              to={`/${plannerReturnStep}`}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-white px-4 py-2 text-sm font-medium text-ink-800 sm:w-auto md:min-h-10"
+            >
+              Back to plan
+            </Link>
+          ) : undefined
         }
       />
 
-      <SectionNav section="account" />
+      <AthletePane />
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]">
-        <div className="space-y-4">
-          <Card className="overflow-hidden">
-            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="section-title text-lg">Sign in</h2>
-                <SyncStatusBadge kind="auth" />
+      <section aria-labelledby="account-sync-heading" className="space-y-3">
+        <h2 id="account-sync-heading" className="section-title text-lg">
+          Account, sync, and Strava
+        </h2>
+
+        <Card className="overflow-hidden">
+          <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="section-title text-lg">Sign in</h3>
+              <SyncStatusBadge kind="auth" />
+            </div>
+            <p className="section-copy">{statusCopy}</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!isSupabaseReady && (
+              <Alert variant="warning">
+                Add <code>VITE_SUPABASE_URL</code>,{' '}
+                <code>VITE_SUPABASE_ANON_KEY</code>, and{' '}
+                <code>VITE_SUPABASE_AUTH_REDIRECT_URL</code> to enable account
+                sign-in.
+              </Alert>
+            )}
+
+            {!signedIn && (
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <Input
+                  id="account-email"
+                  label="Email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="you@example.com"
+                  disabled={!isSupabaseReady || isSubmitting}
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={!isSupabaseReady || isSubmitting}
+                >
+                  {isSubmitting ? 'Sending link...' : 'Send magic link'}
+                </Button>
+              </form>
+            )}
+
+            {signedIn && (
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleSyncNow}
+                  disabled={isSyncingNow}
+                >
+                  {isSyncingNow ? 'Syncing...' : 'Sync now'}
+                </Button>
+                <Button type="button" variant="ghost" onClick={signOut}>
+                  Sign out
+                </Button>
               </div>
-              <p className="section-copy">{statusCopy}</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {!isSupabaseReady && (
-                <Alert variant="warning">
-                  Add <code>VITE_SUPABASE_URL</code>,{' '}
-                  <code>VITE_SUPABASE_ANON_KEY</code>, and{' '}
-                  <code>VITE_SUPABASE_AUTH_REDIRECT_URL</code> to enable account
-                  sign-in.
-                </Alert>
-              )}
+            )}
 
-              {!signedIn && (
-                <form onSubmit={handleSubmit} className="space-y-3">
-                  <Input
-                    id="account-email"
-                    label="Email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="you@example.com"
-                    disabled={!isSupabaseReady || isSubmitting}
-                  />
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={!isSupabaseReady || isSubmitting}
-                  >
-                    {isSubmitting ? 'Sending link...' : 'Send magic link'}
-                  </Button>
-                </form>
-              )}
-
-              {signedIn && (
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={handleSyncNow}
-                    disabled={isSyncingNow}
-                  >
-                    {isSyncingNow ? 'Syncing...' : 'Sync now'}
-                  </Button>
-                  <Button type="button" variant="ghost" onClick={signOut}>
-                    Sign out
-                  </Button>
-                </div>
-              )}
-
-              {authMessage && (
-                <p className="text-sm leading-5 text-ink-600 md:leading-6">
-                  {authMessage}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="overflow-hidden">
-            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="section-title text-lg">Cloud backup</h2>
-                <SyncStatusBadge kind="cloud" />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
+            {authMessage && (
               <p className="text-sm leading-5 text-ink-600 md:leading-6">
-                The app still saves immediately on this device. When signed in,
-                changes are copied to your account as a versioned backup.
+                {authMessage}
               </p>
-              <div className="surface-note grid gap-3 px-3.5 py-3 sm:grid-cols-2">
-                <div>
-                  <p className="page-stat-label">Last synced</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="section-title text-lg">Cloud backup</h3>
+              <SyncStatusBadge kind="cloud" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm leading-5 text-ink-600 md:leading-6">
+              The app still saves immediately on this device. When signed in,
+              changes are copied to your account as a versioned backup.
+            </p>
+            <div className="surface-note grid gap-3 px-3.5 py-3 sm:grid-cols-2">
+              <div>
+                <p className="page-stat-label">Last synced</p>
+                <p className="mt-1 text-sm font-semibold text-ink-900">
+                  {formatDateTime(lastSyncedAt)}
+                </p>
+              </div>
+              <div>
+                <p className="page-stat-label">Mode</p>
+                <p className="mt-1 text-sm font-semibold text-ink-900">
+                  {signedIn ? 'Cloud + local' : 'Local only'}
+                </p>
+              </div>
+            </div>
+            {syncMessage && (
+              <p className="text-sm leading-5 text-ink-600 md:leading-6">
+                {syncMessage}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card id="strava" className="scroll-mt-24 overflow-hidden">
+          <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
+            <h3 className="section-title text-lg">Strava</h3>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm leading-5 text-ink-600 md:leading-6">
+              Optional connection. This phase stores the connection securely
+              but does not import rides.
+            </p>
+
+            {stravaConnection ? (
+              <div className="space-y-3">
+                <div className="surface-note px-3.5 py-3">
+                  <p className="page-stat-label">Connected athlete</p>
                   <p className="mt-1 text-sm font-semibold text-ink-900">
-                    {formatDateTime(lastSyncedAt)}
+                    {stravaConnection.athleteName ||
+                      `Athlete ${stravaConnection.athleteId}`}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-ink-600">
+                    Since {formatDateTime(stravaConnection.connectedAt)}
                   </p>
                 </div>
-                <div>
-                  <p className="page-stat-label">Mode</p>
-                  <p className="mt-1 text-sm font-semibold text-ink-900">
-                    {signedIn ? 'Cloud + local' : 'Local only'}
-                  </p>
-                </div>
-              </div>
-              {syncMessage && (
-                <p className="text-sm leading-5 text-ink-600 md:leading-6">
-                  {syncMessage}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <aside className="space-y-4">
-          <Card id="strava" className="scroll-mt-24 overflow-hidden">
-            <CardHeader className="space-y-2 bg-[var(--surface-soft)]">
-              <h2 className="section-title text-lg">Strava</h2>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm leading-5 text-ink-600 md:leading-6">
-                Optional connection. This phase stores the connection securely
-                but does not import rides.
-              </p>
-
-              {stravaConnection ? (
-                <div className="space-y-3">
-                  <div className="surface-note px-3.5 py-3">
-                    <p className="page-stat-label">Connected athlete</p>
-                    <p className="mt-1 text-sm font-semibold text-ink-900">
-                      {stravaConnection.athleteName ||
-                        `Athlete ${stravaConnection.athleteId}`}
-                    </p>
-                    <p className="mt-2 text-xs leading-5 text-ink-600">
-                      Since {formatDateTime(stravaConnection.connectedAt)}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="w-full"
-                    onClick={handleDisconnectStrava}
-                    disabled={isDisconnecting}
-                  >
-                    {isDisconnecting ? 'Disconnecting...' : 'Disconnect Strava'}
-                  </Button>
-                </div>
-              ) : (
                 <Button
                   type="button"
                   variant="secondary"
                   className="w-full"
-                  onClick={connectStrava}
-                  disabled={!signedIn}
+                  onClick={handleDisconnectStrava}
+                  disabled={isDisconnecting}
                 >
-                  Connect Strava
+                  {isDisconnecting ? 'Disconnecting...' : 'Disconnect Strava'}
                 </Button>
-              )}
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                onClick={connectStrava}
+                disabled={!signedIn}
+              >
+                Connect Strava
+              </Button>
+            )}
 
-              {!signedIn && (
-                <p className="text-sm leading-5 text-ink-600 md:leading-6">
-                  Sign in before connecting Strava.
-                </p>
-              )}
+            {!signedIn && (
+              <p className="text-sm leading-5 text-ink-600 md:leading-6">
+                Sign in before connecting Strava.
+              </p>
+            )}
 
-              {stravaMessage && (
-                <p className="text-sm leading-5 text-ink-600 md:leading-6">
-                  {stravaMessage}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </aside>
-      </div>
+            {stravaMessage && (
+              <p className="text-sm leading-5 text-ink-600 md:leading-6">
+                {stravaMessage}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 }
