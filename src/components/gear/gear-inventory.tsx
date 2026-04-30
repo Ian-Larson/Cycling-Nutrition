@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { clsx } from 'clsx';
-import { Card, CardContent } from '@/components/ui';
+import { Card, CardContent, DividedRowList } from '@/components/ui';
 import {
   GEAR_PART_CATEGORIES,
   getGearPartCategory,
@@ -45,20 +45,6 @@ const STATUS_CLASSES: Record<GearPartInstanceStatus, string> = {
   installed: 'bg-success-100 text-success-700',
   removed: 'bg-warning-100 text-warning-700',
   retired: 'bg-shell-200 text-ink-600',
-};
-
-const STATUS_STAT_CLASSES: Record<GearPartInstanceStatus, string> = {
-  spare: 'border-brand-200 bg-brand-50',
-  installed: 'border-success-200 bg-success-50',
-  removed: 'border-warning-200 bg-warning-50',
-  retired: 'border-[color:var(--border-soft)] bg-shell-50',
-};
-
-const STATUS_STAT_ACCENT: Record<GearPartInstanceStatus, string> = {
-  spare: 'text-brand-700',
-  installed: 'text-success-700',
-  removed: 'text-warning-700',
-  retired: 'text-ink-600',
 };
 
 function formatDate(dateIso?: string): string | null {
@@ -278,11 +264,6 @@ export function GearInventory({
     return counts;
   }, [instances]);
 
-  const summaryCounts = STATUS_ORDER.map((status) => ({
-    status,
-    count: statusCounts.get(status) ?? 0,
-  }));
-
   const filtered = useMemo(() => {
     return instances.filter((instance) => {
       const catalogItem = catalogById.get(instance.catalogItemId);
@@ -354,39 +335,6 @@ export function GearInventory({
 
   return (
     <div className="space-y-4 md:space-y-5">
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="rounded-2xl border border-[color:var(--border-soft)] bg-white px-3 py-2.5">
-          <p className="section-kicker text-[0.66rem] text-ink-500">Total</p>
-          <p className="mt-1 text-xl font-semibold leading-7 text-ink-900 tabular-nums">
-            {instances.length}
-          </p>
-          <p className="text-sm leading-5 text-ink-600">
-            {pluralize(instances.length, 'part', 'parts')}
-          </p>
-        </div>
-        {summaryCounts.map(({ status, count }) => (
-          <div
-            key={status}
-            className={clsx(
-              'rounded-2xl border px-3 py-2.5',
-              STATUS_STAT_CLASSES[status]
-            )}
-          >
-            <p className="section-kicker text-[0.66rem] text-ink-500">
-              {STATUS_LABELS[status]}
-            </p>
-            <p
-              className={clsx(
-                'mt-1 text-xl font-semibold leading-7 tabular-nums',
-                STATUS_STAT_ACCENT[status]
-              )}
-            >
-              {count}
-            </p>
-          </div>
-        ))}
-      </div>
-
       {isEmpty ? (
         <Card>
           <CardContent className="space-y-3 py-5 md:py-6">
@@ -443,8 +391,10 @@ export function GearInventory({
                       {pluralize(group.instances.length, 'part', 'parts')}
                     </p>
                   </div>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {group.instances.map((instance) => {
+                  <DividedRowList
+                    items={group.instances}
+                    getKey={(instance) => instance.id}
+                    renderItem={(instance) => {
                       const catalogItem = catalogById.get(
                         instance.catalogItemId
                       );
@@ -498,98 +448,63 @@ export function GearInventory({
                         if (value) dateEntry = { label: 'Acquired', value };
                       }
 
-                      return (
-                        <Card key={instance.id}>
-                          <CardContent className="space-y-3 py-3.5 md:py-4">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="break-words text-base font-semibold leading-6 text-ink-900">
-                                  {title}
-                                </p>
-                                {!catalogItem ? (
-                                  <p className="text-sm leading-5 text-error-700">
-                                    Catalog part unavailable
-                                  </p>
-                                ) : null}
-                              </div>
-                              <div className="flex shrink-0 items-start gap-1">
-                                <span
-                                  className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASSES[instance.status]}`}
-                                >
-                                  {STATUS_LABELS[instance.status]}
-                                </span>
-                                <OverflowMenu
-                                  items={[
-                                    {
-                                      label: 'Edit',
-                                      onSelect: () => onEdit(instance.id),
-                                    },
-                                    {
-                                      label: 'Delete',
-                                      tone: 'danger',
-                                      onSelect: () => handleDelete(instance),
-                                    },
-                                  ]}
-                                />
-                              </div>
-                            </div>
-
-                            {attributes || catalogItem?.weightGrams ? (
-                              <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-sm leading-5 text-ink-600">
-                                {attributes ? <span>{attributes}</span> : null}
-                                {catalogItem?.weightGrams ? (
-                                  <>
-                                    {attributes ? (
-                                      <span aria-hidden="true" className="text-ink-400">
-                                        ·
-                                      </span>
-                                    ) : null}
-                                    <span>{catalogItem.weightGrams} g</span>
-                                  </>
-                                ) : null}
-                              </div>
-                            ) : null}
-
-                            <dl className="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-[color:var(--border-soft)] pt-2.5 text-sm leading-5">
-                              <div className="flex items-baseline gap-1.5">
-                                <dt className="section-kicker text-[0.66rem] text-ink-500">
-                                  Miles
-                                </dt>
-                                <dd
-                                  className={clsx(
-                                    'tabular-nums',
-                                    lifetimeMiles !== null
-                                      ? 'font-medium text-ink-900'
-                                      : 'text-ink-500'
-                                  )}
-                                >
-                                  {lifetimeMiles !== null
-                                    ? formatMileage(lifetimeMiles)
-                                    : 'Never installed'}
-                                </dd>
-                              </div>
-                              {installedBike ? (
-                                <div className="flex items-baseline gap-1.5">
-                                  <dt className="section-kicker text-[0.66rem] text-ink-500">
-                                    Bike
-                                  </dt>
-                                  <dd className="text-ink-700">{installedBike.name}</dd>
-                                </div>
-                              ) : null}
-                              {dateEntry ? (
-                                <div className="flex items-baseline gap-1.5">
-                                  <dt className="section-kicker text-[0.66rem] text-ink-500">
-                                    {dateEntry.label}
-                                  </dt>
-                                  <dd className="text-ink-700">{dateEntry.value}</dd>
-                                </div>
-                              ) : null}
-                            </dl>
-                          </CardContent>
-                        </Card>
+                      const summaryParts: string[] = [];
+                      if (attributes) summaryParts.push(attributes);
+                      if (catalogItem?.weightGrams) {
+                        summaryParts.push(`${catalogItem.weightGrams} g`);
+                      }
+                      summaryParts.push(
+                        lifetimeMiles !== null
+                          ? formatMileage(lifetimeMiles)
+                          : 'Never installed'
                       );
-                    })}
-                  </div>
+                      if (installedBike) summaryParts.push(installedBike.name);
+                      if (dateEntry) {
+                        summaryParts.push(`${dateEntry.label} ${dateEntry.value}`);
+                      }
+
+                      return (
+                        <div className="flex items-start justify-between gap-2 px-3 py-2 md:px-4 md:py-2.5">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="truncate text-sm font-semibold leading-6 text-ink-900">
+                                {title}
+                              </span>
+                              <span
+                                className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASSES[instance.status]}`}
+                              >
+                                {STATUS_LABELS[instance.status]}
+                              </span>
+                            </div>
+                            {!catalogItem ? (
+                              <p className="mt-0.5 truncate text-xs leading-5 text-error-700">
+                                Catalog part unavailable
+                              </p>
+                            ) : null}
+                            <p className="mt-0.5 truncate text-xs leading-5 text-ink-600">
+                              {summaryParts.join(' · ')}
+                            </p>
+                          </div>
+                          <div className="-mr-1 shrink-0 pt-0.5">
+                            <OverflowMenu
+                              label={`${title} actions`}
+                              items={[
+                                {
+                                  label: 'Edit',
+                                  onSelect: () => onEdit(instance.id),
+                                },
+                                {
+                                  label: 'Delete',
+                                  tone: 'danger',
+                                  onSelect: () => handleDelete(instance),
+                                },
+                              ]}
+                            />
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
                 </section>
               ))}
             </div>
