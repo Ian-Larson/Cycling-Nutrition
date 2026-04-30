@@ -50,7 +50,11 @@ Plans:
   2. Bottle quantity is captured exactly once, in the setup flow, under the label "Available bottles."
   3. The setup flow's fuel-selection label reads "Fuel selections" (not "Fuel").
   4. Quick-counter copy uses correct singular/plural forms and the phrase "drink mix" (e.g., a rider sees `1 drink mix · 2 solids`, `2 drink mix · 1 solid`, or `1 solid` — never `mix` and never `1 solids`).
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+- [ ] 02-01-PLAN.md — Right-rail simplification + quick-counter copy fix (FUEL-01-rail, FUEL-03, FUEL-04)
+- [ ] 02-02-PLAN.md — Setup flow label renames: "Available bottles" + "Fuel selections" (FUEL-01-setup, FUEL-02)
 **UI hint**: yes
 
 ### Phase 3: Garage Cleanup
@@ -96,7 +100,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5. With `parallelizatio
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Layout & Tab Foundations | 3/3 | Complete   | 2026-04-30 |
-| 2. Fuel Plan Cleanup | 0/TBD | Not started | - |
+| 2. Fuel Plan Cleanup | 0/2 | Not started | - |
 | 3. Garage Cleanup | 0/TBD | Not started | - |
 | 4. Account Consolidation | 0/TBD | Not started | - |
 | 5. Documentation Realignment | 0/TBD | Not started | - |
