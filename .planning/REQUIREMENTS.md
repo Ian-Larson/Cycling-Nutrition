@@ -16,10 +16,10 @@ Cross-cutting fixes that propagate to every per-surface phase.
 
 ### Fuel Plan
 
-- [ ] **FUEL-01**: Remove the separate "bottles" item from the right-side Fuel Inventory rail. Bottle quantity is captured only in the setup flow, where the field is renamed to **"Available bottles"** to clarify intent.
-- [ ] **FUEL-02**: The setup-flow label currently shown as "Fuel" is renamed to **"Fuel selections"**.
-- [ ] **FUEL-03**: The right rail collapses to a single "Fuel Inventory" section — no subsections, no nested headers — once bottles are removed.
-- [ ] **FUEL-04**: Quick-counter copy in Fuel Inventory uses correct singular/plural forms and "drink mix" instead of "mix" (e.g., `2 drink mix · 1 solid`, `1 drink mix · 2 solids`, `1 solid`).
+- [x] **FUEL-01**: Remove the separate "bottles" item from the right-side Fuel Inventory rail. Bottle quantity is captured only in the setup flow, where the field is renamed to **"Available bottles"** to clarify intent.
+- [x] **FUEL-02**: The setup-flow label currently shown as "Fuel" is renamed to **"Fuel selections"**.
+- [x] **FUEL-03**: The right rail collapses to a single "Fuel Inventory" section — no subsections, no nested headers — once bottles are removed.
+- [x] **FUEL-04**: Quick-counter copy in Fuel Inventory uses correct singular/plural forms and "drink mix" instead of "mix" (e.g., `2 drink mix · 1 solid`, `1 drink mix · 2 solids`, `1 solid`).
 
 ### Garage
 
@@ -61,10 +61,10 @@ Mapped during roadmap creation by `gsd-roadmapper` on 2026-04-30.
 |-------------|-------|--------|
 | LAYOUT-01 | Phase 1 | Complete |
 | LAYOUT-02 | Phase 1 | Complete |
-| FUEL-01 | Phase 2 | Pending |
-| FUEL-02 | Phase 2 | Pending |
-| FUEL-03 | Phase 2 | Pending |
-| FUEL-04 | Phase 2 | Pending |
+| FUEL-01 | Phase 2 | Complete |
+| FUEL-02 | Phase 2 | Complete |
+| FUEL-03 | Phase 2 | Complete |
+| FUEL-04 | Phase 2 | Complete |
 | GEAR-01 | Phase 3 | Pending |
 | GEAR-02 | Phase 3 | Pending |
 | GEAR-03 | Phase 3 | Pending |

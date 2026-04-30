@@ -13,7 +13,7 @@ This milestone is a polish-only sweep across the shipped Domestique surfaces —
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Layout & Tab Foundations** - Cross-cutting page-shell padding + a single canonical tab/segmented switcher that every surface consumes (completed 2026-04-30)
-- [ ] **Phase 2: Fuel Plan Cleanup** - Right-rail simplification, setup-flow label renames, and quick-counter copy fixes
+- [x] **Phase 2: Fuel Plan Cleanup** - Right-rail simplification, setup-flow label renames, and quick-counter copy fixes (completed 2026-04-30)
 - [ ] **Phase 3: Garage Cleanup** - Service-only "Due Soon," pinned tab strip, and a denser Inventory sub-page
 - [ ] **Phase 4: Account Consolidation** - Single 2-pane Athlete + Account/Sync/Login page replacing the dedicated sync route
 - [ ] **Phase 5: Documentation Realignment** - PRODUCT.md rewritten to shipped reality and CLAUDE.md font reference corrected
@@ -53,8 +53,8 @@ Plans:
 **Plans**: 2 plans
 Plans:
 **Wave 1**
-- [ ] 02-01-PLAN.md — Right-rail simplification + quick-counter copy fix (FUEL-01-rail, FUEL-03, FUEL-04)
-- [ ] 02-02-PLAN.md — Setup flow label renames: "Available bottles" + "Fuel selections" (FUEL-01-setup, FUEL-02)
+- [x] 02-01-PLAN.md — Right-rail simplification + quick-counter copy fix (FUEL-01-rail, FUEL-03, FUEL-04)
+- [x] 02-02-PLAN.md — Setup flow label renames: "Available bottles" + "Fuel selections" (FUEL-01-setup, FUEL-02)
 **UI hint**: yes
 
 ### Phase 3: Garage Cleanup
@@ -100,7 +100,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5. With `parallelizatio
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Layout & Tab Foundations | 3/3 | Complete   | 2026-04-30 |
-| 2. Fuel Plan Cleanup | 0/2 | Not started | - |
+| 2. Fuel Plan Cleanup | 2/2 | Complete   | 2026-04-30 |
 | 3. Garage Cleanup | 0/TBD | Not started | - |
 | 4. Account Consolidation | 0/TBD | Not started | - |
 | 5. Documentation Realignment | 0/TBD | Not started | - |

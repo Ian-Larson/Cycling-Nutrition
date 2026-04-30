@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase-planned
-stopped_at: "Phase 2 planning complete — 2 plans (02-01, 02-02) verified by plan-checker (11/11 dimensions PASS). Both Wave 1, parallel-eligible (disjoint files: inventory-rail-panel.tsx + planner.tsx vs. setup-card.tsx). FUEL-01..FUEL-04 fully covered. Phase 1 already complete (commit 81ccdee)."
-last_updated: "2026-04-30T16:31:57.001Z"
-last_activity: 2026-04-30 -- Phase 2 planning complete
+status: phase-complete
+stopped_at: "Phase 2 COMPLETE — 2 plans (02-01, 02-02) shipped. inventory-rail-panel rewritten to single 'Fuel Inventory' section with formatFuelCounter (drink mix mass-noun + middle-dot + plural logic). setup-card labels renamed to 'Available bottles' / 'Fuel selections'. nutrition-rail.summary made optional (in-scope deviation). FUEL-01..FUEL-04 all satisfied. Lint + build green. Phases 3 (Garage) and 4 (Account) unblocked."
+last_updated: "2026-04-30T16:55:00.000Z"
+last_activity: 2026-04-30 -- Phase 2 execution complete (2/2 plans)
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 3
-  percent: 60
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-30)
 
 **Core value:** Every screen feels consistent, dense, and dependable — same controls in the same places with the same spacing — so a rider can produce a precise fueling plan and confirm kit readiness in seconds.
-**Current focus:** Phase 2 — Fuel Plan Cleanup (planned, ready to execute)
+**Current focus:** Phase 3 — Garage Cleanup (or Phase 4 — Account Consolidation; both parallel-eligible after Phase 1)
 
 ## Current Position
 
-Phase: 2 (Fuel Plan Cleanup) — PLANNED, ready to execute
-Plan: 0 of 2 (Wave 1 — both plans parallel-eligible)
-Status: Ready to execute
-Last activity: 2026-04-30 -- Phase 2 planning complete
+Phase: 2 (Fuel Plan Cleanup) — COMPLETE
+Plan: 2 of 2 complete
+Status: Phase 2 complete — Phases 3 and 4 unblocked
+Last activity: 2026-04-30 -- Phase 2 execution complete (2/2 plans)
 
-Progress: [██░░░░░░░░] 20% (1 of 5 phases complete; Phase 2 planned)
+Progress: [████░░░░░░] 40% (2 of 5 phases complete)
 
 ## Performance Metrics
 
@@ -74,6 +74,10 @@ Recent decisions affecting current work:
 - Plan 01-03 execution: Pre-deletion grep confirmed zero external importers; `git rm` both files atomically; lint + build green post-deletion; tree-wide grep for GearTabs/gearTabId/gearPanelId/gear-tab-ids returns zero matches. Survivor primitives (`src/components/ui/tabs.tsx`, `src/components/ui/segmented-control.tsx`, `src/components/gear/gear-sub-nav.tsx`) all present and untouched.
 - Phase 1 closeout: Human-verify no-shift acceptance test approved at 375/768/1280px viewports across all primary-tab and in-page-tab transitions. LAYOUT-01 + LAYOUT-02 marked Complete in REQUIREMENTS.md traceability table. All 4 ROADMAP success criteria satisfied at the code level.
 - Phase 2 planning: Skipped UI-SPEC + CONTEXT + RESEARCH (REQUIREMENTS.md FUEL-01..FUEL-04 already specify exact copy strings verbatim). 2 plans both Wave 1 with disjoint files — parallel-eligible. Plan 02-01 owns right-rail simplification (inventory-rail-panel.tsx + planner.tsx prop-passing cleanup) covering FUEL-01-rail/FUEL-03/FUEL-04; Plan 02-02 owns setup-flow label renames (setup-card.tsx) covering FUEL-01-setup/FUEL-02. Quick-counter formatter (FUEL-04) handles all 4 cases with `·` middle-dot separator and "drink mix" mass-noun (no "drink mixs"/"drink mixes").
+- Plan 02-02 execution: Two-line rename in setup-card.tsx — "Bottles" → "Available bottles" (line 171), "Fuel" → "Fuel selections" (line 211). Lint + build green. No deviations.
+- Plan 02-01 execution: Full file rewrite of inventory-rail-panel.tsx (94 → 43 lines) with formatFuelCounter helper; planner.tsx call-site tightened (drop bottleCounts/onIncrementBottle props + the now-unused incrementBottleCount store hook). bottleCounts hook stays — SetupCard still consumes it.
+- Plan 02-01 deviation: Made nutrition-rail.tsx `summary` prop optional (`summary?: string`) and conditionally rendered the subtitle span. Required because `formatFuelCounter` returns "" for empty-fuel state and TypeScript rejected the plan's `summary={counterSummary || undefined}` against a required-string prop. Smallest in-scope fix; saved-plans-rail-panel.tsx (other consumer) always passes a real string and is unaffected.
+- Phase 2 closeout: FUEL-01..FUEL-04 marked Complete in REQUIREMENTS.md traceability table. All 4 ROADMAP success criteria satisfied. Lint + build green at every step. Phases 3 (Garage) and 4 (Account) unblocked — both parallel-eligible per ROADMAP §Execution Order.
 
 ### Pending Todos
 
@@ -94,5 +98,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Phase 2 planning complete — 2 plans (02-01, 02-02) Wave 1 parallel-eligible. plan-checker PASS on 11/11 dimensions. Phase 1 already complete (commit 45eb992).
-Resume file: .planning/phases/02-fuel-plan-cleanup/02-01-PLAN.md
+Stopped at: Phase 2 COMPLETE — 2 plans shipped (commits 7916dbc, c49d6a1, ae8c37b). FUEL-01..FUEL-04 satisfied. Phases 3/4 unblocked.
+Resume file: .planning/phases/02-fuel-plan-cleanup/02-01-SUMMARY.md
