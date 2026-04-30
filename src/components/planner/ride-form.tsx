@@ -810,7 +810,7 @@ export function RideForm({
             {!hasFtp ? (
               <Alert variant="warning">
                 Add FTP in{' '}
-                <Link className="font-medium underline" to="/athlete?return=planner-step2">
+                <Link className="font-medium underline" to="/account?return=planner-step2">
                   Athlete
                 </Link>{' '}
                 to use auto mode.

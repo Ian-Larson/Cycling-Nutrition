@@ -246,7 +246,7 @@ export function PowerMeterAnalyzerPage() {
         }
         actions={
           <Link
-            to="/athlete#preferences"
+            to="/account#preferences"
             className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-white px-4 py-2 text-sm font-medium text-ink-800 sm:w-auto md:min-h-10"
           >
             Athlete settings
