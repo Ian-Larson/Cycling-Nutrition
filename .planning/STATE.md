@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 2 COMPLETE — 2 plans shipped (commits 7916dbc, c49d6a1, ae8c37b). FUEL-01..FUEL-04 satisfied. Phases 3/4 unblocked.
-last_updated: "2026-04-30T16:58:24.419Z"
-last_activity: 2026-04-30 -- Phase 3 planning complete
+status: phase-complete
+stopped_at: "Phase 3 COMPLETE — 2 plans shipped (commits c712819, 3d1ed03, 62883f8). GEAR-01..GEAR-04 satisfied. User-confirmed visual sanity check (tab strip no shift, breathing-room spacing fix applied via space-y-4 md:space-y-6 on <Tabs>). Phase 4 (Account) is the only Phase 1-dep gate remaining."
+last_updated: "2026-04-30T17:15:00.000Z"
+last_activity: 2026-04-30 -- Phase 3 execution complete (2/2 plans)
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 5
-  percent: 71
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-30)
 
 **Core value:** Every screen feels consistent, dense, and dependable — same controls in the same places with the same spacing — so a rider can produce a precise fueling plan and confirm kit readiness in seconds.
-**Current focus:** Phase 3 — Garage Cleanup (or Phase 4 — Account Consolidation; both parallel-eligible after Phase 1)
+**Current focus:** Phase 4 — Account Consolidation (or Phase 5 — Documentation Realignment)
 
 ## Current Position
 
-Phase: 2 (Fuel Plan Cleanup) — COMPLETE
+Phase: 3 (Garage Cleanup) — COMPLETE
 Plan: 2 of 2 complete
-Status: Ready to execute
-Last activity: 2026-04-30 -- Phase 3 planning complete
+Status: Phase 3 complete — Phase 4 unblocked
+Last activity: 2026-04-30 -- Phase 3 execution complete (2/2 plans)
 
-Progress: [████░░░░░░] 40% (2 of 5 phases complete)
+Progress: [██████░░░░] 60% (3 of 5 phases complete)
 
 ## Performance Metrics
 
@@ -78,6 +78,10 @@ Recent decisions affecting current work:
 - Plan 02-01 execution: Full file rewrite of inventory-rail-panel.tsx (94 → 43 lines) with formatFuelCounter helper; planner.tsx call-site tightened (drop bottleCounts/onIncrementBottle props + the now-unused incrementBottleCount store hook). bottleCounts hook stays — SetupCard still consumes it.
 - Plan 02-01 deviation: Made nutrition-rail.tsx `summary` prop optional (`summary?: string`) and conditionally rendered the subtitle span. Required because `formatFuelCounter` returns "" for empty-fuel state and TypeScript rejected the plan's `summary={counterSummary || undefined}` against a required-string prop. Smallest in-scope fix; saved-plans-rail-panel.tsx (other consumer) always passes a real string and is unaffected.
 - Phase 2 closeout: FUEL-01..FUEL-04 marked Complete in REQUIREMENTS.md traceability table. All 4 ROADMAP success criteria satisfied. Lint + build green at every step. Phases 3 (Garage) and 4 (Account) unblocked — both parallel-eligible per ROADMAP §Execution Order.
+- Phase 3 planning: Skipped UI-SPEC + CONTEXT + RESEARCH. 2 plans (03-01, 03-02) Wave 1 disjoint files. Plan-checker found 4 BLOCKERs against 03-02 (markdown indentation in old_string blocks didn't match source columns) — design intent verified correct on all other dimensions. Inline execution sidestepped indent issue using live file content for byte-exact matching.
+- Plan 03-01 execution: Single structural move — relocated <GearDuePreviewBand> from sibling-above-Tabs into <TabPanel value="due"> above GearDueList. Fixed inverted visibility (band → only Service tab) AND tab strip y-position constancy in one edit. Follow-up fix: added `className="space-y-4 md:space-y-6"` to <Tabs> to restore vertical rhythm between tab-list header and active panel content (parent section's space-y no longer applied because Tabs became the only sibling). User-confirmed visually.
+- Plan 03-02 execution: Deleted top counter-cards grid + 3 orphaned constants/memos (STATUS_STAT_CLASSES, STATUS_STAT_ACCENT, summaryCounts) — status counts still surface in ChipRow filter labels. Replaced per-instance <Card><CardContent> map with <DividedRowList> (same primitive active-setup-list.tsx uses) for substantially denser parts-per-scroll. Net −85 lines. All summary fields preserved (attributes, weight, miles, bike, date) via single text-xs summary line joined by `·`.
+- Phase 3 closeout: GEAR-01..GEAR-04 marked Complete in REQUIREMENTS.md traceability table. All 4 ROADMAP success criteria satisfied. User confirmed visual sanity check. Phase 4 (Account) is the next/final dependent phase before Phase 5 (Docs).
 
 ### Pending Todos
 
@@ -98,5 +102,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Phase 2 COMPLETE — 2 plans shipped (commits 7916dbc, c49d6a1, ae8c37b). FUEL-01..FUEL-04 satisfied. Phases 3/4 unblocked.
-Resume file: .planning/phases/02-fuel-plan-cleanup/02-01-SUMMARY.md
+Stopped at: Phase 3 COMPLETE — 2 plans shipped (commits c712819, 3d1ed03, 62883f8). GEAR-01..GEAR-04 satisfied. User-confirmed visually. Phase 4 unblocked.
+Resume file: .planning/phases/03-garage-cleanup/03-02-SUMMARY.md

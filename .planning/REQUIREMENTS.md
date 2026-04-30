@@ -23,10 +23,10 @@ Cross-cutting fixes that propagate to every per-surface phase.
 
 ### Garage
 
-- [ ] **GEAR-01**: The "Due Soon" service card renders only on the Service tab. It is hidden on Active Setup and History.
-- [ ] **GEAR-02**: The Active Setup / Service / History tab strip stays in a fixed vertical position regardless of which tab is active. The "Due Soon" card (or any other content) cannot push the tab strip down.
-- [ ] **GEAR-03**: The Garage → Inventory sub-page no longer shows the top counter cards.
-- [ ] **GEAR-04**: The Garage → Inventory sub-page component cards use a denser layout (reusing an existing leaner card style from elsewhere in the app) so significantly more items fit per scroll height. Reduce padding and increase information density.
+- [x] **GEAR-01**: The "Due Soon" service card renders only on the Service tab. It is hidden on Active Setup and History.
+- [x] **GEAR-02**: The Active Setup / Service / History tab strip stays in a fixed vertical position regardless of which tab is active. The "Due Soon" card (or any other content) cannot push the tab strip down.
+- [x] **GEAR-03**: The Garage → Inventory sub-page no longer shows the top counter cards.
+- [x] **GEAR-04**: The Garage → Inventory sub-page component cards use a denser layout (reusing an existing leaner card style from elsewhere in the app) so significantly more items fit per scroll height. Reduce padding and increase information density.
 
 ### Account
 
@@ -65,10 +65,10 @@ Mapped during roadmap creation by `gsd-roadmapper` on 2026-04-30.
 | FUEL-02 | Phase 2 | Complete |
 | FUEL-03 | Phase 2 | Complete |
 | FUEL-04 | Phase 2 | Complete |
-| GEAR-01 | Phase 3 | Pending |
-| GEAR-02 | Phase 3 | Pending |
-| GEAR-03 | Phase 3 | Pending |
-| GEAR-04 | Phase 3 | Pending |
+| GEAR-01 | Phase 3 | Complete |
+| GEAR-02 | Phase 3 | Complete |
+| GEAR-03 | Phase 3 | Complete |
+| GEAR-04 | Phase 3 | Complete |
 | ACCT-01 | Phase 4 | Pending |
 | DOC-01 | Phase 5 | Pending |
 | DOC-02 | Phase 5 | Pending |
