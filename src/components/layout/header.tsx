@@ -56,7 +56,7 @@ export function Header() {
           <Link
             to="/account"
             aria-label="Open account"
-            className="ml-1 inline-flex rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+            className="ml-1 inline-flex min-w-[7.5rem] justify-end rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
           >
             <SyncStatusBadge />
           </Link>
