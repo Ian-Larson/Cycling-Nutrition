@@ -12,7 +12,7 @@ This milestone is a polish-only sweep across the shipped Domestique surfaces —
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Layout & Tab Foundations** - Cross-cutting page-shell padding + a single canonical tab/segmented switcher that every surface consumes
+- [x] **Phase 1: Layout & Tab Foundations** - Cross-cutting page-shell padding + a single canonical tab/segmented switcher that every surface consumes (completed 2026-04-30)
 - [ ] **Phase 2: Fuel Plan Cleanup** - Right-rail simplification, setup-flow label renames, and quick-counter copy fixes
 - [ ] **Phase 3: Garage Cleanup** - Service-only "Due Soon," pinned tab strip, and a denser Inventory sub-page
 - [ ] **Phase 4: Account Consolidation** - Single 2-pane Athlete + Account/Sync/Login page replacing the dedicated sync route
@@ -38,7 +38,7 @@ Plans:
 - [x] 01-02-PLAN.md — Migrate Garage tabs to canonical Tabs/TabList/Tab/TabPanel ✓ 2026-04-30 (31dfc6d)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 01-03-PLAN.md — Delete deprecated gear-tabs.tsx and gear-tab-ids.ts; manual no-shift acceptance test
+- [x] 01-03-PLAN.md — Delete deprecated gear-tabs.tsx and gear-tab-ids.ts; manual no-shift acceptance test
 **UI hint**: yes
 
 ### Phase 2: Fuel Plan Cleanup
@@ -95,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5. With `parallelizatio
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Layout & Tab Foundations | 2/3 | In progress | - |
+| 1. Layout & Tab Foundations | 3/3 | Complete   | 2026-04-30 |
 | 2. Fuel Plan Cleanup | 0/TBD | Not started | - |
 | 3. Garage Cleanup | 0/TBD | Not started | - |
 | 4. Account Consolidation | 0/TBD | Not started | - |

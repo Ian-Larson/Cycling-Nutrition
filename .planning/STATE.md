@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: "Phase 1 Plan 02 complete (Garage tabs migrated to canonical Tabs/TabList/Tab/TabPanel from @/components/ui; gear-tabs.tsx + gear-tab-ids.ts now orphaned). Wave 3 ready: Plan 01-03 (delete orphans + manual no-shift acceptance test)."
-last_updated: "2026-04-30T13:48:57Z"
-last_activity: 2026-04-30 -- Phase 1 Plan 02 complete (commit 31dfc6d)
+status: phase-complete
+stopped_at: "Phase 1 COMPLETE (commit 81ccdee) — gear-tabs.tsx + gear-tab-ids.ts deleted; tree-wide grep returns zero references; lint + build green; human-verify no-shift acceptance test approved at 375/768/1280px. LAYOUT-01 + LAYOUT-02 satisfied. Phases 2/3/4 unblocked (parallel-eligible per ROADMAP §Execution Order)."
+last_updated: "2026-04-30T16:35:00.000Z"
+last_activity: 2026-04-30 -- Phase 1 execution complete (3/3 plans, no-shift test approved)
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 13
+  completed_plans: 3
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-30)
 
 ## Current Position
 
-Phase: 1 (Layout & Tab Foundations) — EXECUTING
-Plan: 3 of 3 (Wave 3 — orphan deletion + no-shift acceptance test)
-Status: Executing Phase 1
-Last activity: 2026-04-30 -- Phase 1 Plan 02 complete (commit 31dfc6d)
+Phase: 1 (Layout & Tab Foundations) — COMPLETE
+Plan: 3 of 3 complete
+Status: Phase 1 complete — Phases 2/3/4 unblocked
+Last activity: 2026-04-30 -- Phase 1 execution complete (3/3 plans, no-shift test approved)
 
-Progress: [█░░░░░░░░░] 13%
+Progress: [██░░░░░░░░] 20% (1 of 5 phases)
 
 ## Performance Metrics
 
@@ -71,6 +71,8 @@ Recent decisions affecting current work:
 - Plan 01-02 execution: Define `GearTabValue` inline in gear.tsx (`type GearTabValue = 'active' | 'due' | 'history'`) so the gear-tab-ids.ts import drops this plan; bridge canonical `Tabs.onChange (string)` to existing `handleTabChange (GearTabValue)` via `(v) => handleTabChange(v as GearTabValue)` cast — safe because only three Tab values exist, all in the union.
 - Plan 01-02 execution: Drop the `{tab === '...' ? ( ... ) : null}` outer guards entirely — canonical `<TabPanel>` (default `keepMounted=false`) handles conditional mount + full ARIA contract internally; preserved `<GearDuePreviewBand>` rendering above tablist row unchanged (Phase 3 / GEAR-02 owns its visibility logic).
 - LAYOUT-02 status: kept Pending in REQUIREMENTS.md after Plan 01-02 because the contract requires Plan 01-03 to delete the orphaned hand-rolled implementation (gear-tabs.tsx + gear-tab-ids.ts). Plan 01-02 alone only satisfies the canonical-consumption half. Will mark complete when Plan 01-03 lands.
+- Plan 01-03 execution: Pre-deletion grep confirmed zero external importers; `git rm` both files atomically; lint + build green post-deletion; tree-wide grep for GearTabs/gearTabId/gearPanelId/gear-tab-ids returns zero matches. Survivor primitives (`src/components/ui/tabs.tsx`, `src/components/ui/segmented-control.tsx`, `src/components/gear/gear-sub-nav.tsx`) all present and untouched.
+- Phase 1 closeout: Human-verify no-shift acceptance test approved at 375/768/1280px viewports across all primary-tab and in-page-tab transitions. LAYOUT-01 + LAYOUT-02 marked Complete in REQUIREMENTS.md traceability table. All 4 ROADMAP success criteria satisfied at the code level.
 
 ### Pending Todos
 

@@ -11,8 +11,8 @@ Requirements for this milestone. Each maps to one roadmap phase.
 
 Cross-cutting fixes that propagate to every per-surface phase.
 
-- [ ] **LAYOUT-01**: Page-shell side padding is identical across all primary tabs (Fuel Plan, Garage, Account) and all sub-tabs within each surface. Switching tabs must not produce any horizontal shift.
-- [ ] **LAYOUT-02**: Tab switchers across Fuel Plan and Garage use a single shared component with consistent styling, sizing, and behavior. Existing primitives in `src/components/ui/` (e.g. `segmented-control`, `tabs`) consolidate to one canonical control.
+- [x] **LAYOUT-01**: Page-shell side padding is identical across all primary tabs (Fuel Plan, Garage, Account) and all sub-tabs within each surface. Switching tabs must not produce any horizontal shift.
+- [x] **LAYOUT-02**: Tab switchers across Fuel Plan and Garage use a single shared component with consistent styling, sizing, and behavior. Existing primitives in `src/components/ui/` (e.g. `segmented-control`, `tabs`) consolidate to one canonical control.
 
 ### Fuel Plan
 
@@ -59,8 +59,8 @@ Mapped during roadmap creation by `gsd-roadmapper` on 2026-04-30.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LAYOUT-01 | Phase 1 | Pending |
-| LAYOUT-02 | Phase 1 | Pending |
+| LAYOUT-01 | Phase 1 | Complete |
+| LAYOUT-02 | Phase 1 | Complete |
 | FUEL-01 | Phase 2 | Pending |
 | FUEL-02 | Phase 2 | Pending |
 | FUEL-03 | Phase 2 | Pending |
