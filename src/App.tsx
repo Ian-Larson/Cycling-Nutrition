@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Header } from '@/components/layout/header';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { PlannerPage } from '@/pages/planner';
-import { AthletePage } from '@/pages/athlete';
 import { InventoryPage } from '@/pages/inventory';
 import { HistoryPage } from '@/pages/history';
 import { GearPage } from '@/pages/gear';
@@ -32,7 +31,7 @@ function App() {
             <Routes>
               <Route path="/" element={<PlannerPage />} />
               <Route path="/nutrition-plan" element={<Navigate to="/" replace />} />
-              <Route path="/athlete" element={<AthletePage />} />
+              <Route path="/athlete" element={<Navigate to="/account" replace />} />
               <Route path="/inventory" element={<InventoryPage />} />
               <Route path="/bottles" element={<Navigate to="/inventory" replace />} />
               <Route path="/products" element={<Navigate to="/inventory" replace />} />
@@ -49,7 +48,7 @@ function App() {
                 path="/settings"
                 element={
                   <Navigate
-                    to={{ pathname: '/athlete', hash: '#preferences' }}
+                    to={{ pathname: '/account', hash: '#preferences' }}
                     replace
                   />
                 }
