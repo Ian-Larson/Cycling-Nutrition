@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { Checkbox } from '@/components/ui';
 import type { Product } from '@/types';
@@ -17,10 +16,8 @@ export function SolidFuelSelector({
   if (solidProducts.length === 0) {
     return (
       <p className="text-sm leading-6 text-ink-600">
-        No gels, chews, or bars added yet.{' '}
-        <Link to="/inventory" className="font-semibold text-brand-700 underline">
-          Add products
-        </Link>
+        No gels, chews, or bars added yet. Add one from the Fuel inventory
+        panel.
       </p>
     );
   }

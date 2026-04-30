@@ -29,10 +29,10 @@ describe('primary navigation grouping', () => {
 });
 
 describe('section navigation grouping', () => {
-  it('keeps inventory and saved plans inside nutrition planning', () => {
+  it('keeps bottles and saved plans inside nutrition planning', () => {
     expect(getSectionNavItems('nutrition').map((item) => item.label)).toEqual([
       'Build plan',
-      'Inventory',
+      'Bottles',
       'Saved plans',
     ]);
   });

@@ -57,8 +57,8 @@ const sectionNavItems: Record<NavSection, readonly NavRouteItem[]> = {
     { path: '/', label: 'Build plan', matchPaths: ['/', '/nutrition-plan'] },
     {
       path: '/inventory',
-      label: 'Inventory',
-      matchPaths: ['/inventory', '/bottles', '/products'],
+      label: 'Bottles',
+      matchPaths: ['/inventory', '/bottles'],
     },
     { path: '/history', label: 'Saved plans', matchPaths: ['/history'] },
   ],

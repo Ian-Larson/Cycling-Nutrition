@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { clsx } from 'clsx';
 import { Button, Input, Select, Toggle } from '@/components/ui';
 import type { Product, ProductType, ConcentrationRange } from '@/types';
 
@@ -8,6 +9,8 @@ interface ProductFormProps {
   onDelete?: () => void;
   initialData?: Product;
   submitLabel?: string;
+  /** Single-column layout for narrow containers (e.g. inline rail editor). */
+  compact?: boolean;
 }
 
 const typeOptions = [
@@ -24,7 +27,9 @@ export function ProductForm({
   onDelete,
   initialData,
   submitLabel,
+  compact = false,
 }: ProductFormProps) {
+  const gridClass = clsx('grid gap-3 md:gap-4', !compact && 'sm:grid-cols-2');
   const [name, setName] = useState(initialData?.name ?? '');
   const [brand, setBrand] = useState(initialData?.brand ?? '');
   const [type, setType] = useState<ProductType>(initialData?.type ?? 'drink_mix');
@@ -126,7 +131,7 @@ export function ProductForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
+      <div className={gridClass}>
         <Input
           label="Fuel name"
           placeholder="e.g., Maurten 320"
@@ -150,7 +155,7 @@ export function ProductForm({
         onChange={(e) => setType(e.target.value as ProductType)}
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
+      <div className={gridClass}>
         <Input
           label="Carbs per serving (g)"
           type="number"
@@ -175,7 +180,7 @@ export function ProductForm({
       </div>
 
       {isDrinkMix && (
-        <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
+        <div className={gridClass}>
           <Input
             label="Serving size (g)"
             type="number"
@@ -196,7 +201,7 @@ export function ProductForm({
       )}
 
       {isDrinkMix && (
-        <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
+        <div className={gridClass}>
           <Input
             label="Min concentration (g/ml)"
             type="number"
@@ -236,15 +241,18 @@ export function ProductForm({
         />
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Button type="submit" className="w-full sm:w-auto">
+      <div className={clsx('flex gap-2', compact ? 'flex-col' : 'flex-col sm:flex-row')}>
+        <Button
+          type="submit"
+          className={clsx('w-full', !compact && 'sm:w-auto')}
+        >
           {submitLabel ?? (initialData ? 'Save' : 'Add fuel')}
         </Button>
         <Button
           type="button"
           variant="secondary"
           onClick={onCancel}
-          className="w-full sm:w-auto"
+          className={clsx('w-full', !compact && 'sm:w-auto')}
         >
           Cancel
         </Button>
@@ -254,7 +262,10 @@ export function ProductForm({
               type="button"
               variant="danger"
               onClick={onDelete}
-              className="relative w-full overflow-hidden sm:w-auto"
+              className={clsx(
+                'relative w-full overflow-hidden',
+                !compact && 'sm:w-auto'
+              )}
             >
               Confirm?
               <span className="absolute bottom-0 left-0 h-0.5 bg-white/50 animate-[shrink_4s_linear_forwards]" />
@@ -264,7 +275,7 @@ export function ProductForm({
               type="button"
               variant="danger"
               onClick={() => setConfirmingDelete(true)}
-              className="w-full sm:w-auto"
+              className={clsx('w-full', !compact && 'sm:w-auto')}
             >
               Delete
             </Button>

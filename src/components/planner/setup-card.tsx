@@ -224,11 +224,7 @@ export function SetupCard({
               </div>
               {drinkMixes.length === 0 ? (
                 <p className="text-sm leading-6 text-ink-600">
-                  No drink mixes saved.{' '}
-                  <Link to="/inventory" className="font-semibold text-brand-700 underline">
-                    Add fuel
-                  </Link>
-                  .
+                  No drink mixes saved. Add one from the Fuel inventory panel.
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -259,11 +255,7 @@ export function SetupCard({
               </div>
               {solidProducts.length === 0 ? (
                 <p className="text-sm leading-6 text-ink-600">
-                  No solid fuel saved.{' '}
-                  <Link to="/inventory" className="font-semibold text-brand-700 underline">
-                    Add fuel
-                  </Link>
-                  .
+                  No solid fuel saved. Add one from the Fuel inventory panel.
                 </p>
               ) : (
                 <div className="space-y-2">

@@ -34,7 +34,7 @@ function App() {
               <Route path="/athlete" element={<Navigate to="/account" replace />} />
               <Route path="/inventory" element={<InventoryPage />} />
               <Route path="/bottles" element={<Navigate to="/inventory" replace />} />
-              <Route path="/products" element={<Navigate to="/inventory" replace />} />
+              <Route path="/products" element={<Navigate to="/" replace />} />
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/gear" element={<GearPage />} />
               <Route path="/gear/inventory" element={<GearInventoryPage />} />
