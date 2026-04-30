@@ -99,7 +99,11 @@ Plans:
   1. PRODUCT.md is committed (no longer untracked) and contains no references to a `#547597`-anchored palette or to dark-mode parity; the orange `#f8622e` brand is documented as the shipped identity.
   2. PRODUCT.md is grounded in the actual codebase — referenced primitives exist in `src/components/ui/`, referenced tokens exist in the `@theme` block of `src/index.css`, and IA descriptions match the post-sweep Fuel Plan / Garage / Account surfaces.
   3. CLAUDE.md's font reference reads "IBM Plex Sans" — the strings "Outfit" and "Source Sans 3" no longer appear as the project's typography.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+- [ ] 05-01-PLAN.md — Rewrite PRODUCT.md to shipped reality (orange #f8622e brand, light-mode only, real primitives/tokens/IA) and commit (DOC-01)
+- [ ] 05-02-PLAN.md — Correct CLAUDE.md font reference: (Outfit, Source Sans 3) → (IBM Plex Sans) (DOC-02)
 **UI hint**: no
 
 ## Progress
