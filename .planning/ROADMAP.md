@@ -66,7 +66,11 @@ Plans:
   2. The Active Setup / Service / History tab strip stays in a fixed vertical position regardless of which sub-tab is active; switching tabs never pushes the tab strip up or down.
   3. The Garage → Inventory sub-page no longer shows the top counter cards.
   4. The Garage → Inventory sub-page uses a denser component-card layout (reusing an existing leaner card style from elsewhere in the app), so noticeably more parts fit per scroll height than before this phase.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+- [ ] 03-01-PLAN.md — Move GearDuePreviewBand into Service TabPanel; pin tab strip (GEAR-01, GEAR-02)
+- [ ] 03-02-PLAN.md — Delete Inventory counter cards; swap per-instance Cards to DividedRowList (GEAR-03, GEAR-04)
 **UI hint**: yes
 
 ### Phase 4: Account Consolidation
@@ -101,6 +105,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5. With `parallelizatio
 |-------|----------------|--------|-----------|
 | 1. Layout & Tab Foundations | 3/3 | Complete   | 2026-04-30 |
 | 2. Fuel Plan Cleanup | 2/2 | Complete   | 2026-04-30 |
-| 3. Garage Cleanup | 0/TBD | Not started | - |
+| 3. Garage Cleanup | 0/2 | Not started | - |
 | 4. Account Consolidation | 0/TBD | Not started | - |
 | 5. Documentation Realignment | 0/TBD | Not started | - |
