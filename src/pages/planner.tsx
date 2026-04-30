@@ -12,7 +12,6 @@ import {
   Toast,
 } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
-import { SectionNav } from '@/components/layout/section-nav';
 import { DebugCopyButton } from '@/components/planner/debug-copy-button';
 import { FuelResult } from '@/components/planner/fuel-result';
 import { FuelResultV3 } from '@/components/planner/fuel-result-v3';
@@ -570,38 +569,34 @@ export function PlannerPage() {
               Choose bottles and fuel, then enter ride data.
             </>
           }
+          meta={
+            <div aria-live="polite" className="text-xs text-ink-500">
+              {activeStep !== 3 && (
+                <span
+                  className={`inline-flex items-center gap-1 transition-opacity duration-300 ${
+                    draftSavedFlash ? 'opacity-100' : 'opacity-0'
+                  }`}
+                >
+                  <svg
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    aria-hidden
+                    className="h-3.5 w-3.5 text-success-700"
+                  >
+                    <path
+                      d="m3.5 8.5 2.8 2.8L12.5 5"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  Draft saved
+                </span>
+              )}
+            </div>
+          }
         />
-
-        <SectionNav section="nutrition" />
-
-        <div
-          aria-live="polite"
-          className="min-h-[1.25rem] text-right text-xs text-ink-500"
-        >
-          {activeStep !== 3 && (
-            <span
-              className={`inline-flex items-center gap-1 transition-opacity duration-300 ${
-                draftSavedFlash ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              <svg
-                viewBox="0 0 16 16"
-                fill="none"
-                aria-hidden
-                className="h-3.5 w-3.5 text-success-700"
-              >
-                <path
-                  d="m3.5 8.5 2.8 2.8L12.5 5"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Draft saved
-            </span>
-          )}
-        </div>
 
         <NutritionWorkspaceLayout
           main={
