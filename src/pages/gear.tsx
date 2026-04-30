@@ -247,7 +247,11 @@ export function GearPage() {
         </aside>
 
         <section className="min-w-0 space-y-3 md:space-y-4">
-          <Tabs value={tab} onChange={(v) => handleTabChange(v as GearTabValue)}>
+          <Tabs
+            value={tab}
+            onChange={(v) => handleTabChange(v as GearTabValue)}
+            className="space-y-4 md:space-y-6"
+          >
             <div className="flex flex-col gap-2 border-b border-[color:var(--border-soft)] pb-3 sm:flex-row sm:items-center sm:justify-between md:pb-4">
               <TabList label="Gear view">
                 <Tab value="active">Active setup</Tab>
