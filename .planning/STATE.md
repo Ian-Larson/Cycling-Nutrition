@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase-planned
-stopped_at: "Phase 4 planning complete — 2 plans (04-01 extract AthletePane, 04-02 consolidate Account + remove athlete route). plan-checker PASS on 14/14 dimensions. Plan 04-01 wave 1 (pure refactor); Plan 04-02 wave 2 depends_on [04-01]."
-last_updated: "2026-04-30T17:30:00.000Z"
-last_activity: 2026-04-30 -- Phase 4 planning complete
+status: executing
+stopped_at: Phase 4 Plan 04-01 complete (Wave 1) — AthletePane extracted; lint+build+tests green. Plan 04-02 (Wave 2) is unblocked.
+last_updated: "2026-04-30T19:21:35Z"
+last_activity: 2026-04-30 -- Plan 04-01 complete (Wave 1)
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 9
-  completed_plans: 7
-  percent: 78
+  completed_plans: 8
+  percent: 89
 ---
 
 # Project State
@@ -21,24 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-30)
 
 **Core value:** Every screen feels consistent, dense, and dependable — same controls in the same places with the same spacing — so a rider can produce a precise fueling plan and confirm kit readiness in seconds.
-**Current focus:** Phase 4 — Account Consolidation (planned, ready to execute)
+**Current focus:** Phase 4 — Account Consolidation
 
 ## Current Position
 
-Phase: 4 (Account Consolidation) — PLANNED, ready to execute
-Plan: 0 of 2 (Wave 1: 04-01 refactor; Wave 2: 04-02 consolidate)
-Status: Ready to execute
-Last activity: 2026-04-30 -- Phase 4 planning complete
+Phase: 4 (Account Consolidation) — EXECUTING
+Plan: 2 of 2
+Status: Executing Phase 4 (Wave 1 complete; Wave 2 unblocked)
+Last activity: 2026-04-30 -- Plan 04-01 complete (Wave 1)
 
-Progress: [██████░░░░] 60% (3 of 5 phases complete)
+Progress: [████████▉░] 89% (8 of 9 plans complete; 3 of 5 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 2
-- Average duration: ~1m 22s
-- Total execution time: ~2m 44s
+- Total plans completed: 3
+- Average duration: ~2m 11s
+- Total execution time: ~5m 51s
 
 **By Phase:**
 
@@ -47,13 +47,13 @@ Progress: [██████░░░░] 60% (3 of 5 phases complete)
 | 1. Layout & Tab Foundations | 2 | ~2m 44s | ~1m 22s |
 | 2. Fuel Plan Cleanup | 0 | — | — |
 | 3. Garage Cleanup | 0 | — | — |
-| 4. Account Consolidation | 0 | — | — |
+| 4. Account Consolidation | 1 | ~2m 47s | ~2m 47s |
 | 5. Documentation Realignment | 0 | — | — |
 
 **Recent Trend:**
 
-- Last 5 plans: 01-02 (~1m 33s, 1 file, refactor) → 01-01 (~1m 11s, 8 files, refactor)
-- Trend: stable (~1.2m/plan, both refactors, both first-try clean — no deviations)
+- Last 5 plans: 04-01 (~2m 47s, 2 files, refactor) → 01-02 (~1m 33s, 1 file, refactor) → 01-01 (~1m 11s, 8 files, refactor)
+- Trend: stable (~2m/plan, all refactors, all first-try clean — no deviations)
 
 *Updated after each plan completion*
 
@@ -83,6 +83,8 @@ Recent decisions affecting current work:
 - Plan 03-02 execution: Deleted top counter-cards grid + 3 orphaned constants/memos (STATUS_STAT_CLASSES, STATUS_STAT_ACCENT, summaryCounts) — status counts still surface in ChipRow filter labels. Replaced per-instance <Card><CardContent> map with <DividedRowList> (same primitive active-setup-list.tsx uses) for substantially denser parts-per-scroll. Net −85 lines. All summary fields preserved (attributes, weight, miles, bike, date) via single text-xs summary line joined by `·`.
 - Phase 3 closeout: GEAR-01..GEAR-04 marked Complete in REQUIREMENTS.md traceability table. All 4 ROADMAP success criteria satisfied. User confirmed visual sanity check. Phase 4 (Account) is the next/final dependent phase before Phase 5 (Docs).
 - Phase 4 planning: Skipped UI-SPEC + CONTEXT + RESEARCH. 2 plans extracted via 2-wave decomposition. Plan 04-01 (Wave 1, pure refactor) extracts AthletePage body into `src/components/account/athlete-pane.tsx` — `/athlete` route still works post-extraction. Plan 04-02 (Wave 2, depends_on [04-01]) consolidates `src/pages/account.tsx` to render <AthletePane /> on top + condensed Sign-in/Sync/Strava cards below; deletes athlete.tsx; redirects `/athlete` → `/account` and `/settings#preferences` → `/account#preferences`; sets `sectionNavItems.account = []`; rewires 2 internal links (ride-form.tsx:813, power-meter-analyzer.tsx:249); updates navigation.test.ts. Preserves `id="preferences"` deep-link anchor. plan-checker PASS on 14/14 dimensions. Lessons applied from Plan 03-02 indent regression — every old_string block aligned to file column.
+- Plan 04-01 execution: New file `src/components/account/athlete-pane.tsx` (536 lines) exports `AthletePane`; `src/pages/athlete.tsx` thinned 562 → 34 lines as a shell rendering `PageIntro` + `SectionNav` + `<AthletePane />` inside `page-shell`. Pane keeps `Link` import (Preferences and Connections cards have internal Links to `/account` and `/power-meter-analyzer`); drops `useSearchParams`/`PageIntro`/`SectionNav` (those stay at the page-shell level). All types, constants, and helpers (`OptionalNumericAthleteField`, `AthleteFieldErrorKey`, `GUT_TARGET_PRESETS`, `TEMPERATURE_OPTIONS`, `roundTo`, `getGutTargetLabel`, `parseDraftNumber`, `getWeightDraftFromProfile`) move with AthletePane — they are pane-internal implementation, not page-shell concerns. `id="preferences"` deep-link anchor preserved (grep = 1). `?return=planner-step2` Back-to-plan plumbing stays at the page level byte-for-byte. Lint + build + 515/515 vitest tests green first-try. No deviations.
+- ACCT-01 status: kept Pending in REQUIREMENTS.md after Plan 04-01 because the requirement contract is satisfied only when /account becomes the consolidated 2-pane page (current Plan 04-01 only completes the AthletePane extraction half — /athlete still exists as its own route). Will mark complete when Plan 04-02 lands. Same per-requirement deferral pattern used for LAYOUT-01/02 and FUEL-01..FUEL-04 in earlier phases.
 
 ### Pending Todos
 
@@ -103,5 +105,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Phase 4 planning complete — 2 plans (04-01 + 04-02), 2 waves, plan-checker PASS 14/14. Phase 3 already complete.
-Resume file: .planning/phases/04-account-consolidation/04-01-PLAN.md
+Stopped at: Phase 4 Plan 04-01 complete (Wave 1) — AthletePane extracted; lint+build+tests green. Plan 04-02 (Wave 2) is unblocked.
+Resume file: .planning/phases/04-account-consolidation/04-02-PLAN.md

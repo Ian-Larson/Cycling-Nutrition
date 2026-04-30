@@ -85,7 +85,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 **Wave 1**
-- [ ] 04-01-PLAN.md — Extract <AthletePane /> from athlete.tsx into src/components/account/ (pure refactor, no behavior change)
+- [x] 04-01-PLAN.md — Extract <AthletePane /> from athlete.tsx into src/components/account/ (pure refactor, no behavior change) ✓ 2026-04-30 (9bcd7f9)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 04-02-PLAN.md — Consolidate /account into a 2-pane page; redirect /athlete + /settings; rewire internal links (ACCT-01)
@@ -112,5 +112,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5. With `parallelizatio
 | 1. Layout & Tab Foundations | 3/3 | Complete   | 2026-04-30 |
 | 2. Fuel Plan Cleanup | 2/2 | Complete   | 2026-04-30 |
 | 3. Garage Cleanup | 2/2 | Complete   | 2026-04-30 |
-| 4. Account Consolidation | 0/2 | Planned | - |
+| 4. Account Consolidation | 1/2 | In progress | - |
 | 5. Documentation Realignment | 0/TBD | Not started | - |
