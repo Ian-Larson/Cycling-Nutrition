@@ -26,7 +26,7 @@ npm run lint     # Run ESLint
 
 - **React 19 + TypeScript + Vite** - SPA deployed to GitHub Pages
 - **Zustand** - State management with localStorage persistence
-- **Tailwind CSS v4** - Styling with custom fonts (Outfit, Source Sans 3)
+- **Tailwind CSS v4** - Styling with custom fonts (IBM Plex Sans)
 
 ### Key Directories
 
