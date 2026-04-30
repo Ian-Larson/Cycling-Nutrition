@@ -5,12 +5,6 @@ import { useStravaGear } from '@/hooks/use-strava-gear';
 import { BikePillRow } from '@/components/gear/bike-pill-row';
 import { BikeSystemCard } from '@/components/gear/bike-system-card';
 import { GearSubNav } from '@/components/gear/gear-sub-nav';
-import { GearTabs } from '@/components/gear/gear-tabs';
-import {
-  gearPanelId,
-  gearTabId,
-  type GearTabValue,
-} from '@/components/gear/gear-tab-ids';
 import { ActiveSetupList } from '@/components/gear/active-setup-list';
 import { GearDueList } from '@/components/gear/gear-due-list';
 import { GearDuePreviewBand } from '@/components/gear/gear-due-preview-band';
@@ -21,10 +15,12 @@ import { GearHistoryTable } from '@/components/gear/gear-history-table';
 import { EditServiceEventSheet } from '@/components/gear/edit-service-event-sheet';
 import { deriveActiveSetup } from '@/lib/gear/derive-active-setup';
 import { deriveGearDue } from '@/lib/gear/derive-gear-due';
-import { Card, CardContent } from '@/components/ui';
+import { Card, CardContent, Tab, TabList, TabPanel, Tabs } from '@/components/ui';
 import type { BikeSlotKey, GearServiceTypeKey } from '@/types/gear';
 import type { ActiveSetupRow } from '@/lib/gear/derive-active-setup';
 import type { GearDueItem } from '@/lib/gear/derive-gear-due';
+
+type GearTabValue = 'active' | 'due' | 'history';
 
 function todayIso(): string {
   const date = new Date();
@@ -260,19 +256,19 @@ export function GearPage() {
               selectedBikeId={selectedBikeIdForView}
             />
           ) : null}
-          <div className="flex flex-col gap-2 border-b border-[color:var(--border-soft)] pb-3 sm:flex-row sm:items-center sm:justify-between md:pb-4">
-            <GearTabs value={tab} onChange={handleTabChange} />
-            <p className="section-kicker text-[0.68rem] text-ink-500">
-              {activeCountLabel}
-            </p>
-          </div>
+          <Tabs value={tab} onChange={(v) => handleTabChange(v as GearTabValue)}>
+            <div className="flex flex-col gap-2 border-b border-[color:var(--border-soft)] pb-3 sm:flex-row sm:items-center sm:justify-between md:pb-4">
+              <TabList label="Gear view">
+                <Tab value="active">Active setup</Tab>
+                <Tab value="due">Service</Tab>
+                <Tab value="history">History</Tab>
+              </TabList>
+              <p className="section-kicker text-[0.68rem] text-ink-500">
+                {activeCountLabel}
+              </p>
+            </div>
 
-          {tab === 'active' ? (
-            <div
-              role="tabpanel"
-              id={gearPanelId('active')}
-              aria-labelledby={gearTabId('active')}
-            >
+            <TabPanel value="active">
               {!selectedBike ? (
                 <Card>
                   <CardContent className="py-5 md:py-6">
@@ -296,29 +292,17 @@ export function GearPage() {
                   }
                 />
               )}
-            </div>
-          ) : null}
+            </TabPanel>
 
-          {tab === 'due' ? (
-            <div
-              role="tabpanel"
-              id={gearPanelId('due')}
-              aria-labelledby={gearTabId('due')}
-            >
+            <TabPanel value="due">
               <GearDueList
                 items={filteredDueItems}
                 bikes={bikes}
                 onLogService={handleQueueDueService}
               />
-            </div>
-          ) : null}
+            </TabPanel>
 
-          {tab === 'history' ? (
-            <div
-              role="tabpanel"
-              id={gearPanelId('history')}
-              aria-labelledby={gearTabId('history')}
-            >
+            <TabPanel value="history">
               <GearHistoryTable
                 events={filteredServiceEvents}
                 installRecords={
@@ -333,8 +317,8 @@ export function GearPage() {
                 instances={gearPartInstances}
                 onEditEvent={(id) => setEditEventId(id)}
               />
-            </div>
-          ) : null}
+            </TabPanel>
+          </Tabs>
         </section>
       </div>
 
