@@ -29,7 +29,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Page-shell side padding is identical across every primary route and every sub-route, sourced from a single shared layout primitive.
   3. Every tab/segmented switcher across Fuel Plan and Garage renders from one canonical UI primitive in `src/components/ui/` — there is no second tab style anywhere in the app.
   4. The canonical tab control behaves identically across surfaces (same active-state styling, same keyboard interaction, same height/spacing).
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+**Wave 1**
+- [ ] 01-01-PLAN.md — Page-shell padding consolidation (strip max-w-6xl from 8 pages)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 01-02-PLAN.md — Migrate Garage tabs to canonical Tabs/TabList/Tab/TabPanel
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 01-03-PLAN.md — Delete deprecated gear-tabs.tsx and gear-tab-ids.ts; manual no-shift acceptance test
 **UI hint**: yes
 
 ### Phase 2: Fuel Plan Cleanup
@@ -86,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5. With `parallelizatio
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Layout & Tab Foundations | 0/TBD | Not started | - |
+| 1. Layout & Tab Foundations | 0/3 | Not started | - |
 | 2. Fuel Plan Cleanup | 0/TBD | Not started | - |
 | 3. Garage Cleanup | 0/TBD | Not started | - |
 | 4. Account Consolidation | 0/TBD | Not started | - |
