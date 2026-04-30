@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-04-30)
 
 Phase: 1 of 5 (Layout & Tab Foundations)
 Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-04-30 — Roadmap created; 13/13 v1 requirements mapped across 5 phases
+Status: UI-SPEC approved — ready for `/gsd-discuss-phase 1` or `/gsd-plan-phase 1`
+Last activity: 2026-04-30 — Phase 1 UI design contract approved (`.planning/phases/01-layout-tab-foundations/01-UI-SPEC.md`); 4/6 dimensions PASS, 2/6 FLAG (non-blocking, brownfield lock)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -67,5 +67,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: ROADMAP.md and STATE.md initialized; Phase 1 ready to plan with `/impeccable` lens.
-Resume file: None
+Stopped at: Phase 1 UI-SPEC approved (canonical primitive: `src/components/ui/tabs.tsx`; deletion target: `src/components/gear/gear-tabs.tsx` + `gear-tab-ids.ts`; page-shell padding locked at `.page-shell` utility — 16px mobile / 24px desktop).
+Resume file: .planning/phases/01-layout-tab-foundations/01-UI-SPEC.md

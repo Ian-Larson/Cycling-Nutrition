@@ -1,10 +1,11 @@
 ---
 phase: 1
 slug: layout-tab-foundations
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-30
+reviewed_at: 2026-04-30
 ---
 
 # Phase 1 — UI Design Contract
@@ -247,11 +248,17 @@ Out of scope: `src/components/layout/callback-card.tsx` (auth/OAuth landing — 
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS (n/a for foundations phase — explicitly noted; downstream phases will add their own copy contracts)
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS (n/a — no registries in this project)
+- [x] Dimension 1 Copywriting: PASS (n/a for foundations phase — explicitly noted; downstream phases will add their own copy contracts)
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: FLAG (4 sizes / 4 effective weights — brownfield lock; documented existing usage, not new declarations)
+- [x] Dimension 5 Spacing: FLAG (`gap-1.5`/`gap-2.5` cataloged from Tailwind defaults — not net-new contract additions)
+- [x] Dimension 6 Registry Safety: PASS (n/a — no registries in this project)
 
-**Approval:** pending
+**Approval:** approved 2026-04-30 (4 PASS, 2 FLAG non-blocking)
+
+### Recommendations Carried Forward (non-blocking)
+
+- A future polish phase touching typography should consolidate to ≤2 weights per `/impeccable` (one body weight + one display weight).
+- A future polish pass could snap `gap-1.5` (6px) and `gap-2.5` (10px) inventory cells to `gap-2` (8px) and `gap-3` (12px) for grid purity.
+- Foundation 4's no-shift acceptance test is concrete but manual — consider a Playwright regression assertion in a later phase.
