@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase-complete
-stopped_at: "Phase 3 COMPLETE — 2 plans shipped (commits c712819, 3d1ed03, 62883f8). GEAR-01..GEAR-04 satisfied. User-confirmed visual sanity check (tab strip no shift, breathing-room spacing fix applied via space-y-4 md:space-y-6 on <Tabs>). Phase 4 (Account) is the only Phase 1-dep gate remaining."
-last_updated: "2026-04-30T17:15:00.000Z"
-last_activity: 2026-04-30 -- Phase 3 execution complete (2/2 plans)
+status: phase-planned
+stopped_at: "Phase 4 planning complete — 2 plans (04-01 extract AthletePane, 04-02 consolidate Account + remove athlete route). plan-checker PASS on 14/14 dimensions. Plan 04-01 wave 1 (pure refactor); Plan 04-02 wave 2 depends_on [04-01]."
+last_updated: "2026-04-30T17:30:00.000Z"
+last_activity: 2026-04-30 -- Phase 4 planning complete
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 7
+  total_plans: 9
   completed_plans: 7
-  percent: 100
+  percent: 78
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-30)
 
 **Core value:** Every screen feels consistent, dense, and dependable — same controls in the same places with the same spacing — so a rider can produce a precise fueling plan and confirm kit readiness in seconds.
-**Current focus:** Phase 4 — Account Consolidation (or Phase 5 — Documentation Realignment)
+**Current focus:** Phase 4 — Account Consolidation (planned, ready to execute)
 
 ## Current Position
 
-Phase: 3 (Garage Cleanup) — COMPLETE
-Plan: 2 of 2 complete
-Status: Phase 3 complete — Phase 4 unblocked
-Last activity: 2026-04-30 -- Phase 3 execution complete (2/2 plans)
+Phase: 4 (Account Consolidation) — PLANNED, ready to execute
+Plan: 0 of 2 (Wave 1: 04-01 refactor; Wave 2: 04-02 consolidate)
+Status: Ready to execute
+Last activity: 2026-04-30 -- Phase 4 planning complete
 
 Progress: [██████░░░░] 60% (3 of 5 phases complete)
 
@@ -82,6 +82,7 @@ Recent decisions affecting current work:
 - Plan 03-01 execution: Single structural move — relocated <GearDuePreviewBand> from sibling-above-Tabs into <TabPanel value="due"> above GearDueList. Fixed inverted visibility (band → only Service tab) AND tab strip y-position constancy in one edit. Follow-up fix: added `className="space-y-4 md:space-y-6"` to <Tabs> to restore vertical rhythm between tab-list header and active panel content (parent section's space-y no longer applied because Tabs became the only sibling). User-confirmed visually.
 - Plan 03-02 execution: Deleted top counter-cards grid + 3 orphaned constants/memos (STATUS_STAT_CLASSES, STATUS_STAT_ACCENT, summaryCounts) — status counts still surface in ChipRow filter labels. Replaced per-instance <Card><CardContent> map with <DividedRowList> (same primitive active-setup-list.tsx uses) for substantially denser parts-per-scroll. Net −85 lines. All summary fields preserved (attributes, weight, miles, bike, date) via single text-xs summary line joined by `·`.
 - Phase 3 closeout: GEAR-01..GEAR-04 marked Complete in REQUIREMENTS.md traceability table. All 4 ROADMAP success criteria satisfied. User confirmed visual sanity check. Phase 4 (Account) is the next/final dependent phase before Phase 5 (Docs).
+- Phase 4 planning: Skipped UI-SPEC + CONTEXT + RESEARCH. 2 plans extracted via 2-wave decomposition. Plan 04-01 (Wave 1, pure refactor) extracts AthletePage body into `src/components/account/athlete-pane.tsx` — `/athlete` route still works post-extraction. Plan 04-02 (Wave 2, depends_on [04-01]) consolidates `src/pages/account.tsx` to render <AthletePane /> on top + condensed Sign-in/Sync/Strava cards below; deletes athlete.tsx; redirects `/athlete` → `/account` and `/settings#preferences` → `/account#preferences`; sets `sectionNavItems.account = []`; rewires 2 internal links (ride-form.tsx:813, power-meter-analyzer.tsx:249); updates navigation.test.ts. Preserves `id="preferences"` deep-link anchor. plan-checker PASS on 14/14 dimensions. Lessons applied from Plan 03-02 indent regression — every old_string block aligned to file column.
 
 ### Pending Todos
 
@@ -102,5 +103,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Phase 3 COMPLETE — 2 plans shipped (commits c712819, 3d1ed03, 62883f8). GEAR-01..GEAR-04 satisfied. User-confirmed visually. Phase 4 unblocked.
-Resume file: .planning/phases/03-garage-cleanup/03-02-SUMMARY.md
+Stopped at: Phase 4 planning complete — 2 plans (04-01 + 04-02), 2 waves, plan-checker PASS 14/14. Phase 3 already complete.
+Resume file: .planning/phases/04-account-consolidation/04-01-PLAN.md
