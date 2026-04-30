@@ -35,7 +35,7 @@ Plans:
 - [x] 01-01-PLAN.md — Page-shell padding consolidation (strip max-w-6xl from 8 pages) ✓ 2026-04-30 (a8991b5)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 01-02-PLAN.md — Migrate Garage tabs to canonical Tabs/TabList/Tab/TabPanel
+- [x] 01-02-PLAN.md — Migrate Garage tabs to canonical Tabs/TabList/Tab/TabPanel ✓ 2026-04-30 (31dfc6d)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 01-03-PLAN.md — Delete deprecated gear-tabs.tsx and gear-tab-ids.ts; manual no-shift acceptance test
@@ -95,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5. With `parallelizatio
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Layout & Tab Foundations | 1/3 | In progress | - |
+| 1. Layout & Tab Foundations | 2/3 | In progress | - |
 | 2. Fuel Plan Cleanup | 0/TBD | Not started | - |
 | 3. Garage Cleanup | 0/TBD | Not started | - |
 | 4. Account Consolidation | 0/TBD | Not started | - |
