@@ -82,7 +82,13 @@ Plans:
   2. The previously separate sync/login page is gone — no nav entry, no working URL — and any legacy link redirects to the consolidated Account page.
   3. Page-shell side padding on the Account page matches every other primary route (per Phase 1) — switching to Account from Fuel Plan or Garage produces no horizontal shift.
   4. Sign-in, sign-out, Strava connect/disconnect, and cloud-sync status indicators all function from this single page with no regressions versus the prior dedicated sync route.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+- [ ] 04-01-PLAN.md — Extract <AthletePane /> from athlete.tsx into src/components/account/ (pure refactor, no behavior change)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 04-02-PLAN.md — Consolidate /account into a 2-pane page; redirect /athlete + /settings; rewire internal links (ACCT-01)
 **UI hint**: yes
 
 ### Phase 5: Documentation Realignment
@@ -106,5 +112,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5. With `parallelizatio
 | 1. Layout & Tab Foundations | 3/3 | Complete   | 2026-04-30 |
 | 2. Fuel Plan Cleanup | 2/2 | Complete   | 2026-04-30 |
 | 3. Garage Cleanup | 2/2 | Complete   | 2026-04-30 |
-| 4. Account Consolidation | 0/TBD | Not started | - |
+| 4. Account Consolidation | 0/2 | Planned | - |
 | 5. Documentation Realignment | 0/TBD | Not started | - |
