@@ -188,7 +188,7 @@ export function InventoryPage() {
   );
 
   return (
-    <div className="page-shell max-w-6xl space-y-4 md:space-y-6">
+    <div className="page-shell space-y-4 md:space-y-6">
       <PageIntro
         title="Inventory"
         description={

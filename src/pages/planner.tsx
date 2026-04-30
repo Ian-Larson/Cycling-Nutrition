@@ -563,7 +563,7 @@ export function PlannerPage() {
 
   return (
     <>
-      <div className="page-shell max-w-6xl space-y-5 md:space-y-6">
+      <div className="page-shell space-y-5 md:space-y-6">
         <PageIntro
           title="Fuel plan"
           description={

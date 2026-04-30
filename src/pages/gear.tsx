@@ -218,7 +218,7 @@ export function GearPage() {
 
   return (
     <div
-      className="page-shell max-w-6xl space-y-4 md:space-y-6"
+      className="page-shell space-y-4 md:space-y-6"
     >
       <PageIntro
         title="Garage"
