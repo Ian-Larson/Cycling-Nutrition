@@ -60,3 +60,18 @@ The calculator (`src/lib/calculator/`) handles:
 - Commit early and often: With clear messages about what the commit solves.
 - Break tasks into small issues and tackle them. Separate features, use best coding practices
 - After making and approving a plan, always name it and place it in the Plans folder as a .md file
+
+## GSD Workflow
+
+This repo is managed with GSD (Get-Shit-Done). The current milestone is **Polish & Redesign Sweep v1** — see `.planning/` for the source of truth:
+
+- `.planning/PROJECT.md` — what Domestique is, core value, constraints, key decisions
+- `.planning/REQUIREMENTS.md` — v1 requirements (REQ-IDs) and traceability
+- `.planning/ROADMAP.md` — 5 phases, foundations-first, dependencies, success criteria
+- `.planning/STATE.md` — current phase, position, accumulated context
+- `.planning/codebase/` — codebase map (STACK / ARCHITECTURE / STRUCTURE / CONVENTIONS / INTEGRATIONS / TESTING / CONCERNS)
+- `.planning/config.json` — workflow config (mode: yolo, granularity: coarse, parallelization: true)
+
+**Phase planning uses `/impeccable`** as the design lens. Use `/gsd-plan-phase 1` (or `/gsd-discuss-phase 1` first) to start.
+
+Historical implementation plans live in `Plans/` and are reference-only — they predate the GSD workflow.
