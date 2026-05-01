@@ -260,43 +260,40 @@ export function IdentityStrip() {
       type="button"
       onClick={enterEdit}
       aria-label="Edit athlete profile"
-      className="group flex w-full flex-wrap items-baseline justify-between gap-x-6 gap-y-1 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:px-4"
+      className="group block w-full rounded-xl border border-[color:var(--border-soft)] bg-white px-4 py-3 text-left transition-colors hover:border-ink-200 hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:px-5 md:py-3.5"
     >
-      <div className="flex min-w-0 items-baseline gap-x-3">
-        <span className="font-sans text-[1.18rem] font-bold leading-tight tracking-[-0.024em] text-ink-900 md:text-[1.28rem]">
-          {displayName}
-        </span>
-        {stats.length > 0 ? (
-          <span className="font-sans text-sm text-ink-500 [font-variant-numeric:tabular-nums]">
-            {stats.join(' · ')}
+      <div className="flex items-baseline justify-between gap-3">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <span className="truncate font-sans text-[1.18rem] font-bold leading-tight tracking-[-0.024em] text-ink-900 md:text-[1.28rem]">
+            {displayName}
           </span>
-        ) : (
-          <span className="text-sm text-ink-400">Tap to set your stats</span>
-        )}
+          <span className="flex shrink-0 items-baseline gap-1">
+            <span className="font-sans text-base font-semibold text-ink-900 [font-variant-numeric:tabular-nums] md:text-[1.05rem]">
+              {wKg ?? '—'}
+            </span>
+            <span className="text-[0.7rem] font-semibold tracking-wide text-ink-500">
+              W/kg
+            </span>
+          </span>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-shell-100 px-2 py-1 text-xs font-semibold uppercase tracking-[0.06em] text-ink-600 transition-colors group-hover:bg-brand-50 group-hover:text-brand-700">
+          Edit
+          <svg viewBox="0 0 16 16" aria-hidden className="h-3 w-3">
+            <path
+              d="m6 4 4 4-4 4"
+              stroke="currentColor"
+              fill="none"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
       </div>
 
-      <div className="flex items-baseline gap-2">
-        <div className="flex items-baseline gap-1">
-          <span className="font-sans text-[1.35rem] font-bold leading-none text-ink-900 [font-variant-numeric:tabular-nums] md:text-[1.45rem]">
-            {wKg ?? '—'}
-          </span>
-          <span className="text-xs font-semibold tracking-wide text-ink-500">W/kg</span>
-        </div>
-        <svg
-          viewBox="0 0 16 16"
-          aria-hidden
-          className="h-3.5 w-3.5 self-center text-ink-300 transition-colors group-hover:text-ink-500"
-        >
-          <path
-            d="m6 4 4 4-4 4"
-            stroke="currentColor"
-            fill="none"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
+      <p className="mt-1 font-sans text-sm text-ink-500 [font-variant-numeric:tabular-nums]">
+        {stats.length > 0 ? stats.join(' · ') : 'Tap to set your stats'}
+      </p>
     </button>
   );
 }

@@ -34,20 +34,17 @@ interface RowProps {
   control: ReactNode;
   helper?: ReactNode;
   id?: string;
-  /** Tailwind grid-column override for the row inside a multi-col Section. */
-  span?: string;
 }
 
-function Row({ label, control, helper, id, span }: RowProps) {
+function Row({ label, control, helper, id }: RowProps) {
   return (
-    <li
-      id={id}
-      className={`flex scroll-mt-24 flex-wrap items-center justify-between gap-x-4 gap-y-1.5 py-2.5 md:py-3 ${span ?? ''}`}
-    >
-      <div className="text-sm font-medium text-ink-800">{label}</div>
-      <div className="min-w-0 shrink-0">{control}</div>
+    <li id={id} className="scroll-mt-24 py-2.5 md:py-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="w-32 shrink-0 text-sm font-medium text-ink-800">{label}</div>
+        <div className="min-w-0">{control}</div>
+      </div>
       {helper ? (
-        <p className="basis-full text-xs leading-5 text-ink-500">{helper}</p>
+        <p className="mt-1 pl-[9rem] text-xs leading-5 text-ink-500">{helper}</p>
       ) : null}
     </li>
   );
@@ -57,23 +54,15 @@ interface SectionProps {
   kicker: string;
   children: ReactNode;
   id?: string;
-  /** When true, the section uses a 2-col grid for its rows on sm+. */
-  grid?: boolean;
 }
 
-function Section({ kicker, children, id, grid }: SectionProps) {
+function Section({ kicker, children, id }: SectionProps) {
   return (
     <section id={id} className="scroll-mt-24">
       <p className="section-kicker mb-1 uppercase tracking-[0.08em] text-ink-500">
         {kicker}
       </p>
-      <ul
-        className={`divide-y divide-[color:var(--border-soft)] ${
-          grid ? 'sm:grid sm:grid-cols-2 sm:gap-x-8 sm:divide-y-0' : ''
-        }`}
-      >
-        {children}
-      </ul>
+      <ul className="divide-y divide-[color:var(--border-soft)]">{children}</ul>
     </section>
   );
 }
@@ -175,7 +164,7 @@ export function Settings() {
         />
       </Section>
 
-      <Section kicker="Display" id="preferences" grid>
+      <Section kicker="Display" id="preferences">
         <Row
           label="Units"
           control={
@@ -211,7 +200,6 @@ export function Settings() {
         <Row
           label="Fueling engine"
           helper="Adds pre/post-ride targets and warnings. Needs weight."
-          span="sm:col-span-2"
           control={
             <SegmentedControl
               size="sm"

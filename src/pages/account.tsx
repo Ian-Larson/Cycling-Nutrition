@@ -9,7 +9,7 @@ export function AccountPage() {
 
   return (
     <div className="page-shell">
-      <div className="mx-auto w-full max-w-2xl space-y-5 md:space-y-7">
+      <div className="mx-auto w-full max-w-xl space-y-5 md:space-y-7">
         {plannerReturnStep ? (
           <Link
             to={`/${plannerReturnStep}`}
