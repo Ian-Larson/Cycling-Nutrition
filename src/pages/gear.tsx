@@ -1,26 +1,32 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { PageIntro } from '@/components/layout/page-intro';
+import { PlanningStepPanel } from '@/components/planner/planning-step-panel';
 import { useStore } from '@/store';
 import { useStravaGear } from '@/hooks/use-strava-gear';
 import { BikePillRow } from '@/components/gear/bike-pill-row';
 import { BikeSystemCard } from '@/components/gear/bike-system-card';
-import { GearSubNav } from '@/components/gear/gear-sub-nav';
 import { ActiveSetupList } from '@/components/gear/active-setup-list';
-import { GearDueList } from '@/components/gear/gear-due-list';
-import { GearDuePreviewBand } from '@/components/gear/gear-due-preview-band';
+import { ServiceTimeline } from '@/components/gear/service-timeline';
 import { InstallPartSheet } from '@/components/gear/install-part-sheet';
 import { LogGearServiceSheet } from '@/components/gear/log-gear-service-sheet';
 import { RemovePartSheet } from '@/components/gear/remove-part-sheet';
-import { GearHistoryTable } from '@/components/gear/gear-history-table';
 import { EditServiceEventSheet } from '@/components/gear/edit-service-event-sheet';
 import { deriveActiveSetup } from '@/lib/gear/derive-active-setup';
 import { deriveGearDue } from '@/lib/gear/derive-gear-due';
-import { Card, CardContent, Tab, TabList, TabPanel, Tabs } from '@/components/ui';
-import type { BikeSlotKey, GearServiceTypeKey } from '@/types/gear';
+import { deriveGarageStatus } from '@/lib/gear/garage-status';
+import { Card, CardContent } from '@/components/ui';
+import type {
+  Bike,
+  BikeSlotKey,
+  GearInstallRecord,
+  GearServiceTypeKey,
+} from '@/types/gear';
 import type { ActiveSetupRow } from '@/lib/gear/derive-active-setup';
 import type { GearDueItem } from '@/lib/gear/derive-gear-due';
+import type { GarageStatus } from '@/lib/gear/garage-status';
 
-type GearTabValue = 'active' | 'due' | 'history';
+type OpenPanel = 'active' | 'service' | null;
 
 function todayIso(): string {
   const date = new Date();
@@ -28,6 +34,133 @@ function todayIso(): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function isInstallActive(record: GearInstallRecord): boolean {
+  return (
+    record.removedAtMileageMi === undefined &&
+    record.removedDateIso === undefined
+  );
+}
+
+function describeActiveSetup(
+  selectedBike: Bike | null,
+  selectedBikeIdForView: string | null,
+  installedCount: number
+): string {
+  if (selectedBikeIdForView === null) return 'Pick a bike to see installed parts';
+  if (selectedBike === null) return 'Choose a bike';
+  if (installedCount === 0) return 'No parts installed yet';
+  return `${installedCount} ${installedCount === 1 ? 'part' : 'parts'} installed`;
+}
+
+function describeService(
+  status: GarageStatus,
+  selectedBikeId: string | null,
+  hasAnyHistory: boolean
+): string {
+  if (!status.hasAttention) {
+    if (!hasAnyHistory) return 'No history yet';
+    return 'All clear';
+  }
+
+  if (selectedBikeId === null) {
+    const total =
+      status.garageWideCounts.overdue + status.garageWideCounts.soon;
+    return `${total} due across your garage`;
+  }
+
+  const thisBikeTotal =
+    status.thisBikeCounts.overdue + status.thisBikeCounts.soon;
+  const elsewhereOverdue = status.elsewhereCounts.overdue;
+  const elsewhereSoon = status.elsewhereCounts.soon;
+  const elsewhereTotal = elsewhereOverdue + elsewhereSoon;
+
+  const elsewhereSuffix =
+    elsewhereOverdue > 0
+      ? `${elsewhereOverdue} overdue elsewhere`
+      : `${elsewhereSoon} due soon elsewhere`;
+
+  if (thisBikeTotal === 0) return elsewhereSuffix;
+  if (elsewhereTotal === 0) {
+    return `${thisBikeTotal} due on this bike`;
+  }
+  return `${thisBikeTotal} due on this bike, ${elsewhereSuffix}`;
+}
+
+interface AllBikesActiveStackProps {
+  bikes: Bike[];
+  installRecords: GearInstallRecord[];
+  perBikeUrgency: GarageStatus['perBikeUrgency'];
+  onSelectBike: (bikeId: string) => void;
+}
+
+function AllBikesActiveStack({
+  bikes,
+  installRecords,
+  perBikeUrgency,
+  onSelectBike,
+}: AllBikesActiveStackProps) {
+  if (bikes.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-5 md:py-6">
+          <p className="text-sm leading-5 text-ink-600">
+            Add a bike to start tracking gear and service.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <ul className="flex flex-col gap-3">
+      {bikes.map((bike) => {
+        const installedCount = installRecords.filter(
+          (record) => record.bikeId === bike.id && isInstallActive(record)
+        ).length;
+        const urgency = perBikeUrgency[bike.id] ?? null;
+        const urgencyLabel =
+          urgency === 'overdue'
+            ? 'Service overdue'
+            : urgency === 'soon'
+              ? 'Service due soon'
+              : null;
+        return (
+          <li key={bike.id}>
+            <button
+              type="button"
+              onClick={() => onSelectBike(bike.id)}
+              aria-label={`View active setup for ${bike.name}`}
+              className="surface-note group flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:px-4"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold leading-5 text-ink-900">
+                  {bike.name}
+                  {bike.isPrimary ? (
+                    <span className="ml-1.5 align-middle text-xs font-normal text-ink-500">
+                      ·primary
+                    </span>
+                  ) : null}
+                </p>
+                <p className="mt-0.5 truncate text-xs leading-5 text-ink-600 tabular-nums">
+                  {installedCount}{' '}
+                  {installedCount === 1 ? 'part' : 'parts'} installed
+                  {urgencyLabel ? ` · ${urgencyLabel.toLowerCase()}` : ''}
+                </p>
+              </div>
+              <span
+                aria-hidden
+                className="text-ink-500 transition-colors group-hover:text-ink-700"
+              >
+                →
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 export function GearPage() {
@@ -54,7 +187,7 @@ export function GearPage() {
   );
   const selectedBikeId = useStore((s) => s.gearSelectedBikeId);
   const setGearSelectedBikeId = useStore((s) => s.setGearSelectedBikeId);
-  const [tab, setTab] = useState<GearTabValue>('active');
+
   const [installSlotKey, setInstallSlotKey] = useState<BikeSlotKey | null>(null);
   const [removeInstallId, setRemoveInstallId] = useState<string | null>(null);
   const [serviceContext, setServiceContext] = useState<{
@@ -76,7 +209,9 @@ export function GearPage() {
     () => bikes.find((bike) => bike.id === selectedBikeIdForView) ?? null,
     [bikes, selectedBikeIdForView]
   );
+
   const currentTodayIso = useMemo(() => todayIso(), []);
+
   const activeRows = useMemo(
     () =>
       selectedBike
@@ -98,6 +233,7 @@ export function GearPage() {
       selectedBike,
     ]
   );
+
   const dueItems = useMemo(
     () =>
       deriveGearDue({
@@ -108,6 +244,17 @@ export function GearPage() {
       }),
     [bikes, currentTodayIso, gearInstallRecords, gearServiceEvents]
   );
+
+  const garageStatus = useMemo(
+    () =>
+      deriveGarageStatus({
+        bikes,
+        dueItems,
+        selectedBikeId: selectedBikeIdForView,
+      }),
+    [bikes, dueItems, selectedBikeIdForView]
+  );
+
   const filteredDueItems = useMemo(
     () =>
       selectedBikeIdForView
@@ -115,27 +262,60 @@ export function GearPage() {
         : dueItems,
     [dueItems, selectedBikeIdForView]
   );
+
   const filteredServiceEvents = useMemo(
     () =>
       selectedBikeIdForView
-        ? gearServiceEvents.filter((event) => event.bikeId === selectedBikeIdForView)
+        ? gearServiceEvents.filter(
+            (event) => event.bikeId === selectedBikeIdForView
+          )
         : gearServiceEvents,
     [gearServiceEvents, selectedBikeIdForView]
   );
+
+  const filteredInstallRecords = useMemo(
+    () =>
+      selectedBikeIdForView
+        ? gearInstallRecords.filter(
+            (record) => record.bikeId === selectedBikeIdForView
+          )
+        : gearInstallRecords,
+    [gearInstallRecords, selectedBikeIdForView]
+  );
+
   const activeInstalledCount = activeRows.filter(
     (row) => row.installRecord !== null
   ).length;
-  const activeCountLabel = {
-    active: selectedBike
-      ? `${activeInstalledCount} ${activeInstalledCount === 1 ? 'part' : 'parts'} installed`
-      : 'Choose a bike',
-    due: `${filteredDueItems.length} ${
-      filteredDueItems.length === 1 ? 'item' : 'items'
-    } due`,
-    history: `${filteredServiceEvents.length} ${
-      filteredServiceEvents.length === 1 ? 'service' : 'services'
-    } logged`,
-  }[tab];
+
+  const sparesCount = useMemo(
+    () =>
+      gearPartInstances.filter(
+        (instance) =>
+          !gearInstallRecords.some(
+            (record) =>
+              record.partInstanceId === instance.id && isInstallActive(record)
+          )
+      ).length,
+    [gearPartInstances, gearInstallRecords]
+  );
+
+  const hasAnyHistory =
+    gearServiceEvents.length > 0 || gearInstallRecords.length > 0;
+
+  const activeSummary = describeActiveSetup(
+    selectedBike,
+    selectedBikeIdForView,
+    activeInstalledCount
+  );
+  const serviceSummary = describeService(
+    garageStatus,
+    selectedBikeIdForView,
+    hasAnyHistory
+  );
+
+  const [openPanel, setOpenPanel] = useState<OpenPanel>(() =>
+    garageStatus.hasAttention ? 'service' : 'active'
+  );
 
   // Mirror fresh Strava bikes into the store whenever they arrive.
   useEffect(() => {
@@ -144,16 +324,18 @@ export function GearPage() {
     }
   }, [stravaBikes, upsertBikesFromStrava]);
 
-  // Seed the selection with the primary bike on first mount so a brand-new
-  // user doesn't land on "All bikes". Only seed when nothing is stored yet;
-  // a user who explicitly picks "All bikes" stays on null.
+  // Seed the selection with the primary bike on first mount only. A user who
+  // explicitly picks "All bikes" stays on null until they pick a bike.
+  const seededRef = useRef(false);
   useEffect(() => {
-    if (selectedBikeId !== null) return;
+    if (seededRef.current) return;
     if (primaryBikeId === null) return;
-    const stored = useStore.getState().gearSelectedBikeId;
-    if (stored === null && !bikes.some((b) => b.id === primaryBikeId)) return;
-    if (stored === null) setGearSelectedBikeId(primaryBikeId);
-  }, [bikes, primaryBikeId, selectedBikeId, setGearSelectedBikeId]);
+    if (!bikes.some((b) => b.id === primaryBikeId)) return;
+    if (useStore.getState().gearSelectedBikeId === null) {
+      setGearSelectedBikeId(primaryBikeId);
+    }
+    seededRef.current = true;
+  }, [bikes, primaryBikeId, setGearSelectedBikeId]);
 
   const handleRefresh = () => {
     void refresh();
@@ -163,8 +345,8 @@ export function GearPage() {
     setGearSelectedBikeId(bikeId);
   };
 
-  const handleTabChange = (nextTab: GearTabValue) => {
-    setTab(nextTab);
+  const togglePanel = (panel: 'active' | 'service') => {
+    setOpenPanel((current) => (current === panel ? null : panel));
   };
 
   const handleQueueService = (context: {
@@ -193,6 +375,11 @@ export function GearPage() {
     });
   };
 
+  const handleSelectBikeFromStack = (bikeId: string) => {
+    setGearSelectedBikeId(bikeId);
+    setOpenPanel('active');
+  };
+
   const removeInstallRecord =
     gearInstallRecords.find((record) => record.id === removeInstallId) ?? null;
   const removeInstance =
@@ -212,19 +399,29 @@ export function GearPage() {
       ? selectedBike
       : bikes.find((bike) => bike.id === serviceContext.bikeId) ?? selectedBike;
 
+  const inventoryLinkLabel =
+    sparesCount > 0
+      ? `Inventory · ${sparesCount} ${sparesCount === 1 ? 'spare' : 'spares'}`
+      : 'Inventory';
+
   return (
-    <div
-      className="page-shell space-y-4 md:space-y-6"
-    >
+    <div className="page-shell space-y-4 md:space-y-6">
       <PageIntro
         title="Garage"
-        description="Track installed parts, due service, spare inventory, and maintenance history."
+        description="Installed parts, service schedule, and maintenance log."
+        meta={
+          <Link
+            to="/gear/inventory"
+            className="inline-flex items-center gap-1 text-xs font-medium text-brand-700 transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+          >
+            {inventoryLinkLabel}
+            <span aria-hidden>→</span>
+          </Link>
+        }
       />
 
-      <GearSubNav />
-
-      <div className="grid gap-4 lg:grid-cols-[minmax(16rem,18rem)_minmax(0,1fr)] lg:items-start lg:gap-6">
-        <aside className="space-y-3 lg:sticky lg:top-20">
+      <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] lg:items-start lg:gap-5 lg:space-y-0 xl:gap-6">
+        <aside className="space-y-3 lg:order-2 lg:sticky lg:top-[5.25rem]">
           <div className="surface-note p-3 md:p-4">
             <BikePillRow
               bikes={bikes}
@@ -234,6 +431,8 @@ export function GearPage() {
               isRefreshing={isFetching}
               lastSyncedAt={lastSyncedAt}
               stravaError={error}
+              perBikeUrgency={garageStatus.perBikeUrgency}
+              worstAcrossGarage={garageStatus.worstAcrossGarage}
             />
           </div>
           {selectedBike ? (
@@ -246,81 +445,65 @@ export function GearPage() {
           ) : null}
         </aside>
 
-        <section className="min-w-0 space-y-3 md:space-y-4">
-          <Tabs
-            value={tab}
-            onChange={(v) => handleTabChange(v as GearTabValue)}
-            className="space-y-4 md:space-y-6"
+        <section className="min-w-0 space-y-3 md:space-y-4 lg:order-1">
+          <PlanningStepPanel
+            title="Active setup"
+            summary={activeSummary}
+            active={openPanel === 'active'}
+            complete={false}
+            onToggle={() => togglePanel('active')}
           >
-            <div className="flex flex-col gap-2 border-b border-[color:var(--border-soft)] pb-3 sm:flex-row sm:items-center sm:justify-between md:pb-4">
-              <TabList label="Gear view">
-                <Tab value="active">Active setup</Tab>
-                <Tab value="due">Service</Tab>
-                <Tab value="history">History</Tab>
-              </TabList>
-              <p className="section-kicker text-[0.68rem] text-ink-500">
-                {activeCountLabel}
-              </p>
-            </div>
-
-            <TabPanel value="active">
-              {!selectedBike ? (
-                <Card>
-                  <CardContent className="py-5 md:py-6">
-                    <p className="text-sm leading-5 text-ink-600">
-                      Choose a bike to view its active setup.
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <ActiveSetupList
-                  rows={activeRows}
-                  onInstall={handleQueueInstall}
-                  onRemove={handleQueueRemove}
-                  onService={(row) =>
-                    handleQueueService({
-                      bikeId: selectedBike.id,
-                      slotKey: row.slotKey,
-                      partInstanceId: row.instance?.id,
-                      typeKey: row.latestService?.typeKey,
-                    })
-                  }
-                />
-              )}
-            </TabPanel>
-
-            <TabPanel value="due">
-              <GearDuePreviewBand
-                items={filteredDueItems}
-                bikes={bikes}
-                onLogService={handleQueueDueService}
-                onViewAll={() => setTab('due')}
-                selectedBikeId={selectedBikeIdForView}
-              />
-              <GearDueList
-                items={filteredDueItems}
-                bikes={bikes}
-                onLogService={handleQueueDueService}
-              />
-            </TabPanel>
-
-            <TabPanel value="history">
-              <GearHistoryTable
-                events={filteredServiceEvents}
-                installRecords={
-                  selectedBikeIdForView
-                    ? gearInstallRecords.filter(
-                        (record) => record.bikeId === selectedBikeIdForView
-                      )
-                    : gearInstallRecords
+            {selectedBike ? (
+              <ActiveSetupList
+                rows={activeRows}
+                onInstall={handleQueueInstall}
+                onRemove={handleQueueRemove}
+                onService={(row) =>
+                  handleQueueService({
+                    bikeId: selectedBike.id,
+                    slotKey: row.slotKey,
+                    partInstanceId: row.instance?.id,
+                    typeKey: row.latestService?.typeKey,
+                  })
                 }
-                bikes={bikes}
-                catalog={gearPartCatalog}
-                instances={gearPartInstances}
-                onEditEvent={(id) => setEditEventId(id)}
               />
-            </TabPanel>
-          </Tabs>
+            ) : selectedBikeIdForView === null ? (
+              <AllBikesActiveStack
+                bikes={bikes}
+                installRecords={gearInstallRecords}
+                perBikeUrgency={garageStatus.perBikeUrgency}
+                onSelectBike={handleSelectBikeFromStack}
+              />
+            ) : (
+              <Card>
+                <CardContent className="py-5 md:py-6">
+                  <p className="text-sm leading-5 text-ink-600">
+                    Choose a bike to view its active setup.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </PlanningStepPanel>
+
+          <PlanningStepPanel
+            title="Service"
+            summary={serviceSummary}
+            active={openPanel === 'service'}
+            complete={false}
+            onToggle={() => togglePanel('service')}
+          >
+            <ServiceTimeline
+              dueItems={filteredDueItems}
+              events={filteredServiceEvents}
+              installRecords={filteredInstallRecords}
+              bikes={bikes}
+              catalog={gearPartCatalog}
+              instances={gearPartInstances}
+              showBikeName={selectedBikeIdForView === null}
+              onLogService={handleQueueDueService}
+              onEditEvent={(id) => setEditEventId(id)}
+            />
+          </PlanningStepPanel>
         </section>
       </div>
 

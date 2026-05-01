@@ -1,6 +1,7 @@
 import { clsx } from 'clsx';
 import { Link } from 'react-router-dom';
 import { Chip } from '@/components/ui';
+import type { GearUrgency } from '@/lib/gear/derive-active-setup';
 import type { Bike } from '@/types/gear';
 
 interface BikePillRowProps {
@@ -11,6 +12,10 @@ interface BikePillRowProps {
   isRefreshing: boolean;
   lastSyncedAt: number | null;
   stravaError: string | null;
+  /** Worst urgency per bike id; null for clean. */
+  perBikeUrgency: Record<string, GearUrgency | null>;
+  /** Worst urgency across the whole garage; powers the All-bikes pill dot. */
+  worstAcrossGarage: GearUrgency | null;
 }
 
 function formatSyncedAgo(ts: number): string {
@@ -24,6 +29,36 @@ function formatSyncedAgo(ts: number): string {
   return `synced ${diffDay}d ago`;
 }
 
+function urgencyDotClass(urgency: GearUrgency | null): string | null {
+  if (urgency === 'overdue') return 'bg-error-500';
+  if (urgency === 'soon') return 'bg-warning-500';
+  return null;
+}
+
+function urgencyAriaSuffix(urgency: GearUrgency | null): string {
+  if (urgency === 'overdue') return ', service overdue';
+  if (urgency === 'soon') return ', service due soon';
+  return '';
+}
+
+interface PillStatusDotProps {
+  urgency: GearUrgency | null;
+}
+
+function PillStatusDot({ urgency }: PillStatusDotProps) {
+  const dotClass = urgencyDotClass(urgency);
+  if (dotClass === null) return null;
+  return (
+    <span
+      aria-hidden
+      className={clsx(
+        'ml-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full ring-2 ring-shell-100',
+        dotClass
+      )}
+    />
+  );
+}
+
 export function BikePillRow({
   bikes,
   selectedBikeId,
@@ -32,6 +67,8 @@ export function BikePillRow({
   isRefreshing,
   lastSyncedAt,
   stravaError,
+  perBikeUrgency,
+  worstAcrossGarage,
 }: BikePillRowProps) {
   const syncLabel = stravaError
     ? stravaError
@@ -89,24 +126,35 @@ export function BikePillRow({
           <Chip
             selected={selectedBikeId === null}
             onClick={() => onSelect(null)}
+            aria-label={`All bikes${urgencyAriaSuffix(worstAcrossGarage)}`}
           >
-            All bikes
+            <span>All bikes</span>
+            <PillStatusDot urgency={worstAcrossGarage} />
           </Chip>
-          {bikes.map((bike) => (
-            <Chip
-              key={bike.id}
-              selected={bike.id === selectedBikeId}
-              onClick={() => onSelect(bike.id)}
-              title={bike.name}
-            >
-              <span className="inline-block max-w-[13rem] truncate align-bottom">
-                {bike.name}
-              </span>
-              {bike.isPrimary ? (
-                <span className="ml-1.5 text-xs text-ink-500">·primary</span>
-              ) : null}
-            </Chip>
-          ))}
+          {bikes.map((bike) => {
+            const urgency = perBikeUrgency[bike.id] ?? null;
+            return (
+              <Chip
+                key={bike.id}
+                selected={bike.id === selectedBikeId}
+                onClick={() => onSelect(bike.id)}
+                title={bike.name}
+                aria-label={`${bike.name}${
+                  bike.isPrimary ? ', primary' : ''
+                }${urgencyAriaSuffix(urgency)}`}
+              >
+                <span className="inline-block max-w-[13rem] truncate align-bottom">
+                  {bike.name}
+                </span>
+                {bike.isPrimary ? (
+                  <span aria-hidden className="ml-1.5 text-xs text-ink-500">
+                    ·primary
+                  </span>
+                ) : null}
+                <PillStatusDot urgency={urgency} />
+              </Chip>
+            );
+          })}
         </div>
       )}
     </div>

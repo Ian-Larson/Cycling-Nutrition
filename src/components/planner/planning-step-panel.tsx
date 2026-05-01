@@ -3,7 +3,8 @@ import type { ReactNode } from 'react';
 import { Card, CardContent } from '@/components/ui';
 
 interface PlanningStepPanelProps {
-  step: number;
+  /** Step number badge. Omit for parallel (non-sequential) panels. */
+  step?: number;
   title: string;
   summary: string;
   active: boolean;
@@ -51,16 +52,18 @@ export function PlanningStepPanel({
         )}
       >
         <span className="flex min-w-0 items-start gap-3">
-          <span
-            className={clsx(
-              'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-sm font-semibold',
-              active || complete
-                ? 'border-brand-300 bg-brand-100 text-brand-800'
-                : 'border-[color:var(--border-soft)] bg-shell-50 text-ink-600'
-            )}
-          >
-            {step}
-          </span>
+          {step !== undefined ? (
+            <span
+              className={clsx(
+                'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-sm font-semibold',
+                active || complete
+                  ? 'border-brand-300 bg-brand-100 text-brand-800'
+                  : 'border-[color:var(--border-soft)] bg-shell-50 text-ink-600'
+              )}
+            >
+              {step}
+            </span>
+          ) : null}
           <span className="min-w-0">
             <span className="flex flex-wrap items-center gap-2">
               <span className="section-title text-base">{title}</span>

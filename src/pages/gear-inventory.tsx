@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { PageIntro } from '@/components/layout/page-intro';
 import { Button } from '@/components/ui';
-import { GearSubNav } from '@/components/gear/gear-sub-nav';
 import { GearInventory } from '@/components/gear/gear-inventory';
 import { AddPartSheet } from '@/components/gear/add-part-sheet';
 import { useStore } from '@/store';
@@ -21,6 +21,15 @@ export function GearInventoryPage() {
       <PageIntro
         title="Inventory"
         description="Physical parts you own."
+        meta={
+          <Link
+            to="/gear"
+            className="inline-flex items-center gap-1 text-xs font-medium text-brand-700 transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+          >
+            <span aria-hidden>←</span>
+            Back to garage
+          </Link>
+        }
         actions={
           <Button
             variant="primary"
@@ -31,8 +40,6 @@ export function GearInventoryPage() {
           </Button>
         }
       />
-
-      <GearSubNav />
 
       <GearInventory
         catalog={gearPartCatalog}
