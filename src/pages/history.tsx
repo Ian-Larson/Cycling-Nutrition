@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/store';
 import { Card, CardContent, Button } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
-import { SectionNav } from '@/components/layout/section-nav';
 import { FuelResult } from '@/components/planner/fuel-result';
 import { buildPlannerDraftFromSavedPlan } from '@/lib/planner/saved-plan-draft';
 import {
@@ -71,8 +70,6 @@ export function HistoryPage() {
           </>
         }
       />
-
-      <SectionNav section="nutrition" />
 
       <div role="status" aria-live="polite" className="sr-only">
         {confirmingDeleteId

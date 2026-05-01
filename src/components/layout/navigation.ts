@@ -45,34 +45,6 @@ export const primaryNavItems: readonly PrimaryNavItem[] = [
   },
 ];
 
-export const sectionLabels: Record<NavSection, string> = {
-  nutrition: 'Fuel plan',
-  gear: 'Garage',
-  labs: 'Labs',
-  account: 'Account',
-};
-
-const sectionNavItems: Record<NavSection, readonly NavRouteItem[]> = {
-  nutrition: [
-    { path: '/', label: 'Build plan', matchPaths: ['/', '/nutrition-plan'] },
-    {
-      path: '/inventory',
-      label: 'Bottles',
-      matchPaths: ['/inventory', '/bottles'],
-    },
-    { path: '/history', label: 'Saved plans', matchPaths: ['/history'] },
-  ],
-  gear: [],
-  labs: [
-    {
-      path: '/power-meter-analyzer',
-      label: 'Power meter',
-      matchPaths: ['/labs', '/power-meter-analyzer'],
-    },
-  ],
-  account: [],
-};
-
 function normalizePathname(pathname: string): string {
   if (pathname === '/') return pathname;
   return pathname.replace(/\/+$/, '');
@@ -103,10 +75,4 @@ export function getActivePrimaryNavItem(
   pathname: string
 ): PrimaryNavItem | undefined {
   return primaryNavItems.find((item) => isNavItemActive(item, pathname));
-}
-
-export function getSectionNavItems(
-  section: NavSection
-): readonly NavRouteItem[] {
-  return sectionNavItems[section];
 }

@@ -1,6 +1,5 @@
 import { useStore } from '@/store';
 import { PageIntro } from '@/components/layout/page-intro';
-import { SectionNav } from '@/components/layout/section-nav';
 import { BOTTLE_SIZES } from '@/types/bottle';
 import type { BottleSize } from '@/types/bottle';
 
@@ -59,8 +58,6 @@ export function InventoryPage() {
           </>
         }
       />
-
-      <SectionNav section="nutrition" />
 
       <section className="space-y-3 md:space-y-4">
         <div className="grid grid-cols-3 gap-3">
