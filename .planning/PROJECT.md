@@ -8,87 +8,74 @@ Domestique is a cyclist's assistant web app — a single home for planning, trai
 
 When a rider opens Domestique, every screen feels consistent, dense, and dependable — the same controls in the same places with the same spacing — so they can produce a precise fueling plan and confirm kit readiness in seconds, not minutes.
 
-## Requirements
+## Current State
 
-### Validated
+**Shipped:** v1.0 — Polish & Redesign Sweep (2026-04-30). Foundations-first cleanup across Fuel Plan, Garage, Account, plus documentation realignment. See [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md).
 
-<!-- Existing capabilities inferred from the codebase map. These ship today. -->
+**Post-v1.0 polish (this session):** Drop redundant section nav from Fuel Plan; flatten Inventory rail and add type filter pills; move Metric/Imperial to Preferences and tighten Account page; reserve stable width for the sync-status badge slot; **manage fuel inline in the rail** (click name to edit, "+" to add) and retire the standalone fuel inventory page. These are net cleanup landing on top of v1.0; tracked here pending the next milestone scope.
 
-- ✓ Fuel planning engine — carb/hydration calc by duration/intensity/heat, optimal bottle selection, drink-mix allocation, timed consumption guide — existing
-- ✓ Gear Hub — bike & component inventory, weight tracking, maintenance/service records, due-soon signals — existing
-- ✓ Ride history & athlete profile — existing
-- ✓ Power meter analyzer — existing
-- ✓ Strava OAuth sync — existing (via Supabase Edge Functions for token exchange)
-- ✓ Cloud sync — Supabase auth + Postgres, local-first with cloud backup, "guest mode" fallback — existing
+**No active milestone.** Use `/gsd-new-milestone` to scope the next one.
 
-### Active
+## Next Milestone Goals
 
-<!-- Milestone: Polish & Redesign Sweep v1. Foundations-first phasing. -->
+_To be defined when the next milestone is scoped._
 
-**Cross-cutting foundations**
-- [ ] **REQ-LAYOUT-01**: Page-shell side padding is identical across all primary tabs (Fuel Plan, Garage, Account) and all sub-tabs within each surface — no horizontal shift when switching tabs.
-- [ ] **REQ-LAYOUT-02**: Tab switchers across Fuel Plan and Garage use a single shared component with consistent styling and behavior.
+Possible directions surfaced during v1.0 work and the post-v1.0 polish:
 
-**Fuel Plan**
-- [ ] **REQ-FUEL-01**: Right rail no longer contains a separate "bottles" inventory item; bottle quantity is captured only in the setup flow under the renamed label "Available bottles."
-- [ ] **REQ-FUEL-02**: Setup flow's fuel-selection label reads "Fuel selections."
-- [ ] **REQ-FUEL-03**: Right rail collapses to a single "Fuel Inventory" section with no subsections.
-- [ ] **REQ-FUEL-04**: Quick-counter copy uses correct singular/plural forms and "drink mix" instead of "mix" (e.g., "1 drink mix · 2 solids", "1 solid").
+- **Bottle inventory access from the planner** — `/inventory` (now bottles-only) is reachable only from the section nav on `/history` or by direct URL. A native bottle-management affordance on the planner would close the last "kind of hidden" gap from v1.0.
+- **Dark mode** — explicitly deferred from v1.0. PRODUCT.md is light-mode only today.
+- **Performance work** — not pursued in v1.0; bundle size warnings on production build (≈749 kB / 214 kB gzipped, single chunk) suggest code-splitting could be valuable.
+- **Backend / Strava deepening** — sync schema, edge functions, and Strava integration stayed unchanged in v1.0.
 
-**Garage**
-- [ ] **REQ-GEAR-01**: "Due soon" service card is shown only on the Service tab; hidden on Active Setup and History.
-- [ ] **REQ-GEAR-02**: Tab strip stays in a fixed vertical position when switching between Active Setup / Service / History — the "Due soon" card cannot push it down.
-- [ ] **REQ-GEAR-03**: Inventory sub-page no longer shows the top counter cards.
-- [ ] **REQ-GEAR-04**: Inventory sub-page component cards use a denser layout (reusing an existing leaner card style from elsewhere in the app) so significantly more items fit per scroll height.
+## Validated Capabilities
 
-**Account**
-- [ ] **REQ-ACCT-01**: Account sync/login is consolidated into a single 2-pane page — Athlete information on top, condensed Account/Sync/Login section below — replacing the dedicated sync page.
+<!-- Existing capabilities, verified to ship and work. -->
 
-**Docs**
-- [ ] **REQ-DOC-01**: PRODUCT.md is rewritten to match shipped reality (orange `#f8622e` brand, light-mode only, grounded in current primitives and IA) and committed.
-- [ ] **REQ-DOC-02**: CLAUDE.md font reference is updated to match the code (IBM Plex Sans, not Outfit / Source Sans 3).
+- ✓ Fuel planning engine — carb/hydration calc by duration / intensity / heat, optimal bottle selection, drink-mix allocation, timed consumption guide
+- ✓ Gear Hub — bike & component inventory, weight tracking, maintenance/service records, due-soon signals (Service tab only post-v1.0)
+- ✓ Ride history & athlete profile (consolidated into `/account` two-pane page in v1.0)
+- ✓ Power meter analyzer
+- ✓ Strava OAuth sync (via Supabase Edge Functions for token exchange)
+- ✓ Cloud sync — Supabase auth + Postgres, local-first with cloud backup, "guest mode" fallback when env vars are absent
 
-### Out of Scope
+## Constraints (carried forward)
 
-- **Dark mode** — deferred to a future milestone. PRODUCT.md's earlier "plan for both light and dark" intent is rolled back for this sweep.
-- **Palette migration to `#547597`** — rejected. The shipped orange brand `#f8622e` stays. PRODUCT.md is being rewritten to reflect this rather than the code being migrated.
-- **New features** — this milestone is polish-only. No new fuel-planning logic, no new gear capability, no new analyzer features.
-- **Backend / Supabase changes** — sync schema, edge functions, and Strava integration stay as they are.
-- **New UI primitives** — reuse what's already in `src/components/ui/` (alert, badge, button, card, checkbox, collapsible, dialog, divided-row-list, icon-button, input, preset-buttons, segmented-control, select, spec-row, stepper, tabs, toast, toggle). Net-new primitives only if foundation work absolutely requires it.
-- **Performance work** — beyond what naturally falls out of the cleanup, no targeted perf phase.
-
-## Context
-
-**Brownfield, mid-life app.** Domestique has shipped real features through ~v4 (cloud sync) and has a mapped codebase as of 2026-04-30 (`.planning/codebase/`). The `Plans/` directory holds historical implementation plans (v1.1 → v4); they are reference material, not active scope.
-
-**Technical environment.** React 19 + TypeScript + Vite SPA, Tailwind CSS v4 with `@theme` tokens in `src/index.css`, Zustand (persist + immer) state, React Router DOM 7, Vitest. Backend is Supabase (Postgres + Edge Functions for Strava token exchange). Deployed to GitHub Pages at the `/Cycling-Nutrition/` subpath. App falls back to a guest/localStorage-only mode when Supabase env vars are absent.
-
-**Design language reality.** Brand is anchored on `--color-brand-500: #f8622e` (orange). Neutrals are split between `shell` (warm whites/grays) and `ink` (cool grays). Typography is IBM Plex Sans across sans / body / display. UI primitives exist and are healthy; the gap is in *consistency of application*, not in primitive coverage.
-
-**The papercut list (recorded in conversation, 2026-04-30).** Source of truth for active scope. Specific items are mapped to REQ-IDs above. The user wants `/impeccable` as the planning lens for each phase.
-
-**Stale documentation.** PRODUCT.md (untracked) currently describes a different brand direction (`#547597` palette, dark-mode parity) that does not match shipped reality. CLAUDE.md mentions Outfit / Source Sans 3 fonts which are no longer used. Both get corrected in this milestone (REQ-DOC-01, REQ-DOC-02).
-
-## Constraints
-
-- **Tech stack**: React 19 + Tailwind v4 + Zustand — Locked. Polish work stays inside the existing stack.
-- **Visual identity**: Orange `#f8622e` brand, light mode only — Confirmed by user; do not migrate to `#547597` or introduce dark variants in this milestone.
-- **Design lens**: Each phase will be planned with the `/impeccable` skill — User preference for design-quality framing during planning.
-- **No new primitives**: Reuse existing `src/components/ui/*` — Keeps surface area small; foundations work consolidates rather than expands.
-- **Mobile-first usage pattern**: Riders use the app on phones before rides — Layout/spacing/density decisions optimize for one-thumb mobile use first.
-- **Compatibility**: Cloud sync (Supabase) and local-first storage must keep working unchanged — Polish must not regress data flow or auth.
+- **Tech stack:** React 19 + Tailwind v4 + Zustand — Locked.
+- **Visual identity:** Orange `#f8622e` brand, light mode only — Confirmed; do not migrate to `#547597`, do not introduce dark variants.
+- **Design lens:** `/impeccable` skill for design-quality framing on per-phase planning.
+- **No new primitives:** Reuse what's already in `src/components/ui/`. Net-new primitives only if foundation work absolutely requires it.
+- **Mobile-first usage pattern:** Riders use the app on phones before rides; layout / spacing / density decisions optimize for one-thumb mobile use first.
+- **Compatibility:** Cloud sync (Supabase) and local-first storage must keep working unchanged.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Keep orange `#f8622e` brand | User confirmed; avoids large-scale token churn during a polish-only milestone | — Pending |
-| Defer dark mode | Out of scope for this sweep; reduces design surface area | — Pending |
-| Foundations-first phasing | Layout shell + tab component changes propagate to every per-surface phase, so doing them first makes the per-surface work mechanical | — Pending |
-| Update PRODUCT.md to reality (not the other way around) | The shipped product is the source of truth; aspirational palette/dark-mode language was creating drift | — Pending |
-| `/impeccable` as the per-phase planning lens | User preference; matches the design-quality nature of the work | — Pending |
+| Keep orange `#f8622e` brand | User confirmed; avoided large-scale token churn during a polish-only milestone | ✓ Shipped (v1.0) |
+| Defer dark mode | Out of scope for v1.0; reduces design surface area | ✓ Deferred — still pending |
+| Foundations-first phasing | Layout shell + tab component changes propagate to every per-surface phase | ✓ Validated — per-surface phases were mechanical |
+| Update PRODUCT.md to reality (not the other way around) | The shipped product is the source of truth; aspirational palette / dark-mode language was creating drift | ✓ Shipped (DOC-01) |
+| `/impeccable` as the per-phase planning lens | User preference; matches the design-quality nature of the work | ✓ Adopted |
+| Manage fuel inline in the planner rail (post-v1.0) | The standalone fuel-inventory page was hidden and rarely visited; click-to-edit + "+" in the rail eliminates a navigation hop | ✓ Shipped post-v1.0 |
 
-## Evolution
+## Context
+
+**Brownfield, mid-life app.** Domestique has shipped real features through ~v4 (cloud sync) and has a mapped codebase (`.planning/codebase/`). The `Plans/` directory holds historical implementation plans (v1.1 → v4); reference material, not active scope.
+
+**Technical environment.** React 19 + TypeScript + Vite SPA, Tailwind CSS v4 with `@theme` tokens in `src/index.css`, Zustand (persist + immer) state, React Router DOM 7, Vitest. Backend is Supabase (Postgres + Edge Functions for Strava token exchange). Deployed to GitHub Pages at the `/Cycling-Nutrition/` subpath. App falls back to a guest/localStorage-only mode when Supabase env vars are absent.
+
+**Design language reality (post-v1.0).** Brand anchored on `--color-brand-500: #f8622e` (orange). Neutrals split between `shell` (warm whites/grays) and `ink` (cool grays). Typography is IBM Plex Sans across sans / body / display. UI primitives healthy and canonical — `<Tabs>`, `<DividedRowList>`, `<Card>`, etc. The Phase-1 page-shell / tab consolidation closed the historical "consistency of application" gap.
+
+## Evolution Notes
+
+<details>
+<summary>v1.0 active scope (archived)</summary>
+
+The v1.0 milestone tracked 13 requirements (LAYOUT-01/02, FUEL-01..04, GEAR-01..04, ACCT-01, DOC-01/02), all shipped. See [milestones/v1.0-REQUIREMENTS.md](milestones/v1.0-REQUIREMENTS.md) for the archived requirements with outcomes.
+
+The "papercut list" (recorded in conversation 2026-04-30) was the source of truth for active scope during v1.0 — every requirement traced back to it.
+
+</details>
 
 This document evolves at phase transitions and milestone boundaries.
 
@@ -106,4 +93,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-30 after initialization*
+*Last updated: 2026-05-01 — v1.0 milestone archived; PROJECT.md evolved to shipped-state form.*
