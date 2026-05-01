@@ -11,6 +11,13 @@ import { useStore, type AthleteProfile } from '@/store';
 type EditField = 'name' | 'age' | 'ftpWatts' | 'weightKg';
 type FieldErrors = Partial<Record<Exclude<EditField, 'name'>, string>>;
 
+const FIELD_INPUT_ID: Record<EditField, string> = {
+  name: 'identity-name',
+  age: 'identity-age',
+  ftpWatts: 'identity-ftp',
+  weightKg: 'identity-weight',
+};
+
 function roundTo(value: number, decimals: number): number {
   const multiplier = 10 ** decimals;
   return Math.round(value * multiplier) / multiplier;
@@ -23,32 +30,19 @@ function parseDraftNumber(value: string): number | undefined | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function getWeightDraft(
-  weightKg: number | undefined,
-  unit: AnthropometricsUnit
-): string {
+function getWeightDraft(weightKg: number | undefined, unit: AnthropometricsUnit): string {
   if (typeof weightKg !== 'number' || !Number.isFinite(weightKg)) return '';
   return unit === 'imperial'
     ? formatNumberInputValue(kilogramsToPounds(weightKg), 1)
     : formatNumberInputValue(weightKg, 1);
 }
 
-function formatWeight(
-  weightKg: number | undefined,
-  unit: AnthropometricsUnit
-): string | null {
+function formatWeight(weightKg: number | undefined, unit: AnthropometricsUnit): string | null {
   if (typeof weightKg !== 'number' || !Number.isFinite(weightKg)) return null;
   return unit === 'imperial'
     ? `${formatNumberInputValue(kilogramsToPounds(weightKg), 1)} lb`
     : `${formatNumberInputValue(weightKg, 1)} kg`;
 }
-
-const FIELD_INPUT_ID: Record<EditField, string> = {
-  name: 'identity-name',
-  age: 'identity-age',
-  ftpWatts: 'identity-ftp',
-  weightKg: 'identity-weight',
-};
 
 export function IdentityStrip() {
   const athleteProfile = useStore((s) => s.settings.athleteProfile);
@@ -65,12 +59,8 @@ export function IdentityStrip() {
   const [editing, setEditing] = useState(false);
   const [focusField, setFocusField] = useState<EditField | null>(null);
 
-  const [ageDraft, setAgeDraft] = useState(() =>
-    formatNumberInputValue(athleteProfile.age, 0)
-  );
-  const [ftpDraft, setFtpDraft] = useState(() =>
-    formatNumberInputValue(athleteProfile.ftpWatts, 0)
-  );
+  const [ageDraft, setAgeDraft] = useState(() => formatNumberInputValue(athleteProfile.age, 0));
+  const [ftpDraft, setFtpDraft] = useState(() => formatNumberInputValue(athleteProfile.ftpWatts, 0));
   const [weightDraft, setWeightDraft] = useState(() =>
     getWeightDraft(athleteProfile.weightKg, unit)
   );
@@ -78,14 +68,12 @@ export function IdentityStrip() {
 
   useEffect(() => {
     if (!editing || !focusField) return;
-    const id = FIELD_INPUT_ID[focusField];
-    const node = document.getElementById(id) as HTMLInputElement | null;
+    const node = document.getElementById(FIELD_INPUT_ID[focusField]) as HTMLInputElement | null;
     if (node) {
       node.focus();
       if (focusField !== 'name') node.select?.();
     }
   }, [editing, focusField]);
-
 
   const setError = (key: keyof FieldErrors, message: string | undefined) => {
     setErrors((current) => {
@@ -168,12 +156,12 @@ export function IdentityStrip() {
     setError('weightKg', undefined);
   };
 
-  const enterEdit = (field?: EditField) => {
+  const enterEdit = () => {
     setAgeDraft(formatNumberInputValue(athleteProfile.age, 0));
     setFtpDraft(formatNumberInputValue(athleteProfile.ftpWatts, 0));
     setWeightDraft(getWeightDraft(athleteProfile.weightKg, unit));
     setErrors({});
-    setFocusField(field ?? 'name');
+    setFocusField('name');
     setEditing(true);
   };
 
@@ -183,27 +171,15 @@ export function IdentityStrip() {
   };
 
   const displayName = athleteProfile.name?.trim() || 'Athlete';
-  const ageText =
-    typeof athleteProfile.age === 'number' ? `${athleteProfile.age} yrs` : null;
-  const ftpText =
-    typeof athleteProfile.ftpWatts === 'number'
-      ? `${athleteProfile.ftpWatts} W`
-      : null;
+  const ageText = typeof athleteProfile.age === 'number' ? `${athleteProfile.age} yrs` : null;
+  const ftpText = typeof athleteProfile.ftpWatts === 'number' ? `${athleteProfile.ftpWatts} W` : null;
   const weightText = formatWeight(athleteProfile.weightKg, unit);
-
-  const stats: { field: EditField; value: string }[] = [
-    ageText ? { field: 'age', value: ageText } : null,
-    ftpText ? { field: 'ftpWatts', value: ftpText } : null,
-    weightText ? { field: 'weightKg', value: weightText } : null,
-  ].filter((entry): entry is { field: EditField; value: string } => entry !== null);
+  const stats = [ageText, ftpText, weightText].filter((value): value is string => Boolean(value));
 
   if (editing) {
     return (
-      <section
-        aria-label="Edit athlete profile"
-        className="border-b border-[color:var(--border-soft)] pb-4 md:pb-5"
-      >
-        <div className="grid gap-3 sm:grid-cols-2">
+      <section aria-label="Edit athlete profile" className="space-y-3">
+        <div className="grid gap-2.5 sm:grid-cols-4">
           <Input
             id="identity-name"
             label="Name"
@@ -215,7 +191,7 @@ export function IdentityStrip() {
               });
             }}
             onKeyDown={blurOnEnter}
-            placeholder="e.g., Ian"
+            placeholder="Ian"
           />
           <Input
             id="identity-age"
@@ -232,12 +208,12 @@ export function IdentityStrip() {
               })
             }
             onKeyDown={blurOnEnter}
-            placeholder="e.g., 34"
+            placeholder="34"
             error={errors.age}
           />
           <Input
             id="identity-ftp"
-            label="FTP (watts)"
+            label="FTP (W)"
             type="text"
             inputMode="numeric"
             value={ftpDraft}
@@ -249,7 +225,7 @@ export function IdentityStrip() {
               })
             }
             onKeyDown={blurOnEnter}
-            placeholder="e.g., 280"
+            placeholder="280"
             error={errors.ftpWatts}
           />
           <Input
@@ -261,16 +237,16 @@ export function IdentityStrip() {
             onChange={(event) => setWeightDraft(event.target.value)}
             onBlur={commitWeight}
             onKeyDown={blurOnEnter}
-            placeholder={unit === 'imperial' ? 'e.g., 160' : 'e.g., 72'}
+            placeholder={unit === 'imperial' ? '160' : '72'}
             error={errors.weightKg}
           />
         </div>
 
-        <div className="mt-3 flex justify-end">
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={exitEdit}
-            className="inline-flex min-h-9 items-center rounded-lg px-3 text-sm font-medium text-brand-700 transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+            className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
           >
             Done
           </button>
@@ -280,79 +256,47 @@ export function IdentityStrip() {
   }
 
   return (
-    <section
-      aria-label="Athlete identity"
-      className="border-b border-[color:var(--border-soft)] pb-4 md:pb-5"
+    <button
+      type="button"
+      onClick={enterEdit}
+      aria-label="Edit athlete profile"
+      className="group flex w-full flex-wrap items-baseline justify-between gap-x-6 gap-y-1 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:px-4"
     >
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-5 gap-y-2">
-        <div className="min-w-0 space-y-1">
-          <button
-            type="button"
-            onClick={() => enterEdit('name')}
-            className="block w-full truncate rounded-sm text-left font-sans text-[1.18rem] font-bold leading-tight tracking-[-0.024em] text-ink-900 transition-colors hover:text-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:text-[1.28rem]"
-          >
-            {displayName}
-          </button>
-          {stats.length > 0 ? (
-            <p className="font-sans text-sm leading-snug text-ink-600 [font-variant-numeric:tabular-nums]">
-              {stats.map((stat, index) => (
-                <span key={stat.field}>
-                  {index > 0 ? <span className="px-1.5 text-ink-400">·</span> : null}
-                  <button
-                    type="button"
-                    onClick={() => enterEdit(stat.field)}
-                    className="rounded-sm transition-colors hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
-                  >
-                    {stat.value}
-                  </button>
-                </span>
-              ))}
-            </p>
-          ) : (
-            <button
-              type="button"
-              onClick={() => enterEdit('age')}
-              className="rounded-sm text-sm text-ink-500 transition-colors hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
-            >
-              Tap to set your stats
-            </button>
-          )}
-        </div>
-
-        <div className="text-right">
-          <p className="page-stat-label">Power-to-weight</p>
-          <p className="mt-0.5 font-sans text-[1.6rem] font-bold leading-none text-ink-900 [font-variant-numeric:tabular-nums] md:text-[1.75rem]">
-            {wKg ?? '—'}
-            <span className="ml-1 text-sm font-semibold text-ink-500">W/kg</span>
-          </p>
-        </div>
-
-        <div className="col-span-2 flex items-center justify-between gap-3">
-          {wKg === undefined ? (
-            <p className="text-xs leading-5 text-ink-500">
-              Set FTP and weight to see W/kg.
-            </p>
-          ) : (
-            <span aria-hidden />
-          )}
-          <button
-            type="button"
-            onClick={() => enterEdit()}
-            className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-sm font-medium text-ink-600 transition-colors hover:bg-shell-50 hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
-          >
-            Edit
-            <svg viewBox="0 0 16 16" fill="none" aria-hidden className="h-3.5 w-3.5">
-              <path
-                d="m6 4 4 4-4 4"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
+      <div className="flex min-w-0 items-baseline gap-x-3">
+        <span className="font-sans text-[1.18rem] font-bold leading-tight tracking-[-0.024em] text-ink-900 md:text-[1.28rem]">
+          {displayName}
+        </span>
+        {stats.length > 0 ? (
+          <span className="font-sans text-sm text-ink-500 [font-variant-numeric:tabular-nums]">
+            {stats.join(' · ')}
+          </span>
+        ) : (
+          <span className="text-sm text-ink-400">Tap to set your stats</span>
+        )}
       </div>
-    </section>
+
+      <div className="flex items-baseline gap-2">
+        <div className="flex items-baseline gap-1">
+          <span className="font-sans text-[1.35rem] font-bold leading-none text-ink-900 [font-variant-numeric:tabular-nums] md:text-[1.45rem]">
+            {wKg ?? '—'}
+          </span>
+          <span className="text-xs font-semibold tracking-wide text-ink-500">W/kg</span>
+        </div>
+        <svg
+          viewBox="0 0 16 16"
+          aria-hidden
+          className="h-3.5 w-3.5 self-center text-ink-300 transition-colors group-hover:text-ink-500"
+        >
+          <path
+            d="m6 4 4 4-4 4"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+    </button>
   );
 }

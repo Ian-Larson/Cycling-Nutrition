@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { IdentityStrip } from '@/components/account/identity-strip';
-import { SettingsCard } from '@/components/account/settings-card';
+import { Settings } from '@/components/account/settings';
 
 export function AccountPage() {
   const [searchParams] = useSearchParams();
@@ -8,23 +8,21 @@ export function AccountPage() {
     searchParams.get('return') === 'planner-step2' ? '?step=2' : '';
 
   return (
-    <div className="page-shell space-y-4 md:space-y-6">
-      {plannerReturnStep ? (
-        <div>
+    <div className="page-shell">
+      <div className="mx-auto w-full max-w-2xl space-y-5 md:space-y-7">
+        {plannerReturnStep ? (
           <Link
             to={`/${plannerReturnStep}`}
-            className="inline-flex min-h-9 items-center rounded-lg border border-[color:var(--border-soft)] bg-white px-3 text-sm font-medium text-ink-800 transition-colors hover:bg-shell-50"
+            className="inline-flex h-8 items-center rounded-lg px-2 text-xs font-medium text-ink-600 transition-colors hover:bg-shell-50 hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
           >
             ← Back to plan
           </Link>
-        </div>
-      ) : null}
+        ) : null}
 
-      <h1 className="page-title">Account</h1>
+        <IdentityStrip />
 
-      <IdentityStrip />
-
-      <SettingsCard />
+        <Settings />
+      </div>
     </div>
   );
 }

@@ -2,10 +2,9 @@ import { useEffect, useState, type FormEvent, type KeyboardEvent, type ReactNode
 import {
   Alert,
   Button,
-  Card,
   Input,
-  PresetButtons,
   SegmentedControl,
+  Stepper,
   Toggle,
 } from '@/components/ui';
 import { DisconnectStravaDialog } from '@/components/account/disconnect-strava-dialog';
@@ -17,12 +16,10 @@ import {
 import { formatRelativeTime } from '@/lib/format/relative-time';
 import { useStore, type AthleteProfile, type TemperatureUnit } from '@/store';
 
-const GUT_TARGET_PRESETS = [60, 65, 75, 85, 95] as const;
-
 function getGutTargetTone(value: number): string {
-  if (value <= 70) return 'Conservative tolerance';
-  if (value <= 85) return 'Progressive tolerance';
-  return 'Aggressive tolerance';
+  if (value <= 70) return 'Conservative';
+  if (value <= 85) return 'Progressive';
+  return 'Aggressive';
 }
 
 function parseDraftNumber(value: string): number | undefined | null {
@@ -36,53 +33,52 @@ interface RowProps {
   label: ReactNode;
   control: ReactNode;
   helper?: ReactNode;
-  /** When true, label sits above control on all sizes (used for rows whose control is wide). */
-  stack?: boolean;
   id?: string;
+  /** Tailwind grid-column override for the row inside a multi-col Section. */
+  span?: string;
 }
 
-function Row({ label, control, helper, stack, id }: RowProps) {
+function Row({ label, control, helper, id, span }: RowProps) {
   return (
-    <li id={id} className="scroll-mt-24 px-4 py-3 md:px-5 md:py-3.5">
-      <div
-        className={
-          stack
-            ? 'space-y-2'
-            : 'flex flex-wrap items-center justify-between gap-x-4 gap-y-2'
-        }
-      >
-        <div className="text-sm font-medium text-ink-800">{label}</div>
-        <div className={stack ? 'w-full' : 'min-w-0 shrink-0'}>{control}</div>
-      </div>
+    <li
+      id={id}
+      className={`flex scroll-mt-24 flex-wrap items-center justify-between gap-x-4 gap-y-1.5 py-2.5 md:py-3 ${span ?? ''}`}
+    >
+      <div className="text-sm font-medium text-ink-800">{label}</div>
+      <div className="min-w-0 shrink-0">{control}</div>
       {helper ? (
-        <p className="mt-1.5 text-xs leading-5 text-ink-500">{helper}</p>
+        <p className="basis-full text-xs leading-5 text-ink-500">{helper}</p>
       ) : null}
     </li>
   );
 }
 
-function Section({
-  kicker,
-  children,
-  id,
-}: {
+interface SectionProps {
   kicker: string;
   children: ReactNode;
   id?: string;
-}) {
+  /** When true, the section uses a 2-col grid for its rows on sm+. */
+  grid?: boolean;
+}
+
+function Section({ kicker, children, id, grid }: SectionProps) {
   return (
-    <div id={id} className="scroll-mt-24">
-      <div className="px-4 pb-1 pt-3 md:px-5 md:pt-4">
-        <p className="section-kicker uppercase tracking-[0.08em] text-ink-500">
-          {kicker}
-        </p>
-      </div>
-      <ul className="divide-y divide-[color:var(--border-soft)]">{children}</ul>
-    </div>
+    <section id={id} className="scroll-mt-24">
+      <p className="section-kicker mb-1 uppercase tracking-[0.08em] text-ink-500">
+        {kicker}
+      </p>
+      <ul
+        className={`divide-y divide-[color:var(--border-soft)] ${
+          grid ? 'sm:grid sm:grid-cols-2 sm:gap-x-8 sm:divide-y-0' : ''
+        }`}
+      >
+        {children}
+      </ul>
+    </section>
   );
 }
 
-export function SettingsCard() {
+export function Settings() {
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
   const updateAthleteProfile = useStore((s) => s.updateAthleteProfile);
@@ -93,44 +89,13 @@ export function SettingsCard() {
   const gutTrainingTargetGph = athleteProfile.gutTrainingTargetGph ?? 65;
   const heavySweater = athleteProfile.heavySweater;
 
-  const [gutTargetDraft, setGutTargetDraft] = useState(() =>
-    formatNumberInputValue(gutTrainingTargetGph, 0)
-  );
   const [sweatRateDraft, setSweatRateDraft] = useState(() =>
     formatNumberInputValue(athleteProfile.sweatRateLph, 1)
   );
-  const [gutError, setGutError] = useState<string | undefined>();
   const [sweatError, setSweatError] = useState<string | undefined>();
-
-  useEffect(() => {
-    setGutTargetDraft(formatNumberInputValue(gutTrainingTargetGph, 0));
-  }, [gutTrainingTargetGph]);
-  useEffect(() => {
-    setSweatRateDraft(formatNumberInputValue(athleteProfile.sweatRateLph, 1));
-  }, [athleteProfile.sweatRateLph]);
 
   const blurOnEnter = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') event.currentTarget.blur();
-  };
-
-  const commitGutTarget = () => {
-    const parsed = parseDraftNumber(gutTargetDraft);
-    const fallback = formatNumberInputValue(gutTrainingTargetGph, 0);
-
-    if (parsed === null || parsed === undefined) {
-      setGutTargetDraft(fallback);
-      setGutError('Enter a value between 50 and 110.');
-      return;
-    }
-    const next = Math.round(parsed);
-    if (next < 50 || next > 110) {
-      setGutTargetDraft(fallback);
-      setGutError('Use a value between 50 and 110.');
-      return;
-    }
-    updateAthleteProfile({ gutTrainingTargetGph: next });
-    setGutTargetDraft(formatNumberInputValue(next, 0));
-    setGutError(undefined);
   };
 
   const commitSweatRate = () => {
@@ -159,46 +124,24 @@ export function SettingsCard() {
   };
 
   return (
-    <Card className="overflow-hidden">
+    <div className="space-y-7 md:space-y-8">
       <Section kicker="Fuel">
         <Row
-          stack
           label="Gut target"
-          helper={`${getGutTargetTone(gutTrainingTargetGph)}. Auto stays near this value when workload allows.`}
+          helper={`${getGutTargetTone(gutTrainingTargetGph)} tolerance.`}
           control={
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Input
-                  id="settings-gut-target"
-                  type="text"
-                  inputMode="numeric"
-                  value={gutTargetDraft}
-                  onChange={(event) => setGutTargetDraft(event.target.value)}
-                  onBlur={commitGutTarget}
-                  onKeyDown={blurOnEnter}
-                  className="!min-h-10 max-w-[7rem] !py-1.5"
-                  aria-label="Gut target g/h"
-                  error={gutError}
-                />
-                <span className="text-sm font-medium text-ink-600">g/h</span>
-              </div>
-              <PresetButtons
-                ariaLabel="Gut target presets"
-                options={GUT_TARGET_PRESETS.map((value) => ({
-                  label: `${value}`,
-                  value,
-                }))}
-                value={gutTrainingTargetGph}
-                onChange={(value) => {
-                  updateAthleteProfile({ gutTrainingTargetGph: value });
-                  setGutTargetDraft(formatNumberInputValue(value, 0));
-                  setGutError(undefined);
-                }}
-              />
-            </div>
+            <Stepper
+              label="Gut target"
+              hideLabel
+              value={gutTrainingTargetGph}
+              onChange={(next) => updateAthleteProfile({ gutTrainingTargetGph: next })}
+              min={50}
+              max={110}
+              step={5}
+              formatValue={(value) => `${value} g/h`}
+            />
           }
         />
-
         <Row
           label="Sweat rate"
           control={
@@ -211,19 +154,17 @@ export function SettingsCard() {
                 onChange={(event) => setSweatRateDraft(event.target.value)}
                 onBlur={commitSweatRate}
                 onKeyDown={blurOnEnter}
-                className="!min-h-10 max-w-[7rem] !py-1.5"
-                placeholder="Optional"
-                aria-label="Sweat rate L/h"
+                className="!min-h-9 !w-20 !py-1 text-right [font-variant-numeric:tabular-nums]"
+                placeholder="—"
+                aria-label="Sweat rate"
                 error={sweatError}
               />
-              <span className="text-sm font-medium text-ink-600">L/h</span>
+              <span className="text-sm text-ink-600">L/h</span>
             </div>
           }
         />
-
         <Row
           label="Heavy sweater"
-          helper="Bias auto toward more sodium."
           control={
             <Toggle
               checked={heavySweater}
@@ -234,9 +175,7 @@ export function SettingsCard() {
         />
       </Section>
 
-      <div className="border-t border-[color:var(--border-soft)]" aria-hidden />
-
-      <Section kicker="Display" id="preferences">
+      <Section kicker="Display" id="preferences" grid>
         <Row
           label="Units"
           control={
@@ -248,10 +187,8 @@ export function SettingsCard() {
                 { value: 'imperial', label: 'Imperial' },
               ]}
               value={unit}
-              onChange={(next) =>
-                updateAthleteProfile({ anthropometricsUnit: next })
-              }
-              className="w-[12rem]"
+              onChange={(next) => updateAthleteProfile({ anthropometricsUnit: next })}
+              className="w-[11rem]"
             />
           }
         />
@@ -267,13 +204,14 @@ export function SettingsCard() {
               ]}
               value={settings.temperatureUnit}
               onChange={(next) => updateSettings({ temperatureUnit: next })}
-              className="w-[8rem]"
+              className="w-[7rem]"
             />
           }
         />
         <Row
           label="Fueling engine"
           helper="Adds pre/post-ride targets and warnings. Needs weight."
+          span="sm:col-span-2"
           control={
             <SegmentedControl
               size="sm"
@@ -284,18 +222,16 @@ export function SettingsCard() {
               ]}
               value={settings.engineVersion}
               onChange={(next) => updateSettings({ engineVersion: next })}
-              className="w-[8rem]"
+              className="w-[7rem]"
             />
           }
         />
       </Section>
 
-      <div className="border-t border-[color:var(--border-soft)]" aria-hidden />
-
       <Section kicker="Connections">
         <ConnectionsRows auth={auth} />
       </Section>
-    </Card>
+    </div>
   );
 }
 
@@ -366,7 +302,7 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
   if (!isSupabaseReady) {
     return (
       <>
-        <li className="px-4 py-3 md:px-5 md:py-3.5">
+        <li className="py-2.5 md:py-3">
           <Alert variant="warning">
             Add <code>VITE_SUPABASE_URL</code>, <code>VITE_SUPABASE_ANON_KEY</code>, and{' '}
             <code>VITE_SUPABASE_AUTH_REDIRECT_URL</code> to enable account sign-in.
@@ -381,13 +317,12 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
   return (
     <>
       <Row
-        stack={!signedIn}
         label="Account"
         helper={authMessage ?? undefined}
         control={
           signedIn ? (
             <div className="flex items-center gap-3">
-              <span className="max-w-[16rem] truncate text-sm text-ink-700">
+              <span className="max-w-[14rem] truncate text-sm text-ink-600">
                 {user?.email}
               </span>
               <Button
@@ -403,10 +338,7 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
           ) : authStatus === 'loading' ? (
             <span className="text-sm text-ink-500">Checking session…</span>
           ) : (
-            <form
-              onSubmit={handleSubmit}
-              className="flex w-full flex-col gap-2 sm:flex-row sm:items-start"
-            >
+            <form onSubmit={handleSubmit} className="flex items-center gap-2">
               <Input
                 id="connections-email"
                 type="email"
@@ -416,10 +348,10 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="you@example.com"
                 disabled={isSubmitting}
-                className="flex-1 !min-h-10 !py-1.5"
+                className="!min-h-9 !w-56 !py-1"
               />
               <Button type="submit" size="sm" disabled={isSubmitting}>
-                {isSubmitting ? 'Sending…' : 'Send magic link'}
+                {isSubmitting ? 'Sending…' : 'Send link'}
               </Button>
             </form>
           )
@@ -432,12 +364,12 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
         control={
           signedIn ? (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-ink-700 [font-variant-numeric:tabular-nums]">
+              <span className="text-sm text-ink-600 [font-variant-numeric:tabular-nums]">
                 {lastSyncedAt ? `Synced ${syncedRelative}` : 'Not synced yet'}
               </span>
               <Button
                 type="button"
-                variant="secondary"
+                variant="ghost"
                 size="sm"
                 onClick={handleSyncNow}
                 disabled={isSyncing}
@@ -446,7 +378,7 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
               </Button>
             </div>
           ) : (
-            <MutedAction>Sign in to back up changes</MutedAction>
+            <MutedAction>Sign in to back up</MutedAction>
           )
         }
       />
@@ -458,7 +390,7 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
         control={
           stravaConnection ? (
             <div className="flex items-center gap-3">
-              <span className="max-w-[14rem] truncate text-sm text-ink-700">
+              <span className="max-w-[12rem] truncate text-sm text-ink-600">
                 {stravaConnection.athleteName ||
                   `Athlete ${stravaConnection.athleteId}`}
               </span>
@@ -482,7 +414,7 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
               Connect
             </Button>
           ) : (
-            <MutedAction>Sign in to connect Strava</MutedAction>
+            <MutedAction>Sign in to connect</MutedAction>
           )
         }
       />
