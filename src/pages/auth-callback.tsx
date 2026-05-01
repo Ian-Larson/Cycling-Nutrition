@@ -10,7 +10,7 @@ export function AuthCallbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [state, setState] = useState<CallbackState>('loading');
-  const [message, setMessage] = useState('Finishing sign in...');
+  const [message, setMessage] = useState('Finishing sign in…');
 
   useEffect(() => {
     const run = async () => {
@@ -69,7 +69,7 @@ export function AuthCallbackPage() {
       introDescription="Finishing account sign-in."
       state={state}
       stateTitles={{
-        loading: 'Signing in...',
+        loading: 'Signing in…',
         success: 'Signed in',
         error: 'Sign-in failed',
       }}

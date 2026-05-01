@@ -649,7 +649,7 @@ export function RideForm({
               <div className="space-y-1">
                 <p className="section-kicker text-[0.68rem]">Known values</p>
                 <p className="text-sm leading-6 text-ink-600">
-                  Pick the two you know &mdash; we&rsquo;ll calculate the third.
+                  Pick the two you know, we&rsquo;ll calculate the third.
                 </p>
               </div>
               <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">

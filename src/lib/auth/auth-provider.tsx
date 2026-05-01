@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setCloudSyncStatus('syncing');
-      setSyncMessage('Syncing...');
+      setSyncMessage('Syncing…');
 
       try {
         await repository.upsertUserState(userId, snapshot);
@@ -176,7 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const runInitialSync = async () => {
       initializingCloudRef.current = true;
       setCloudSyncStatus('syncing');
-      setSyncMessage('Checking cloud backup...');
+      setSyncMessage('Checking cloud backup…');
 
       try {
         const result = await initializeUserCloudState({
@@ -355,7 +355,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase || !user) return;
 
     try {
-      setStravaMessage('Disconnecting Strava...');
+      setStravaMessage('Disconnecting Strava…');
       await disconnectStrava(supabase);
       setStravaConnection(null);
       setStravaMessage('Strava disconnected.');

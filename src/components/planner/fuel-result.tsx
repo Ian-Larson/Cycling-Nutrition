@@ -313,7 +313,7 @@ export function FuelResult({
                     <h4 className="section-title text-lg">Solids</h4>
                     {editable && (
                       <p className="text-xs leading-5 text-ink-500">
-                        Tap +/− to adjust — the plan rebalances automatically.
+                        Tap +/− to adjust, the plan rebalances automatically.
                       </p>
                     )}
                   </div>

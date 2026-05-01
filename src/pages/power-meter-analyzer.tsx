@@ -295,7 +295,7 @@ export function PowerMeterAnalyzerPage() {
                     onClick={() => inputRef.current?.click()}
                     disabled={isParsing}
                   >
-                    {isParsing ? 'Reading files...' : 'Choose files'}
+                    {isParsing ? 'Reading files…' : 'Choose files'}
                   </Button>
                   {files.length > 0 && (
                     <Button

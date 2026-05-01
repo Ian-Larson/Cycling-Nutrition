@@ -14,14 +14,14 @@ export interface PrimaryNavItem extends NavRouteItem {
 export const primaryNavItems: readonly PrimaryNavItem[] = [
   {
     path: '/',
-    label: 'Fuel Plan',
+    label: 'Fuel plan',
     mobileLabel: 'Fuel',
     section: 'nutrition',
     matchPaths: ['/', '/nutrition-plan', '/inventory', '/bottles', '/products', '/history'],
   },
   {
     path: '/gear',
-    label: 'Gear',
+    label: 'Garage',
     section: 'gear',
     matchPaths: ['/gear'],
   },
@@ -46,8 +46,8 @@ export const primaryNavItems: readonly PrimaryNavItem[] = [
 ];
 
 export const sectionLabels: Record<NavSection, string> = {
-  nutrition: 'Fuel Plan',
-  gear: 'Gear',
+  nutrition: 'Fuel plan',
+  gear: 'Garage',
   labs: 'Labs',
   account: 'Account',
 };

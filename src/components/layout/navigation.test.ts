@@ -8,18 +8,18 @@ import {
 describe('primary navigation grouping', () => {
   it('condenses the tab bar to the main app functions', () => {
     expect(primaryNavItems.map((item) => item.label)).toEqual([
-      'Fuel Plan',
-      'Gear',
+      'Fuel plan',
+      'Garage',
       'Labs',
       'Account',
     ]);
   });
 
   it.each([
-    ['/', 'Fuel Plan'],
-    ['/inventory', 'Fuel Plan'],
-    ['/history', 'Fuel Plan'],
-    ['/gear', 'Gear'],
+    ['/', 'Fuel plan'],
+    ['/inventory', 'Fuel plan'],
+    ['/history', 'Fuel plan'],
+    ['/gear', 'Garage'],
     ['/power-meter-analyzer', 'Labs'],
     ['/account', 'Account'],
     ['/athlete', 'Account'],

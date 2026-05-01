@@ -14,7 +14,7 @@ export function StravaCallbackPage() {
   const [searchParams] = useSearchParams();
   const { refreshStravaConnection } = useAuth();
   const [state, setState] = useState<CallbackState>('loading');
-  const [message, setMessage] = useState('Finishing Strava connection...');
+  const [message, setMessage] = useState('Finishing Strava connection…');
 
   useEffect(() => {
     const run = async () => {
@@ -90,7 +90,7 @@ export function StravaCallbackPage() {
       introDescription="Finishing connection."
       state={state}
       stateTitles={{
-        loading: 'Connecting...',
+        loading: 'Connecting…',
         success: 'Connected',
         error: 'Connection failed',
       }}

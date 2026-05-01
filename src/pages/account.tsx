@@ -41,7 +41,7 @@ export function AccountPage() {
   const statusCopy = useMemo(() => {
     if (!isSupabaseReady) return 'Accounts are not configured in this build.';
     if (signedIn) return `Signed in as ${user.email}`;
-    if (authStatus === 'loading') return 'Checking your session...';
+    if (authStatus === 'loading') return 'Checking your session…';
     return 'Guest mode is active on this device.';
   }, [authStatus, isSupabaseReady, signedIn, user]);
 
@@ -127,7 +127,7 @@ export function AccountPage() {
                   className="w-full"
                   disabled={!isSupabaseReady || isSubmitting}
                 >
-                  {isSubmitting ? 'Sending link...' : 'Send magic link'}
+                  {isSubmitting ? 'Sending link…' : 'Send magic link'}
                 </Button>
               </form>
             )}
@@ -140,7 +140,7 @@ export function AccountPage() {
                   onClick={handleSyncNow}
                   disabled={isSyncingNow}
                 >
-                  {isSyncingNow ? 'Syncing...' : 'Sync now'}
+                  {isSyncingNow ? 'Syncing…' : 'Sync now'}
                 </Button>
                 <Button type="button" variant="ghost" onClick={signOut}>
                   Sign out
@@ -219,7 +219,7 @@ export function AccountPage() {
                   onClick={handleDisconnectStrava}
                   disabled={isDisconnecting}
                 >
-                  {isDisconnecting ? 'Disconnecting...' : 'Disconnect Strava'}
+                  {isDisconnecting ? 'Disconnecting…' : 'Disconnect Strava'}
                 </Button>
               </div>
             ) : (

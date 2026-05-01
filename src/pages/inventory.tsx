@@ -76,7 +76,7 @@ export function InventoryPage() {
         </div>
 
         <p className="text-xs leading-5 text-ink-500">
-          Manage fuel directly in the Fuel inventory panel on the Fuel Plan
+          Manage fuel directly in the Fuel inventory panel on the Fuel plan
           page.
         </p>
       </section>
