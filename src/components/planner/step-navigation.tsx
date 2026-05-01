@@ -43,7 +43,7 @@ export function StepNavigation<S extends number>({
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
               'disabled:cursor-not-allowed',
               isActive &&
-                'border-brand-500 bg-brand-500 text-white shadow-[0_12px_26px_-16px_rgba(248,98,46,0.74)]',
+                'border-brand-500 bg-brand-500 text-white shadow-[var(--shadow-brand-glow-md)]',
               !isActive &&
                 isComplete &&
                 'border-brand-200 bg-white text-ink-900 hover:bg-brand-50',

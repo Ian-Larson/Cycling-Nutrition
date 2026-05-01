@@ -57,7 +57,7 @@ export function SegmentedControl<T extends string>({
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
               sizeClasses[size],
               selected
-                ? 'bg-brand-500 text-white shadow-[0_6px_16px_-14px_rgba(248,98,46,0.82)]'
+                ? 'bg-brand-500 text-white shadow-[var(--shadow-brand-glow-sm)]'
                 : 'text-ink-700 hover:text-ink-900'
             )}
           >

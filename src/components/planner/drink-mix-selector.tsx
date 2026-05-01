@@ -28,7 +28,7 @@ export function DrinkMixSelector({
             className={clsx(
               'flex cursor-pointer items-center justify-between gap-3 rounded-2xl border p-3.5 transition-colors md:p-4',
               isSelected
-                ? 'border-brand-300 bg-[color:color-mix(in_srgb,var(--color-brand-50)_60%,var(--color-shell-100))] shadow-[0_12px_24px_-20px_rgb(248_98_46_/_0.26)]'
+                ? 'border-brand-300 bg-[color:color-mix(in_srgb,var(--color-brand-50)_60%,var(--color-shell-100))] shadow-[0_12px_24px_-20px_color-mix(in_oklch,var(--color-brand-500)_26%,transparent)]'
                 : 'border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,white_88%,var(--color-shell-100))] hover:bg-white'
             )}
           >

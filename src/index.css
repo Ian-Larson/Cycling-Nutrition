@@ -70,6 +70,14 @@
     --border-strong: color-mix(in srgb, var(--color-shell-300) 70%, var(--color-brand-200));
     --shadow-soft: 0 8px 24px -18px rgb(34 43 51 / 0.18);
     --shadow-float: 0 18px 48px -28px rgb(34 43 51 / 0.34);
+    /* Brand-tinted drop shadows for primary affordances */
+    --shadow-brand-glow-sm: 0 6px 16px -14px color-mix(in oklch, var(--color-brand-500) 82%, transparent);
+    --shadow-brand-glow-md: 0 12px 26px -16px color-mix(in oklch, var(--color-brand-500) 74%, transparent);
+    --shadow-brand-glow-lg: 0 16px 32px -18px color-mix(in oklch, var(--color-brand-500) 82%, transparent);
+    /* Translucent white surfaces over tinted backgrounds */
+    --surface-translucent-soft: color-mix(in srgb, white 55%, transparent);
+    --surface-translucent: color-mix(in srgb, white 78%, transparent);
+    --surface-translucent-strong: color-mix(in srgb, white 90%, transparent);
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
     --mobile-nav-height: 4rem;

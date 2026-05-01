@@ -169,7 +169,7 @@ export function Tab({ value, children, disabled, className }: TabProps) {
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
         'disabled:cursor-not-allowed disabled:opacity-50',
         selected
-          ? 'bg-brand-500 text-white shadow-[0_8px_18px_-16px_rgba(248,98,46,0.8)]'
+          ? 'bg-brand-500 text-white shadow-[var(--shadow-brand-glow-sm)]'
           : 'text-ink-700 hover:bg-shell-50 hover:text-ink-900',
         className
       )}

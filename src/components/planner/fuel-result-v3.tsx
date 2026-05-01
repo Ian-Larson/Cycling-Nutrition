@@ -607,7 +607,7 @@ function TimelineCard({ items }: { items: TimelineItem[] | undefined }) {
           item.phase === 'pre'
             ? 'bg-shell-100 text-ink-700 border-[color:var(--border-soft)]'
             : item.phase === 'post'
-              ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+              ? 'bg-success-100 text-success-700 border-success-200'
               : 'bg-brand-100 text-brand-800 border-brand-200';
         return (
           <div className="flex items-start gap-3 px-3 py-2 md:px-4 md:py-2.5">

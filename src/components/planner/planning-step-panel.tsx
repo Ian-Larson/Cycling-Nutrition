@@ -65,7 +65,7 @@ export function PlanningStepPanel({
             <span className="flex flex-wrap items-center gap-2">
               <span className="section-title text-base">{title}</span>
               {stale ? (
-                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[0.68rem] font-semibold text-amber-800">
+                <span className="rounded-full bg-warning-100 px-2 py-0.5 text-[0.68rem] font-semibold text-warning-700">
                   Needs rebuild
                 </span>
               ) : null}

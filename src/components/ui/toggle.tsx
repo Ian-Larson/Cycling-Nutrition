@@ -17,7 +17,7 @@ export function Toggle({ checked, onChange, label, disabled }: ToggleProps) {
       className={clsx(
         'relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border md:h-6 md:w-11',
         'transition-[transform,background-color,border-color,box-shadow] duration-200 ease-out motion-reduce:transition-none',
-        'motion-safe:hover:shadow-[0_8px_18px_-16px_rgba(248,98,46,0.7)] motion-safe:active:scale-[0.98]',
+        'motion-safe:hover:shadow-[var(--shadow-brand-glow-sm)] motion-safe:active:scale-[0.98]',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         checked
@@ -31,7 +31,7 @@ export function Toggle({ checked, onChange, label, disabled }: ToggleProps) {
           'transition-[transform,background-color,box-shadow] duration-200 ease-out motion-reduce:transition-none',
           checked ? 'bg-brand-500' : 'bg-white',
           checked
-            ? 'translate-x-6 shadow-[0_6px_14px_-10px_rgba(248,98,46,0.75)]'
+            ? 'translate-x-6 shadow-[var(--shadow-brand-glow-sm)]'
             : 'translate-x-1'
         )}
       />
