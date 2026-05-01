@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { clsx } from 'clsx';
-import { Card, CardContent, DividedRowList } from '@/components/ui';
+import { Card, CardContent, Chip, DividedRowList } from '@/components/ui';
 import {
   GEAR_PART_CATEGORIES,
   getGearPartCategory,
@@ -163,17 +162,13 @@ function ChipRow<T extends string>({
     <div className="space-y-1">
       <p className="section-kicker text-[0.66rem] text-ink-500">{label}</p>
       <div className="flex flex-wrap gap-1.5">
-        <button
-          type="button"
-          onClick={onClear}
+        <Chip
+          size="sm"
+          tone="subtle"
+          selected={allSelected}
           disabled={allSelected}
+          onClick={onClear}
           aria-label={allSelected ? 'All selected' : 'Clear filter'}
-          className={clsx(
-            'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
-            allSelected
-              ? 'bg-brand-100 text-brand-900'
-              : 'bg-shell-100 text-ink-700 hover:bg-shell-200'
-          )}
         >
           {allSelected ? (
             'All'
@@ -195,29 +190,21 @@ function ChipRow<T extends string>({
               Clear
             </>
           )}
-        </button>
-        {options.map((option) => {
-          const active = selected.has(option.value);
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => onToggle(option.value)}
-              aria-pressed={active}
-              className={clsx(
-                'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
-                active
-                  ? 'bg-brand-100 text-brand-900'
-                  : 'bg-shell-100 text-ink-700 hover:bg-shell-200'
-              )}
-            >
-              {option.label}
-              <span className="ml-1 text-[0.66rem] text-ink-500 tabular-nums">
-                {option.count}
-              </span>
-            </button>
-          );
-        })}
+        </Chip>
+        {options.map((option) => (
+          <Chip
+            key={option.value}
+            size="sm"
+            tone="subtle"
+            selected={selected.has(option.value)}
+            onClick={() => onToggle(option.value)}
+          >
+            {option.label}
+            <span className="ml-1 text-[0.66rem] text-ink-500 tabular-nums">
+              {option.count}
+            </span>
+          </Chip>
+        ))}
       </div>
     </div>
   );

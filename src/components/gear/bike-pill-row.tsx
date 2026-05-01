@@ -1,5 +1,6 @@
 import { clsx } from 'clsx';
 import { Link } from 'react-router-dom';
+import { Chip } from '@/components/ui';
 import type { Bike } from '@/types/gear';
 
 interface BikePillRowProps {
@@ -85,44 +86,27 @@ export function BikePillRow({
         </p>
       ) : (
         <div className="flex flex-wrap gap-2" role="group" aria-label="Select bike">
-          <button
-            type="button"
+          <Chip
+            selected={selectedBikeId === null}
             onClick={() => onSelect(null)}
-            aria-pressed={selectedBikeId === null}
-            className={clsx(
-              'min-h-10 shrink-0 whitespace-nowrap rounded-lg border border-[color:var(--border-soft)] px-3 py-1.5 text-sm font-medium transition-colors',
-              selectedBikeId === null
-                ? 'bg-brand-100 text-brand-900'
-                : 'bg-white text-ink-700 hover:bg-shell-50'
-            )}
           >
             All bikes
-          </button>
-          {bikes.map((bike) => {
-            const active = bike.id === selectedBikeId;
-            return (
-              <button
-                key={bike.id}
-                type="button"
-                onClick={() => onSelect(bike.id)}
-                aria-pressed={active}
-                title={bike.name}
-                className={clsx(
-                  'min-h-10 max-w-full shrink-0 whitespace-nowrap rounded-lg border border-[color:var(--border-soft)] px-3 py-1.5 text-sm font-medium transition-colors',
-                  active
-                    ? 'bg-brand-100 text-brand-900'
-                    : 'bg-white text-ink-700 hover:bg-shell-50'
-                )}
-              >
-                <span className="inline-block max-w-[13rem] truncate align-bottom">
-                  {bike.name}
-                </span>
-                {bike.isPrimary ? (
-                  <span className="ml-1.5 text-xs text-ink-500">·primary</span>
-                ) : null}
-              </button>
-            );
-          })}
+          </Chip>
+          {bikes.map((bike) => (
+            <Chip
+              key={bike.id}
+              selected={bike.id === selectedBikeId}
+              onClick={() => onSelect(bike.id)}
+              title={bike.name}
+            >
+              <span className="inline-block max-w-[13rem] truncate align-bottom">
+                {bike.name}
+              </span>
+              {bike.isPrimary ? (
+                <span className="ml-1.5 text-xs text-ink-500">·primary</span>
+              ) : null}
+            </Chip>
+          ))}
         </div>
       )}
     </div>

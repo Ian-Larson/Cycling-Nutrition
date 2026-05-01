@@ -1,10 +1,10 @@
-import { clsx } from 'clsx';
 import { useState, type KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Card,
   CardContent,
   CardHeader,
+  ChipGroup,
   Input,
   PresetButtons,
   Toggle,
@@ -430,28 +430,16 @@ export function AthletePane() {
           <CardContent className="space-y-3 md:space-y-4">
             <div className="space-y-2">
               <p className="text-sm font-medium text-ink-900">Units</p>
-              <div className="grid grid-cols-2 gap-2">
-                {(
-                  [
-                    { value: 'metric', label: 'Metric' },
-                    { value: 'imperial', label: 'Imperial' },
-                  ] as const
-                ).map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => handleAnthropometricsUnitChange(option.value)}
-                    className={clsx(
-                      'min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors md:min-h-10',
-                      anthropometricsUnit === option.value
-                        ? 'border-brand-300 bg-brand-100 text-brand-800'
-                        : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+              <ChipGroup
+                label="Units"
+                layout="grid"
+                options={[
+                  { value: 'metric', label: 'Metric' },
+                  { value: 'imperial', label: 'Imperial' },
+                ]}
+                value={anthropometricsUnit}
+                onChange={handleAnthropometricsUnitChange}
+              />
               <p className="text-sm leading-5 text-ink-600 md:leading-6">
                 Applies to weight and other body inputs.
               </p>
@@ -459,23 +447,13 @@ export function AthletePane() {
 
             <div className="space-y-2">
               <p className="text-sm font-medium text-ink-900">Temperature</p>
-              <div className="grid grid-cols-2 gap-2">
-                {TEMPERATURE_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => updateSettings({ temperatureUnit: option.value })}
-                    className={clsx(
-                      'min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors md:min-h-10',
-                      temperatureUnit === option.value
-                        ? 'border-brand-300 bg-brand-100 text-brand-800'
-                        : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+              <ChipGroup
+                label="Temperature"
+                layout="grid"
+                options={TEMPERATURE_OPTIONS}
+                value={temperatureUnit}
+                onChange={(next) => updateSettings({ temperatureUnit: next })}
+              />
               <p className="text-sm leading-5 text-ink-600 md:leading-6">
                 Used in ride data weather fields.
               </p>
@@ -483,28 +461,16 @@ export function AthletePane() {
 
             <div className="space-y-2">
               <p className="text-sm font-medium text-ink-900">Fueling engine</p>
-              <div className="grid grid-cols-2 gap-2">
-                {(
-                  [
-                    { value: 'v2', label: 'v2 (classic)' },
-                    { value: 'v3', label: 'v3 (science)' },
-                  ] as const
-                ).map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => updateSettings({ engineVersion: option.value })}
-                    className={clsx(
-                      'min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors md:min-h-10',
-                      engineVersion === option.value
-                        ? 'border-brand-300 bg-brand-100 text-brand-800'
-                        : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+              <ChipGroup
+                label="Fueling engine"
+                layout="grid"
+                options={[
+                  { value: 'v2', label: 'v2 (classic)' },
+                  { value: 'v3', label: 'v3 (science)' },
+                ]}
+                value={engineVersion}
+                onChange={(next) => updateSettings({ engineVersion: next })}
+              />
               <p className="text-sm leading-5 text-ink-600 md:leading-6">
                 v3 adds pre/post-ride, daily targets, and warnings. Requires
                 weight.

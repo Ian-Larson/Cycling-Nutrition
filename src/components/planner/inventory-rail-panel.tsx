@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { clsx } from 'clsx';
-import { Toggle } from '@/components/ui';
+import { Chip, Toggle } from '@/components/ui';
 import { ProductForm } from '@/components/products/product-form';
 import { useStore } from '@/store';
 import type { Product } from '@/types';
@@ -111,32 +111,25 @@ export function InventoryRailPanel({
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-1.5">
             {products.length > 0
-              ? filters.map(({ value, label, count }) => {
-                  const active = filter === value;
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setFilter(value)}
-                      className={clsx(
-                        'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
-                        active
-                          ? 'bg-brand-100 text-brand-900'
-                          : 'bg-shell-100 text-ink-700 hover:bg-shell-200'
-                      )}
-                    >
-                      {label}
-                      <span className="ml-1 text-[0.66rem] text-ink-500 tabular-nums">
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })
+              ? filters.map(({ value, label, count }) => (
+                  <Chip
+                    key={value}
+                    size="sm"
+                    tone="subtle"
+                    selected={filter === value}
+                    onClick={() => setFilter(value)}
+                  >
+                    {label}
+                    <span className="ml-1 text-[0.66rem] text-ink-500 tabular-nums">
+                      {count}
+                    </span>
+                  </Chip>
+                ))
               : null}
             <button
               type="button"
               onClick={() => setMode({ kind: 'add' })}
-              className="ml-auto inline-flex items-center gap-1 rounded-full border border-brand-300 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100"
+              className="ml-auto inline-flex items-center gap-1 rounded-full border border-brand-300 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
               aria-label="Add fuel"
             >
               <svg

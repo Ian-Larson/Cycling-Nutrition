@@ -3,6 +3,8 @@ export { Badge } from './badge';
 export { Button } from './button';
 export { Card, CardHeader, CardContent } from './card';
 export { Checkbox } from './checkbox';
+export { Chip, ChipGroup } from './chip';
+export type { ChipGroupOption } from './chip';
 export { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsible';
 export { Dialog, DialogHeader, DialogContent, DialogFooter } from './dialog';
 export { IconButton } from './icon-button';

@@ -16,6 +16,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
   Input,
+  PresetButtons,
+  SegmentedControl,
   Select,
 } from '@/components/ui';
 import { calculateAutoTarget } from '@/lib/calculator/auto-target';
@@ -517,41 +519,16 @@ export function RideForm({
       <div className="space-y-1.5">
         <div className="space-y-1.5">
           <p className="section-kicker text-[0.68rem]">Method</p>
-          <div
-            className="relative grid min-h-12 w-full grid-cols-2 rounded-full border border-[color:var(--border-soft)] bg-white p-1 shadow-[inset_0_0_0_1px_rgba(34,43,51,0.02)] sm:w-[16rem]"
-            role="group"
-            aria-label="Planning method"
-          >
-            <span
-              aria-hidden
-              className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-brand-500 shadow-[0_10px_22px_-16px_rgba(248,98,46,0.72)] transition-transform duration-200 ease-out ${
-                planningMode === 'auto' ? 'translate-x-full' : 'translate-x-0'
-              }`}
+          <div className="sm:w-[16rem]">
+            <SegmentedControl
+              label="Planning method"
+              value={planningMode}
+              onChange={switchPlanningMode}
+              options={[
+                { value: 'manual', label: 'Manual' },
+                { value: 'auto', label: 'Auto' },
+              ]}
             />
-            <button
-              type="button"
-              aria-pressed={planningMode === 'manual'}
-              className={`relative z-10 min-h-10 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                planningMode === 'manual'
-                  ? 'text-white'
-                  : 'text-ink-600 hover:text-ink-900'
-              }`}
-              onClick={() => switchPlanningMode('manual')}
-            >
-              Manual
-            </button>
-            <button
-              type="button"
-              aria-pressed={planningMode === 'auto'}
-              className={`relative z-10 min-h-10 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                planningMode === 'auto'
-                  ? 'text-white'
-                  : 'text-ink-600 hover:text-ink-900'
-              }`}
-              onClick={() => switchPlanningMode('auto')}
-            >
-              Auto
-            </button>
           </div>
         </div>
       </div>
@@ -576,22 +553,12 @@ export function RideForm({
                   Use moving time. Tab between hours and minutes.
                 </p>
               </div>
-              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
-                {DURATION_PRESETS.map((preset) => (
-                  <button
-                    key={preset.value}
-                    type="button"
-                    onClick={() => setManualDuration(preset.value)}
-                    className={`min-h-10 shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-                      durationMinutes === preset.value
-                        ? 'border-brand-300 bg-brand-100 text-brand-800'
-                        : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
+              <PresetButtons
+                ariaLabel="Duration presets"
+                options={[...DURATION_PRESETS]}
+                value={durationMinutes}
+                onChange={setManualDuration}
+              />
             </section>
 
             <section className="space-y-3">
@@ -631,22 +598,12 @@ export function RideForm({
                   </p>
                 </div>
               </div>
-              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
-                {carbPresets.map((preset) => (
-                  <button
-                    key={preset.value}
-                    type="button"
-                    onClick={() => setManualCarbTarget(preset.value)}
-                    className={`min-h-10 shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-                      carbTarget === preset.value
-                        ? 'border-brand-300 bg-brand-100 text-brand-800'
-                        : 'border-[color:var(--border-soft)] bg-white text-ink-700 hover:bg-shell-50'
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
+              <PresetButtons
+                ariaLabel="Carbs per hour presets"
+                options={carbPresets}
+                value={carbTarget}
+                onChange={setManualCarbTarget}
+              />
             </section>
           </div>
 
