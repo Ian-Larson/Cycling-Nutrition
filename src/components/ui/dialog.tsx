@@ -66,7 +66,7 @@ export function Dialog({
       className={clsx(
         'm-0 mt-auto w-full max-w-none rounded-t-2xl bg-white p-4 shadow-[var(--shadow-float)]',
         'md:m-auto md:rounded-2xl md:p-6',
-        'backdrop:bg-black/40 backdrop:backdrop-blur-sm',
+        'backdrop:bg-[color-mix(in_oklch,var(--color-ink-900)_42%,transparent)] backdrop:backdrop-blur-sm',
         sizeClasses[size],
         className
       )}

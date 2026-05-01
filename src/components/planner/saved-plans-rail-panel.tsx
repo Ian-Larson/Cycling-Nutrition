@@ -68,8 +68,8 @@ export function SavedPlansRailPanel({
                         `${formatDuration(plan.rideCharacteristics.durationMinutes)} ${plan.rideCharacteristics.intensity} plan`}
                     </h3>
                     <p className="text-xs leading-5 text-ink-600">
-                      {plan.summary.totalCarbsPlanned}g carbs - {totalCalories}{' '}
-                      kcal - {plan.summary.hydrationMl}ml
+                      {plan.summary.totalCarbsPlanned}g carbs · {totalCalories}{' '}
+                      kcal · {plan.summary.hydrationMl}ml
                     </p>
                   </div>
 

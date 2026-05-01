@@ -23,9 +23,9 @@ export function Input({ label, error, className, id, ...props }: InputProps) {
           'block min-h-12 w-full rounded-xl border px-3.5 py-2.5 text-base text-ink-900 md:min-h-11',
           'border-[color:var(--border-soft)] bg-white',
           'transition-[border-color,box-shadow] duration-150 ease-out motion-reduce:transition-none',
-          'focus:border-brand-400 focus:ring-2 focus:ring-brand-200 focus:outline-none',
+          'focus:outline-none focus-visible:border-brand-400 focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
           'placeholder:text-ink-400',
-          error && 'border-error-500 bg-error-50 focus:border-error-500 focus:ring-error-200',
+          error && 'border-error-500 bg-error-50 focus-visible:border-error-500 focus-visible:ring-error-200',
           className
         )}
         {...(error ? { 'aria-invalid': true, 'aria-describedby': `${id}-error` } : {})}

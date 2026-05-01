@@ -28,7 +28,7 @@ export function Select({
         className={clsx(
           'block min-h-12 w-full rounded-xl border px-3.5 py-2.5 text-base text-ink-900 md:min-h-11',
           'border-[color:var(--border-soft)] bg-white',
-          'focus:border-brand-400 focus:ring-2 focus:ring-brand-200 focus:outline-none',
+          'focus:outline-none focus-visible:border-brand-400 focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
           className
         )}
         {...props}

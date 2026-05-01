@@ -70,7 +70,7 @@ export function OverflowMenu({ items, label = 'More' }: OverflowMenuProps) {
                 item.onSelect();
               }}
               className={clsx(
-                'block w-full px-3 py-2.5 text-left text-sm hover:bg-shell-50 focus:outline-none focus:bg-shell-50',
+                'block w-full px-3 py-2.5 text-left text-sm transition-colors hover:bg-shell-50 focus:outline-none focus-visible:bg-shell-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-200',
                 item.tone === 'danger' ? 'text-error-700' : 'text-ink-700'
               )}
             >
