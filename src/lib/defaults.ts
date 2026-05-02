@@ -1,10 +1,4 @@
-import type { BottleInventory, Product } from '@/types';
-
-export const DEFAULT_BOTTLE_COUNTS: BottleInventory = {
-  550: 1,
-  750: 1,
-  950: 0,
-};
+import type { Product } from '@/types';
 
 export const DEFAULT_PRODUCTS: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>[] = [
   {
