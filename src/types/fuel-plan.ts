@@ -1,4 +1,6 @@
 import type { RideCharacteristics } from './ride';
+import type { BottleInventory } from './bottle';
+import type { FuelingPrescription } from '@/lib/fueling/types';
 
 export type FuelPlanWarningType =
   | 'concentration_limit'
@@ -35,19 +37,12 @@ export interface ConsumptionGuideItem {
 
 export interface FuelPlan {
   id: string;
-  title?: string;
-  rideCharacteristics: RideCharacteristics;
-  bottles: BottleAllocation[];
-  solids: SolidAllocation[];
-  consumptionGuide: ConsumptionGuideItem[];
-  warnings?: FuelPlanWarning[];
-  summary: {
-    totalCarbsPlanned: number;
-    totalCaloriesPlanned: number;
-    totalCarbsNeeded: number;
-    hydrationMl: number;
-    sodiumMgTotal?: number;
-    sodiumMgPerHour?: number;
-  };
   createdAt: number;
+  title?: string;
+  ride: RideCharacteristics;
+  bottlePool: BottleInventory;
+  selectedDrinkMixId: string | null;
+  selectedSolidIds: string[];
+  solidOverrides?: Record<string, number>;
+  prescription: FuelingPrescription;
 }

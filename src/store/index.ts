@@ -21,10 +21,8 @@ import {
   BOTTLE_SIZES,
   EMPTY_BOTTLE_INVENTORY,
   cloneBottleInventory,
-  isBottleSize,
-  totalBottleCount,
 } from '@/types/bottle';
-import { DEFAULT_BOTTLE_COUNTS, DEFAULT_PRODUCTS } from '@/lib/defaults';
+import { DEFAULT_PRODUCTS } from '@/lib/defaults';
 import {
   normalizeAnthropometricsUnit,
   type AnthropometricsUnit,
@@ -46,14 +44,12 @@ export interface AthleteProfile {
   weightKg?: number;
   anthropometricsUnit: AnthropometricsUnit;
   age?: number;
-  sweatRateLph?: number;
   heavySweater: boolean;
   gutTrainingTargetGph: number;
 }
 
 export interface Settings {
   temperatureUnit: TemperatureUnit;
-  engineVersion: 'v2' | 'v3';
   athleteProfile: AthleteProfile;
 }
 
@@ -71,7 +67,6 @@ export interface PlannerDraft {
 }
 
 export interface AppDataSnapshot {
-  bottleCounts: BottleInventory;
   products: Product[];
   fuelPlans: FuelPlan[];
   settings: Settings;
@@ -96,7 +91,6 @@ export interface AppReadiness {
 }
 
 export interface AppState {
-  bottleCounts: BottleInventory;
   products: Product[];
   fuelPlans: FuelPlan[];
   settings: Settings;
@@ -109,9 +103,6 @@ export interface AppState {
   gearServiceEvents: GearServiceEvent[];
   gearSelectedBikeId: string | null;
   _initialized: boolean;
-
-  setBottleCount: (size: BottleSize, count: number) => void;
-  incrementBottleCount: (size: BottleSize, delta: number) => void;
 
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateProduct: (id: string, updates: Partial<Product>) => void;
@@ -218,7 +209,6 @@ export interface AppState {
 
 export const DEFAULT_SETTINGS: Settings = {
   temperatureUnit: 'celsius',
-  engineVersion: 'v2',
   athleteProfile: {
     anthropometricsUnit: 'metric',
     heavySweater: false,
@@ -300,8 +290,6 @@ export function normalizeSettings(value: unknown): Settings {
   return {
     temperatureUnit:
       incoming?.temperatureUnit === 'fahrenheit' ? 'fahrenheit' : 'celsius',
-    engineVersion:
-      (incoming as Partial<Settings>)?.engineVersion === 'v3' ? 'v3' : 'v2',
     athleteProfile: {
       name: normalizeOptionalText(incomingProfile?.name),
       ftpWatts: normalizePositiveNumber(incomingProfile?.ftpWatts),
@@ -311,7 +299,6 @@ export function normalizeSettings(value: unknown): Settings {
         incomingProfile?.anthropometricsUnit
       ),
       age: normalizeAge(incomingProfile?.age),
-      sweatRateLph: normalizePositiveNumber(incomingProfile?.sweatRateLph),
       heavySweater: incomingProfile?.heavySweater ?? false,
       gutTrainingTargetGph: normalizeGutTrainingTarget(
         incomingProfile?.gutTrainingTargetGph,
@@ -402,62 +389,16 @@ export function normalizeBottleCounts(value: unknown): BottleInventory {
   return inventory;
 }
 
-function estimateCaloriesFromCarbs(product: Product | undefined, carbsGrams: number): number {
-  if (!Number.isFinite(carbsGrams) || carbsGrams <= 0) return 0;
-  if (!product) return Math.round(carbsGrams * 4);
-
-  const servingCarbs = product.nutrition.carbsGrams;
-  const servingCalories = product.nutrition.calories;
-
-  if (servingCarbs > 0 && Number.isFinite(servingCalories)) {
-    return Math.round((servingCalories / servingCarbs) * carbsGrams);
-  }
-
-  return Math.round(carbsGrams * 4);
-}
-
 export function normalizeFuelPlans(
   value: unknown,
-  fallback: FuelPlan[],
-  products: Product[]
+  fallback: FuelPlan[]
 ): FuelPlan[] {
   if (!Array.isArray(value)) return fallback;
-
-  const productMap = new Map(products.map((product) => [product.id, product]));
-
-  return value.map((plan) => {
-    const incoming = plan as FuelPlan;
-    const refuelMultiplier =
-      ((incoming.rideCharacteristics?.refuelStops ?? 0) || 0) + 1;
-    const bottleCaloriesPerFill = (incoming.bottles ?? []).reduce((sum, allocation) => {
-      if (allocation.isWaterOnly) return sum;
-      return (
-        sum +
-        estimateCaloriesFromCarbs(
-          productMap.get(allocation.productId),
-          allocation.carbsTotal
-        )
-      );
-    }, 0);
-    const totalSolidCalories = (incoming.solids ?? []).reduce((sum, allocation) => {
-      return (
-        sum +
-        estimateCaloriesFromCarbs(
-          productMap.get(allocation.productId),
-          allocation.carbsTotal
-        )
-      );
-    }, 0);
-
-    return {
-      ...incoming,
-      summary: {
-        ...incoming.summary,
-        totalCaloriesPlanned:
-          normalizeNonNegativeNumber(incoming.summary?.totalCaloriesPlanned) ??
-          bottleCaloriesPerFill * refuelMultiplier + totalSolidCalories,
-      },
-    };
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object') return [];
+    const candidate = entry as Partial<FuelPlan>;
+    if (!candidate.id || !candidate.prescription || !candidate.ride) return [];
+    return [candidate as FuelPlan];
   });
 }
 
@@ -517,7 +458,6 @@ export function normalizePlannerDraft(value: unknown): PlannerDraft | null {
 export function getAppDataFromState(
   state: Pick<
     AppState,
-    | 'bottleCounts'
     | 'products'
     | 'fuelPlans'
     | 'settings'
@@ -532,7 +472,6 @@ export function getAppDataFromState(
   >
 ): AppDataSnapshot {
   return {
-    bottleCounts: cloneBottleInventory(state.bottleCounts),
     products: state.products,
     fuelPlans: state.fuelPlans,
     settings: state.settings,
@@ -551,26 +490,14 @@ export function normalizeAppData(
   value: unknown,
   fallback: AppDataSnapshot
 ): AppDataSnapshot {
-  const incoming = value as
-    | (Partial<AppDataSnapshot> & { bottles?: unknown })
-    | undefined;
-  const bottleCountsRaw =
-    incoming?.bottleCounts !== undefined
-      ? incoming.bottleCounts
-      : incoming?.bottles;
-  const bottleCounts =
-    bottleCountsRaw === undefined
-      ? cloneBottleInventory(fallback.bottleCounts)
-      : normalizeBottleCounts(bottleCountsRaw);
+  const incoming = value as Partial<AppDataSnapshot> | undefined;
   const products = normalizeProducts(incoming?.products, fallback.products);
 
   return {
-    bottleCounts,
     products,
     fuelPlans: normalizeFuelPlans(
       incoming?.fuelPlans,
-      fallback.fuelPlans,
-      products
+      fallback.fuelPlans
     ),
     settings:
       incoming?.settings === undefined
@@ -608,9 +535,8 @@ export function normalizeAppData(
 }
 
 export function getReadinessFromState(
-  state: Pick<AppState, 'bottleCounts' | 'products' | 'settings'>
+  state: Pick<AppState, 'products' | 'settings'>
 ): AppReadiness {
-  const hasAvailableBottle = totalBottleCount(state.bottleCounts) > 0;
   const hasAvailableDrinkMix = state.products.some(
     (product) => product.type === 'drink_mix' && product.isAvailable
   );
@@ -623,10 +549,6 @@ export function getReadinessFromState(
     { label: 'FTP', complete: typeof profile.ftpWatts === 'number' && profile.ftpWatts > 0 },
     { label: 'Weight', complete: typeof profile.weightKg === 'number' && profile.weightKg > 0 },
     { label: 'Age', complete: typeof profile.age === 'number' && profile.age > 0 },
-    {
-      label: 'Sweat Rate',
-      complete: typeof profile.sweatRateLph === 'number' && profile.sweatRateLph > 0,
-    },
     {
       label: 'Gut Target',
       complete:
@@ -642,10 +564,10 @@ export function getReadinessFromState(
   );
 
   return {
-    hasAvailableBottle,
+    hasAvailableBottle: false,
     hasAvailableDrinkMix,
     availableSolidCount,
-    kitReady: hasAvailableBottle && hasAvailableDrinkMix,
+    kitReady: hasAvailableDrinkMix,
     autoReady: profileChecks[0].complete,
     profileCompletionPercent,
     missingProfileFields: profileChecks
@@ -657,7 +579,6 @@ export function getReadinessFromState(
 export const useStore = create<AppState>()(
   persist(
     immer((set, get) => ({
-      bottleCounts: cloneBottleInventory(EMPTY_BOTTLE_INVENTORY),
       products: [],
       fuelPlans: [],
       settings: {
@@ -673,19 +594,6 @@ export const useStore = create<AppState>()(
       gearServiceEvents: [],
       gearSelectedBikeId: null,
       _initialized: false,
-
-      setBottleCount: (size, count) =>
-        set((state) => {
-          if (!isBottleSize(size)) return;
-          state.bottleCounts[size] = clampCount(count);
-        }),
-
-      incrementBottleCount: (size, delta) =>
-        set((state) => {
-          if (!isBottleSize(size)) return;
-          const next = (state.bottleCounts[size] ?? 0) + delta;
-          state.bottleCounts[size] = clampCount(next);
-        }),
 
       addProduct: (product) =>
         set((state) => {
@@ -1342,7 +1250,6 @@ export const useStore = create<AppState>()(
       replaceAppData: (data) =>
         set((state) => {
           const normalized = normalizeAppData(data, getAppDataFromState(state));
-          state.bottleCounts = normalized.bottleCounts;
           state.products = normalized.products;
           state.fuelPlans = normalized.fuelPlans;
           state.settings = normalized.settings;
@@ -1367,11 +1274,7 @@ export const useStore = create<AppState>()(
           draft._initialized = true;
           draft.settings = normalizeSettings(draft.settings);
           draft.products = normalizeProducts(draft.products, []);
-          draft.fuelPlans = normalizeFuelPlans(
-            draft.fuelPlans,
-            [],
-            draft.products
-          );
+          draft.fuelPlans = normalizeFuelPlans(draft.fuelPlans, []);
           draft.serviceEntries = [];
           draft.gearPartCatalog = normalizeGearPartCatalog(draft.gearPartCatalog);
           draft.gearPartInstances = normalizeGearPartInstances(
@@ -1383,11 +1286,6 @@ export const useStore = create<AppState>()(
           draft.gearServiceEvents = normalizeGearServiceEvents(
             draft.gearServiceEvents
           );
-
-          draft.bottleCounts = normalizeBottleCounts(draft.bottleCounts);
-          if (totalBottleCount(draft.bottleCounts) === 0) {
-            draft.bottleCounts = cloneBottleInventory(DEFAULT_BOTTLE_COUNTS);
-          }
 
           if (draft.products.length === 0) {
             DEFAULT_PRODUCTS.forEach((p) => {
@@ -1404,27 +1302,30 @@ export const useStore = create<AppState>()(
     })),
     {
       name: 'cycling-nutrition-storage',
+      version: 2,
+      migrate: (persistedState, version) => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return persistedState;
+        }
+        if (version < 2) {
+          const source = persistedState as Record<string, unknown>;
+          const { bottleCounts: _b, ...rest } = source;
+          void _b;
+          return { ...rest, fuelPlans: [] };
+        }
+        return persistedState;
+      },
       merge: (persistedState, currentState) => {
-        const incoming =
-          (persistedState as Partial<AppState> & { bottles?: unknown }) || {};
+        const incoming = (persistedState as Partial<AppState>) || {};
         const products = normalizeProducts(incoming.products, currentState.products);
-        const bottleCountsSource =
-          incoming.bottleCounts !== undefined
-            ? incoming.bottleCounts
-            : incoming.bottles;
 
         return {
           ...currentState,
           ...incoming,
-          bottleCounts:
-            bottleCountsSource === undefined
-              ? cloneBottleInventory(currentState.bottleCounts)
-              : normalizeBottleCounts(bottleCountsSource),
           products,
           fuelPlans: normalizeFuelPlans(
             incoming.fuelPlans,
-            currentState.fuelPlans,
-            products
+            currentState.fuelPlans
           ),
           settings: normalizeSettings(incoming.settings),
           plannerDraft: normalizePlannerDraft(incoming.plannerDraft),

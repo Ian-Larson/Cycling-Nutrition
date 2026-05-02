@@ -8,10 +8,18 @@ import {
   type CloudUserStateRecord,
 } from './sync';
 
-function makeAppData(bottleCount: number): AppDataSnapshot {
+function makeAppData(productCount: number): AppDataSnapshot {
   return {
-    bottleCounts: { 550: 0, 750: bottleCount, 950: 0 },
-    products: [],
+    products: Array.from({ length: productCount }, (_, i) => ({
+      id: `product-${i}`,
+      name: `Product ${i}`,
+      type: 'gel' as const,
+      isAvailable: true,
+      nutrition: { carbsGrams: 25, calories: 100 },
+      serving: {},
+      createdAt: 0,
+      updatedAt: 0,
+    })),
     fuelPlans: [],
     settings: DEFAULT_SETTINGS,
     plannerDraft: null,
@@ -27,7 +35,6 @@ function makeAppData(bottleCount: number): AppDataSnapshot {
 
 function makeAppState(data: AppDataSnapshot): Pick<
   AppState,
-  | 'bottleCounts'
   | 'products'
   | 'fuelPlans'
   | 'settings'
@@ -73,7 +80,7 @@ describe('cloud sync initialization', () => {
 
     expect(result.kind).toBe('uploaded-local');
     expect(repo.upserts).toHaveLength(1);
-    expect(repo.upserts[0].snapshot.data.bottleCounts[750]).toBe(1);
+    expect(repo.upserts[0].snapshot.data.products).toHaveLength(1);
   });
 
   it('applies cloud state and saves a local backup when a cloud row exists', async () => {

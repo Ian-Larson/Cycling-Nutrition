@@ -15,7 +15,7 @@ import type { BottleInventory, BottleSize } from '@/types/bottle';
 import type { Product } from '@/types';
 
 interface SetupCardProps {
-  bottleCounts: BottleInventory;
+  bottleCounts?: BottleInventory;
   selectedBottleCounts: BottleInventory;
   drinkMixes: Product[];
   solidProducts: Product[];
@@ -144,7 +144,7 @@ export function SetupCard({
   variant = 'card',
 }: SetupCardProps) {
   const selectedCount = totalBottleCount(selectedBottleCounts);
-  const inventoryTotal = totalBottleCount(bottleCounts);
+  const inventoryTotal = bottleCounts ? totalBottleCount(bottleCounts) : 0;
   const [bottlesOpen, setBottlesOpen] = useState(selectedCount === 0);
   const [fuelOpen, setFuelOpen] = useState(selectedDrinkMixId === null);
 
@@ -192,7 +192,7 @@ export function SetupCard({
                     key={size}
                     size={size}
                     count={selectedBottleCounts[size]}
-                    max={bottleCounts[size]}
+                    max={bottleCounts?.[size] ?? Infinity}
                     onChange={(value) => onBottleCountChange(size, value)}
                   />
                 ))}

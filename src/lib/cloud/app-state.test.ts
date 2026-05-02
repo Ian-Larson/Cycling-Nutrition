@@ -8,7 +8,6 @@ import {
 
 const baseState: Pick<
   AppState,
-  | 'bottleCounts'
   | 'products'
   | 'fuelPlans'
   | 'settings'
@@ -21,7 +20,6 @@ const baseState: Pick<
   | 'gearServiceEvents'
   | 'gearSelectedBikeId'
 > = {
-  bottleCounts: { 550: 0, 750: 1, 950: 0 },
   products: [
     {
       id: 'mix-1',
@@ -59,7 +57,6 @@ describe('cloud app-state snapshots', () => {
 
     expect(snapshot.schemaVersion).toBe(APP_STATE_SCHEMA_VERSION);
     expect(snapshot.clientUpdatedAt).toBe('2026-04-16T12:00:00.000Z');
-    expect(snapshot.data.bottleCounts).toEqual({ 550: 0, 750: 1, 950: 0 });
     expect(snapshot.data.products[0].nutrition.calories).toBe(240);
     expect(snapshot.data.settings.athleteProfile.ftpWatts).toBe(280);
   });
@@ -156,7 +153,6 @@ describe('cloud app-state snapshots', () => {
         schemaVersion: 1,
         clientUpdatedAt: '2026-04-16T12:00:00.000Z',
         data: {
-          bottleCounts: { 550: 0, 750: 1, 950: 0 },
           products: baseState.products,
           fuelPlans: baseState.fuelPlans,
           settings: baseState.settings,
@@ -206,7 +202,6 @@ describe('cloud app-state snapshots', () => {
     if (parsed.ok) {
       expect(parsed.snapshot.schemaVersion).toBe(APP_STATE_SCHEMA_VERSION);
       expect(parsed.snapshot.clientUpdatedAt).toBe('2026-04-16T12:00:00.000Z');
-      expect(parsed.snapshot.data.bottleCounts).toEqual({ 550: 0, 750: 1, 950: 0 });
       expect(parsed.snapshot.data.products[0].name).toBe('Mix');
       expect(parsed.snapshot.data.settings.athleteProfile.ftpWatts).toBe(280);
       expect(parsed.snapshot.data.plannerDraft?.ride?.durationMinutes).toBe(120);

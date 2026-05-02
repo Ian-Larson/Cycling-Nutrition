@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui';
-import { FuelResult } from '@/components/planner/fuel-result';
-import {
-  formatDateTime,
-  formatDuration,
-  getFuelResultPlan,
-} from '@/lib/planner/planner-summaries';
+import { FuelResultV3 } from '@/components/planner/fuel-result-v3';
+import { formatDateTime, formatDuration } from '@/lib/planner/planner-summaries';
 import type { FuelPlan, Product } from '@/types';
 import { NutritionRailPanel } from './nutrition-rail';
 
@@ -49,9 +45,6 @@ export function SavedPlansRailPanel({
           {sortedPlans.map((plan) => {
             const isConfirming = confirmingDeleteId === plan.id;
             const isExpanded = expandedPlanId === plan.id;
-            const totalCalories =
-              plan.summary.totalCaloriesPlanned ??
-              Math.round(plan.summary.totalCarbsPlanned * 4);
 
             return (
               <article
@@ -65,11 +58,11 @@ export function SavedPlansRailPanel({
                     </p>
                     <h3 className="truncate text-sm font-semibold text-ink-900">
                       {plan.title ||
-                        `${formatDuration(plan.rideCharacteristics.durationMinutes)} ${plan.rideCharacteristics.intensity} plan`}
+                        `${formatDuration(plan.ride.durationMinutes)} ${plan.ride.intensity} plan`}
                     </h3>
                     <p className="text-xs leading-5 text-ink-600">
-                      {plan.summary.totalCarbsPlanned}g carbs · {totalCalories}{' '}
-                      kcal · {plan.summary.hydrationMl}ml
+                      {plan.prescription.during.totalCarbsGrams}g carbs ·{' '}
+                      {plan.prescription.during.totalHydrationMl}ml
                     </p>
                   </div>
 
@@ -122,7 +115,11 @@ export function SavedPlansRailPanel({
 
                 {isExpanded ? (
                   <div className="border-t border-[color:var(--border-soft)] p-3">
-                    <FuelResult plan={getFuelResultPlan(plan)} products={products} />
+                    <FuelResultV3
+                      section="all"
+                      prescription={plan.prescription}
+                      products={products}
+                    />
                   </div>
                 ) : null}
               </article>

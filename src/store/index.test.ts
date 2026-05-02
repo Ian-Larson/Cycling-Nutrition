@@ -5,7 +5,6 @@ import { useStore } from './index';
 
 const baseSettings: Settings = {
   temperatureUnit: 'celsius',
-  engineVersion: 'v2',
   athleteProfile: {
     anthropometricsUnit: 'metric',
     heavySweater: false,
@@ -38,7 +37,6 @@ describe('normalizeProducts', () => {
 
 describe('getReadinessFromState', () => {
   it('reports setup and profile readiness fields', () => {
-    const bottleCounts = { 550: 0, 750: 1, 950: 0 };
     const products: Product[] = [
       {
         id: 'mix',
@@ -68,21 +66,18 @@ describe('getReadinessFromState', () => {
         ftpWatts: 280,
         weightKg: 72,
         age: 35,
-        sweatRateLph: 0.9,
       },
     };
 
-    const readiness = getReadinessFromState({ bottleCounts, products, settings });
+    const readiness = getReadinessFromState({ products, settings });
 
-    expect(readiness.kitReady).toBe(true);
     expect(readiness.autoReady).toBe(true);
     expect(readiness.availableSolidCount).toBe(1);
     expect(readiness.profileCompletionPercent).toBe(100);
     expect(readiness.missingProfileFields).toEqual([]);
   });
 
-  it('flags missing setup and profile requirements', () => {
-    const bottleCounts = { 550: 0, 750: 0, 950: 0 };
+  it('flags missing profile requirements', () => {
     const products: Product[] = [
       {
         id: 'mix',
@@ -97,12 +92,10 @@ describe('getReadinessFromState', () => {
     ];
 
     const readiness = getReadinessFromState({
-      bottleCounts,
       products,
       settings: baseSettings,
     });
 
-    expect(readiness.kitReady).toBe(false);
     expect(readiness.autoReady).toBe(false);
     expect(readiness.profileCompletionPercent).toBeLessThan(100);
     expect(readiness.missingProfileFields).toContain('FTP');

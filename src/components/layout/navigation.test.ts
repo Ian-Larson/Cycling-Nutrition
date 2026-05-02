@@ -16,7 +16,6 @@ describe('primary navigation grouping', () => {
 
   it.each([
     ['/', 'Fuel plan'],
-    ['/inventory', 'Fuel plan'],
     ['/history', 'Fuel plan'],
     ['/gear', 'Garage'],
     ['/power-meter-analyzer', 'Labs'],

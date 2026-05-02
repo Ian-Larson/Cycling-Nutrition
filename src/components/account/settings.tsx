@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import {
   Alert,
   Button,
@@ -9,25 +9,9 @@ import {
 } from '@/components/ui';
 import { DisconnectStravaDialog } from '@/components/account/disconnect-strava-dialog';
 import { useAuth } from '@/lib/auth/auth-context';
-import {
-  formatNumberInputValue,
-  type AnthropometricsUnit,
-} from '@/lib/athlete/anthropometrics';
+import { type AnthropometricsUnit } from '@/lib/athlete/anthropometrics';
 import { formatRelativeTime } from '@/lib/format/relative-time';
-import { useStore, type AthleteProfile, type TemperatureUnit } from '@/store';
-
-function getGutTargetTone(value: number): string {
-  if (value <= 70) return 'Conservative';
-  if (value <= 85) return 'Progressive';
-  return 'Aggressive';
-}
-
-function parseDraftNumber(value: string): number | undefined | null {
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  const parsed = Number(trimmed);
-  return Number.isFinite(parsed) ? parsed : null;
-}
+import { useStore, type TemperatureUnit } from '@/store';
 
 interface RowProps {
   label: ReactNode;
@@ -78,46 +62,11 @@ export function Settings() {
   const gutTrainingTargetGph = athleteProfile.gutTrainingTargetGph ?? 65;
   const heavySweater = athleteProfile.heavySweater;
 
-  const [sweatRateDraft, setSweatRateDraft] = useState(() =>
-    formatNumberInputValue(athleteProfile.sweatRateLph, 1)
-  );
-  const [sweatError, setSweatError] = useState<string | undefined>();
-
-  const blurOnEnter = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') event.currentTarget.blur();
-  };
-
-  const commitSweatRate = () => {
-    const parsed = parseDraftNumber(sweatRateDraft);
-    const fallback = formatNumberInputValue(athleteProfile.sweatRateLph, 1);
-
-    if (parsed === null) {
-      setSweatRateDraft(fallback);
-      setSweatError('Enter a valid number.');
-      return;
-    }
-    if (parsed === undefined) {
-      updateAthleteProfile({ sweatRateLph: undefined } as Partial<AthleteProfile>);
-      setSweatRateDraft('');
-      setSweatError(undefined);
-      return;
-    }
-    if (parsed < 0.1) {
-      setSweatRateDraft(fallback);
-      setSweatError('Use a value ≥ 0.1.');
-      return;
-    }
-    updateAthleteProfile({ sweatRateLph: parsed });
-    setSweatRateDraft(formatNumberInputValue(parsed, 1));
-    setSweatError(undefined);
-  };
-
   return (
     <div className="space-y-7 md:space-y-8">
       <Section kicker="Fuel">
         <Row
           label="Gut target"
-          helper={`${getGutTargetTone(gutTrainingTargetGph)} tolerance.`}
           control={
             <Stepper
               label="Gut target"
@@ -129,27 +78,6 @@ export function Settings() {
               step={5}
               formatValue={(value) => `${value} g/h`}
             />
-          }
-        />
-        <Row
-          label="Sweat rate"
-          control={
-            <div className="flex items-center gap-2">
-              <Input
-                id="settings-sweat-rate"
-                type="text"
-                inputMode="decimal"
-                value={sweatRateDraft}
-                onChange={(event) => setSweatRateDraft(event.target.value)}
-                onBlur={commitSweatRate}
-                onKeyDown={blurOnEnter}
-                className="!min-h-9 !w-20 !py-1 text-right [font-variant-numeric:tabular-nums]"
-                placeholder="—"
-                aria-label="Sweat rate"
-                error={sweatError}
-              />
-              <span className="text-sm text-ink-600">L/h</span>
-            </div>
           }
         />
         <Row
@@ -193,23 +121,6 @@ export function Settings() {
               ]}
               value={settings.temperatureUnit}
               onChange={(next) => updateSettings({ temperatureUnit: next })}
-              className="w-[7rem]"
-            />
-          }
-        />
-        <Row
-          label="Fueling engine"
-          helper="Adds pre/post-ride targets and warnings. Needs weight."
-          control={
-            <SegmentedControl
-              size="sm"
-              label="Fueling engine"
-              options={[
-                { value: 'v2' as const, label: 'v2' },
-                { value: 'v3' as const, label: 'v3' },
-              ]}
-              value={settings.engineVersion}
-              onChange={(next) => updateSettings({ engineVersion: next })}
               className="w-[7rem]"
             />
           }

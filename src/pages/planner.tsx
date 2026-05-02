@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Alert,
   Button,
@@ -13,7 +13,6 @@ import {
 } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
 import { DebugCopyButton } from '@/components/planner/debug-copy-button';
-import { FuelResult } from '@/components/planner/fuel-result';
 import { FuelResultV3 } from '@/components/planner/fuel-result-v3';
 import { InventoryRailPanel } from '@/components/planner/inventory-rail-panel';
 import { NutritionRail } from '@/components/planner/nutrition-rail';
@@ -22,8 +21,7 @@ import { PlanningStepPanel } from '@/components/planner/planning-step-panel';
 import { RideForm, type RideFormSnapshot } from '@/components/planner/ride-form';
 import { SavedPlansRailPanel } from '@/components/planner/saved-plans-rail-panel';
 import { SetupCard } from '@/components/planner/setup-card';
-import { calculateFuelPlan, recalculatePlan, type CalculatorInput } from '@/lib/calculator';
-import { useFuelingEngine } from '@/hooks/use-fueling-engine';
+import { useFuelPrescription } from '@/hooks/use-fuel-prescription';
 import type { FuelingPrescription } from '@/lib/fueling';
 import { buildPlannerDraftFromSavedPlan } from '@/lib/planner/saved-plan-draft';
 import {
@@ -33,7 +31,7 @@ import {
   isRideSnapshotEquivalentToRide,
 } from '@/lib/planner/planner-summaries';
 import { useStore } from '@/store';
-import { BOTTLE_SIZES, totalBottleCount, cloneBottleInventory } from '@/types/bottle';
+import { BOTTLE_SIZES, totalBottleCount } from '@/types/bottle';
 import type { BottleInventory, BottleSize } from '@/types/bottle';
 import type { FuelPlan, Product, RideCharacteristics } from '@/types';
 import type { PlannerDraft } from '@/store';
@@ -45,26 +43,6 @@ function parseInitialStep(stepParam: string | null): PlannerStep {
   if (stepParam === '2') return 2;
   if (stepParam === '3') return 3;
   return 1;
-}
-
-function estimateCaloriesForCarbs(
-  caloriesPerServing: number | undefined,
-  carbsPerServing: number | undefined,
-  carbsGrams: number
-): number {
-  if (!Number.isFinite(carbsGrams) || carbsGrams <= 0) return 0;
-
-  if (
-    typeof caloriesPerServing === 'number' &&
-    Number.isFinite(caloriesPerServing) &&
-    typeof carbsPerServing === 'number' &&
-    Number.isFinite(carbsPerServing) &&
-    carbsPerServing > 0
-  ) {
-    return Math.round((caloriesPerServing / carbsPerServing) * carbsGrams);
-  }
-
-  return Math.round(carbsGrams * 4);
 }
 
 function isPlannerDraftShape(value: unknown): value is PlannerDraft {
@@ -131,24 +109,17 @@ function getRideFormSnapshotFromRide(
   };
 }
 
-function initSelectedBottleCounts(
-  inventory: BottleInventory,
-  draft: PlannerDraft | null
-): BottleInventory {
+function initBottlePool(draft: PlannerDraft | null): BottleInventory {
   if (draft?.selectedBottleCounts) {
-    // Cap each size by current inventory
     return BOTTLE_SIZES.reduce(
       (acc, size) => {
-        acc[size] = Math.min(
-          draft.selectedBottleCounts![size] ?? 0,
-          inventory[size]
-        );
+        acc[size] = Math.max(0, draft.selectedBottleCounts![size] ?? 0);
         return acc;
       },
-      { 550: 0, 750: 0, 950: 0 } as BottleInventory
+      { 550: 0, 750: 0, 950: 0 } as BottleInventory,
     );
   }
-  return cloneBottleInventory(inventory);
+  return { 550: 0, 750: 0, 950: 0 };
 }
 
 function getDefaultSelectedDrinkMixId(
@@ -183,7 +154,6 @@ function getDefaultSelectedSolidIds(
 
 export function PlannerPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const bottleCounts = useStore((s) => s.bottleCounts);
   const products = useStore((s) => s.products);
   const fuelPlans = useStore((s) => s.fuelPlans);
   const saveFuelPlan = useStore((s) => s.saveFuelPlan);
@@ -202,13 +172,10 @@ export function PlannerPage() {
   });
   const [planIsStale, setPlanIsStale] = useState(false);
   const [resultTab, setResultTab] = useState<ResultTab>('pack');
-  const [plan, setPlan] = useState<Omit<FuelPlan, 'id' | 'createdAt'> | null>(
+  const [prescription, setPrescription] = useState<FuelingPrescription | null>(
     null
   );
-  const [v3Prescription, setV3Prescription] =
-    useState<FuelingPrescription | null>(null);
-  const fuelingEngine = useFuelingEngine();
-  const isV3 = fuelingEngine.version === 'v3';
+  const fuelEngine = useFuelPrescription();
   const [planTitle, setPlanTitle] = useState(initialDraft?.title ?? '');
   const [rideFormSnapshot, setRideFormSnapshot] = useState<RideFormSnapshot>();
   const [rideFormCanCalculate, setRideFormCanCalculate] = useState(false);
@@ -225,8 +192,8 @@ export function PlannerPage() {
     setSearchParams(next, { replace: true });
   }, [isReusedDraft, searchParams, setSearchParams]);
 
-  const [selectedBottleCounts, setSelectedBottleCounts] = useState<BottleInventory>(
-    () => initSelectedBottleCounts(bottleCounts, initialDraft)
+  const [bottlePool, setBottlePool] = useState<BottleInventory>(() =>
+    initBottlePool(initialDraft)
   );
   const [selectedDrinkMixId, setSelectedDrinkMixId] = useState<string | null>(
     getDefaultSelectedDrinkMixId(products, initialDraft)
@@ -243,31 +210,30 @@ export function PlannerPage() {
   >(initialDraft?.ride ? getRideFormSnapshotFromRide(initialDraft.ride) : undefined);
   const [rideFormInstanceKey, setRideFormInstanceKey] = useState(0);
 
-  const lastInputRef = useRef<CalculatorInput | null>(null);
   const draftInitializedRef = useRef(false);
   const [draftSavedFlash, setDraftSavedFlash] = useState(false);
 
   const markPlanStale = useCallback(() => {
-    setPlanIsStale((current) => (plan ? true : current));
-  }, [plan]);
+    setPlanIsStale((current) => (prescription ? true : current));
+  }, [prescription]);
 
   const handleRideSnapshotChange = useCallback(
     (snapshot: RideFormSnapshot) => {
       setRideFormSnapshot(snapshot);
       if (
-        plan &&
-        !isRideSnapshotEquivalentToRide(snapshot, plan.rideCharacteristics)
+        persistedRide &&
+        !isRideSnapshotEquivalentToRide(snapshot, persistedRide)
       ) {
         setPlanIsStale(true);
       }
     },
-    [plan]
+    [persistedRide]
   );
 
   useEffect(() => {
     setPlannerDraft({
       ride: persistedRide,
-      selectedBottleCounts,
+      selectedBottleCounts: bottlePool,
       selectedDrinkMixId,
       selectedSolidIds,
       title: planTitle || undefined,
@@ -284,7 +250,7 @@ export function PlannerPage() {
     };
   }, [
     persistedRide,
-    selectedBottleCounts,
+    bottlePool,
     selectedDrinkMixId,
     selectedSolidIds,
     planTitle,
@@ -293,10 +259,7 @@ export function PlannerPage() {
 
   const handleBottleCountChange = (size: BottleSize, count: number) => {
     markPlanStale();
-    setSelectedBottleCounts((prev) => ({
-      ...prev,
-      [size]: Math.max(0, Math.min(count, bottleCounts[size])),
-    }));
+    setBottlePool((prev) => ({ ...prev, [size]: Math.max(0, count) }));
   };
 
   const handleDrinkMixChange = (id: string | null) => {
@@ -329,13 +292,13 @@ export function PlannerPage() {
     [products]
   );
 
-  // Expand bottle counts into a flat BottleSlot[] for the calculator
+  // Expand bottle pool into a flat BottleSlot[] for the engine
   const selectedBottleSlots = useMemo(
     () =>
       BOTTLE_SIZES.flatMap((size) =>
-        Array.from({ length: selectedBottleCounts[size] }, () => ({ capacityMl: size }))
+        Array.from({ length: bottlePool[size] }, () => ({ capacityMl: size }))
       ),
-    [selectedBottleCounts]
+    [bottlePool]
   );
 
   const effectiveSelectedSolidIds = useMemo(
@@ -363,56 +326,10 @@ export function PlannerPage() {
 
   const selectedDrinkMix =
     drinkMixOptions.find((mix) => mix.id === effectiveSelectedDrinkMixId) ?? null;
-  const canCalculate = totalBottleCount(selectedBottleCounts) > 0 && Boolean(selectedDrinkMix);
-
-  const fuelBreakdown = useMemo(() => {
-    if (!plan) return null;
-
-    const refuelMultiplier = (plan.rideCharacteristics.refuelStops || 0) + 1;
-    const drinksPerFillCarbs = plan.bottles.reduce((sum, allocation) => {
-      return allocation.isWaterOnly ? sum : sum + allocation.carbsTotal;
-    }, 0);
-    const drinksPerFillCalories = plan.bottles.reduce((sum, allocation) => {
-      if (allocation.isWaterOnly) return sum;
-
-      const product = products.find((candidate) => candidate.id === allocation.productId);
-      return (
-        sum +
-        estimateCaloriesForCarbs(
-          product?.nutrition.calories,
-          product?.nutrition.carbsGrams,
-          allocation.carbsTotal
-        )
-      );
-    }, 0);
-    const solidsCarbs = plan.solids.reduce(
-      (sum, allocation) => sum + allocation.carbsTotal,
-      0
-    );
-    const solidsCalories = plan.solids.reduce((sum, allocation) => {
-      const product = products.find((candidate) => candidate.id === allocation.productId);
-      return (
-        sum +
-        estimateCaloriesForCarbs(
-          product?.nutrition.calories,
-          product?.nutrition.carbsGrams,
-          allocation.carbsTotal
-        )
-      );
-    }, 0);
-
-    const drinksCarbs = drinksPerFillCarbs * refuelMultiplier;
-    const drinksCalories = drinksPerFillCalories * refuelMultiplier;
-
-    return {
-      drinks: { carbs: drinksCarbs, calories: drinksCalories },
-      solids: { carbs: solidsCarbs, calories: solidsCalories },
-      total: {
-        carbs: drinksCarbs + solidsCarbs,
-        calories: drinksCalories + solidsCalories,
-      },
-    };
-  }, [plan, products]);
+  const canCalculate =
+    totalBottleCount(bottlePool) > 0 &&
+    Boolean(selectedDrinkMix) &&
+    fuelEngine.weightReady;
 
   const handleCalculate = (ride: RideCharacteristics) => {
     if (!canCalculate || !selectedDrinkMix) return;
@@ -421,30 +338,17 @@ export function PlannerPage() {
       effectiveSelectedSolidIds.includes(product.id)
     );
 
-    const input: CalculatorInput = {
+    const next = fuelEngine.build({
       ride,
-      availableBottles: selectedBottleSlots,
+      bottles: selectedBottleSlots,
       drinkMix: selectedDrinkMix,
-      availableSolids,
-    };
+      solids: availableSolids,
+    });
 
-    const result = calculateFuelPlan(input);
-    lastInputRef.current = input;
-    setPlan(result);
+    if (!next) return;
+
+    setPrescription(next);
     setPersistedRide(ride);
-
-    if (isV3) {
-      const prescription = fuelingEngine.buildV3({
-        ride,
-        selectedBottles: selectedBottleSlots,
-        selectedDrinkMix,
-        selectedSolids: availableSolids,
-      });
-      setV3Prescription(prescription);
-    } else {
-      setV3Prescription(null);
-    }
-
     setPlanTitle((current) => current || getPlanTitleSuggestion(ride));
     setPlanIsStale(false);
     setActiveStep(3);
@@ -452,50 +356,46 @@ export function PlannerPage() {
   };
 
   const handleSolidQuantityChange = (productId: string, quantity: number) => {
-    if (!plan || !lastInputRef.current) return;
+    if (!prescription || !persistedRide || !selectedDrinkMix) return;
 
-    // Merge current plan quantities with the change. Including products the
-    // auto-plan didn't allocate lets the rider pull a previously-zero product
-    // into the plan via the stepper.
     const overridesByProductId = new Map<string, number>();
-    plan.solids.forEach((solid) => {
+    prescription.packList?.solids.forEach((solid) => {
       overridesByProductId.set(solid.productId, solid.quantity);
     });
     overridesByProductId.set(productId, quantity);
+    const solidOverrides = Object.fromEntries(overridesByProductId);
 
-    const solidOverrides = Array.from(overridesByProductId.entries()).map(
-      ([id, qty]) => ({ productId: id, quantity: qty })
+    const availableSolids = solidOptions.filter((product) =>
+      effectiveSelectedSolidIds.includes(product.id)
     );
 
-    const updated = recalculatePlan(lastInputRef.current, plan, { solidOverrides });
-    setPlan(updated);
+    const rebuilt = fuelEngine.build({
+      ride: persistedRide,
+      bottles: selectedBottleSlots,
+      drinkMix: selectedDrinkMix,
+      solids: availableSolids,
+      solidOverrides,
+    });
 
-    if (isV3 && lastInputRef.current.drinkMix) {
-      const overridesRecord = Object.fromEntries(overridesByProductId);
-      const rebuilt = fuelingEngine.buildV3({
-        ride: lastInputRef.current.ride,
-        selectedBottles: lastInputRef.current.availableBottles,
-        selectedDrinkMix: lastInputRef.current.drinkMix,
-        selectedSolids: lastInputRef.current.availableSolids,
-        solidOverrides: overridesRecord,
-      });
-      setV3Prescription(rebuilt);
-    }
+    if (rebuilt) setPrescription(rebuilt);
   };
 
   const handleSavePlan = () => {
-    if (!plan) return;
+    if (!prescription || !persistedRide) return;
 
     saveFuelPlan({
-      ...plan,
       title: planTitle.trim() || undefined,
+      ride: persistedRide,
+      bottlePool,
+      selectedDrinkMixId: effectiveSelectedDrinkMixId,
+      selectedSolidIds: effectiveSelectedSolidIds,
+      prescription,
     });
     setToastMessage('Plan saved to history.');
   };
 
   const handleResetPlan = () => {
-    setPlan(null);
-    setV3Prescription(null);
+    setPrescription(null);
     setPlanTitle('');
     setResultTab('pack');
     setPlanIsStale(false);
@@ -507,9 +407,7 @@ export function PlannerPage() {
   const handleReuseSavedPlan = (savedPlan: FuelPlan) => {
     const draft = buildPlannerDraftFromSavedPlan(savedPlan, products);
     setPlannerDraft(draft);
-    setSelectedBottleCounts(
-      draft.selectedBottleCounts ?? cloneBottleInventory(bottleCounts)
-    );
+    setBottlePool(initBottlePool(draft));
     setSelectedDrinkMixId(draft.selectedDrinkMixId ?? null);
     setSelectedSolidIds(draft.selectedSolidIds ?? []);
     setPersistedRide(draft.ride);
@@ -517,8 +415,7 @@ export function PlannerPage() {
       draft.ride ? getRideFormSnapshotFromRide(draft.ride) : undefined
     );
     setRideFormInstanceKey((current) => current + 1);
-    setPlan(null);
-    setV3Prescription(null);
+    setPrescription(savedPlan.prescription);
     setPlanIsStale(false);
     setPlanTitle(draft.title ?? '');
     setResultTab('pack');
@@ -532,7 +429,7 @@ export function PlannerPage() {
     if (targetStep === 1) return true;
     if (targetStep === 2) return canCalculate;
     if (targetStep === 3) {
-      return Boolean(plan) || (canCalculate && rideFormCanCalculate);
+      return Boolean(prescription) || (canCalculate && rideFormCanCalculate);
     }
     return false;
   };
@@ -550,7 +447,7 @@ export function PlannerPage() {
   };
 
   const setupSummary = formatSetupSummary({
-    selectedBottleCounts,
+    selectedBottleCounts: bottlePool,
     selectedDrinkMix,
     selectedSolidIds: effectiveSelectedSolidIds,
   });
@@ -600,7 +497,27 @@ export function PlannerPage() {
 
         <NutritionWorkspaceLayout
           main={
-            <>
+            !fuelEngine.weightReady ? (
+              <Card className="overflow-hidden">
+                <CardContent className="space-y-3 py-8 text-center md:py-10">
+                  <h2 className="text-lg font-semibold text-ink-900">
+                    Set your weight to plan
+                  </h2>
+                  <p className="mx-auto max-w-prose text-sm leading-6 text-ink-600">
+                    The fueling engine sizes your carbs, fluid, and sodium against rider mass. Set it once on Account.
+                  </p>
+                  <div className="pt-1">
+                    <Link
+                      to="/account#preferences"
+                      className="inline-flex h-9 items-center rounded-xl bg-brand-500 px-4 text-sm font-semibold text-white shadow-[var(--shadow-brand-glow-md)] transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+                    >
+                      Set weight in Account
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
               <PlanningStepPanel
                 step={1}
                 title="Setup"
@@ -611,8 +528,7 @@ export function PlannerPage() {
               >
                 <SetupCard
                   variant="embedded"
-                  bottleCounts={bottleCounts}
-                  selectedBottleCounts={selectedBottleCounts}
+                  selectedBottleCounts={bottlePool}
                   drinkMixes={drinkMixOptions}
                   solidProducts={solidOptions}
                   selectedDrinkMixId={effectiveSelectedDrinkMixId}
@@ -674,14 +590,14 @@ export function PlannerPage() {
                 step={3}
                 title="Plan"
                 summary={
-                  plan
+                  prescription
                     ? planIsStale
                       ? 'Review old result or rebuild'
                       : 'Plan ready'
                     : 'Build from ride data'
                 }
                 active={activeStep === 3}
-                complete={Boolean(plan) && !planIsStale}
+                complete={Boolean(prescription) && !planIsStale}
                 stale={planIsStale}
                 disabled={!canOpenPlan}
                 disabledReason="Enter valid ride data first."
@@ -694,7 +610,7 @@ export function PlannerPage() {
                   </Alert>
                 ) : null}
 
-                {plan ? (
+                {prescription ? (
                   <div className="space-y-4">
                     <Card className="overflow-hidden">
                       <CardContent className="space-y-3 md:space-y-4">
@@ -726,92 +642,6 @@ export function PlannerPage() {
                           </Button>
                         </div>
 
-                        {fuelBreakdown && (
-                          <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:color-mix(in_srgb,var(--color-shell-100)_90%,white)] p-3 md:p-4">
-                            <div className="mb-2.5 md:mb-3">
-                              <h3 className="section-title text-lg">
-                                Fuel breakdown
-                              </h3>
-                            </div>
-                            <table className="w-full table-fixed border-collapse text-[0.82rem] md:text-sm">
-                              <colgroup>
-                                <col />
-                                <col className="w-[5.5rem] md:w-[6.5rem]" />
-                                <col className="w-[6rem] md:w-[7rem]" />
-                              </colgroup>
-                              <thead>
-                                <tr>
-                                  <th
-                                    scope="col"
-                                    className="page-stat-label px-2.5 pb-2 text-left md:px-3"
-                                  >
-                                    Source
-                                  </th>
-                                  <th
-                                    scope="col"
-                                    className="page-stat-label px-2.5 pb-2 text-right md:px-3"
-                                  >
-                                    Carbs
-                                  </th>
-                                  <th
-                                    scope="col"
-                                    className="page-stat-label px-2.5 pb-2 text-right md:px-3"
-                                  >
-                                    Calories
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr>
-                                  <td className="rounded-l-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">
-                                    Drinks
-                                  </td>
-                                  <td className="bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
-                                    {fuelBreakdown.drinks.carbs} g
-                                  </td>
-                                  <td className="rounded-r-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
-                                    {fuelBreakdown.drinks.calories} kcal
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td className="pt-2" />
-                                  <td className="pt-2" />
-                                  <td className="pt-2" />
-                                </tr>
-                                <tr>
-                                  <td className="rounded-l-lg bg-white/78 px-2.5 py-2 text-ink-900 md:px-3">
-                                    Solids
-                                  </td>
-                                  <td className="bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
-                                    {fuelBreakdown.solids.carbs} g
-                                  </td>
-                                  <td className="rounded-r-lg bg-white/78 px-2.5 py-2 text-right tabular-nums text-ink-700 md:px-3">
-                                    {fuelBreakdown.solids.calories} kcal
-                                  </td>
-                                </tr>
-                              </tbody>
-                              <tfoot>
-                                <tr>
-                                  <td colSpan={3} className="pt-3">
-                                    <div className="border-t border-[color:var(--border-soft)]" />
-                                  </td>
-                                </tr>
-                                <tr className="font-semibold text-ink-900">
-                                  <td className="rounded-l-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 md:px-3 md:py-3">
-                                    Total
-                                  </td>
-                                  <td className="bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 text-right tabular-nums md:px-3 md:py-3">
-                                    {fuelBreakdown.total.carbs} g
-                                  </td>
-                                  <td className="rounded-r-lg bg-[color:color-mix(in_srgb,var(--color-shell-50)_72%,white)] px-2.5 py-2.5 text-right tabular-nums md:px-3 md:py-3">
-                                    {fuelBreakdown.total.calories} kcal
-                                  </td>
-                                </tr>
-                              </tfoot>
-                            </table>
-                          </div>
-                        )}
-
                         <Tabs
                           value={resultTab}
                           onChange={(value) => setResultTab(value as ResultTab)}
@@ -828,43 +658,19 @@ export function PlannerPage() {
                       </CardContent>
                     </Card>
 
-                    {isV3 && v3Prescription ? (
-                      <FuelResultV3
-                        section={resultTab}
-                        prescription={v3Prescription}
-                        products={products}
-                        availableSolids={selectedSolidProducts}
-                        onSolidQuantityChange={handleSolidQuantityChange}
-                      />
-                    ) : (
-                      <FuelResult
-                        section={resultTab}
-                        plan={plan}
-                        products={products}
-                        availableSolids={selectedSolidProducts}
-                        onSolidQuantityChange={handleSolidQuantityChange}
-                      />
-                    )}
-                    {isV3 && !v3Prescription && (
-                      <Card>
-                        <CardContent className="py-6 text-center text-ink-600">
-                          <p className="font-semibold text-ink-900">
-                            v3 engine needs your weight
-                          </p>
-                          <p className="mt-1 text-sm leading-6">
-                            Set weight on the Athlete page to unlock the
-                            science-backed prescription. Showing the v2 plan
-                            below.
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )}
+                    <FuelResultV3
+                      section={resultTab}
+                      prescription={prescription}
+                      products={products}
+                      availableSolids={selectedSolidProducts}
+                      onSolidQuantityChange={handleSolidQuantityChange}
+                    />
 
                     {import.meta.env.DEV && (
                       <DebugCopyButton
-                        plan={plan}
+                        prescription={prescription}
                         products={products}
-                        selectedBottleCounts={selectedBottleCounts}
+                        selectedBottleCounts={bottlePool}
                         selectedDrinkMixId={effectiveSelectedDrinkMixId}
                         selectedSolidIds={effectiveSelectedSolidIds}
                       />
@@ -889,6 +695,7 @@ export function PlannerPage() {
                 )}
               </PlanningStepPanel>
             </>
+            )
           }
           rail={
             <NutritionRail>

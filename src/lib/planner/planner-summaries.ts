@@ -1,7 +1,7 @@
 import type { RideFormSnapshot } from '@/components/planner/ride-form';
 import type { BottleInventory } from '@/types/bottle';
 import { totalBottleCount } from '@/types/bottle';
-import type { FuelPlan, Product, RideCharacteristics } from '@/types';
+import type { Product, RideCharacteristics } from '@/types';
 
 export function formatDuration(mins: number): string {
   const h = Math.floor(mins / 60);
@@ -81,11 +81,3 @@ export function isRideSnapshotEquivalentToRide(
   );
 }
 
-export function getFuelResultPlan(
-  plan: FuelPlan
-): Omit<FuelPlan, 'id' | 'createdAt'> {
-  const { id, createdAt, ...rest } = plan;
-  void id;
-  void createdAt;
-  return rest;
-}

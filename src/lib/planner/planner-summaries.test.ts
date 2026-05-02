@@ -4,13 +4,12 @@ import {
   formatDuration,
   formatRideSummary,
   formatSetupSummary,
-  getFuelResultPlan,
   getPlanTitleSuggestion,
   isRideSnapshotEquivalentToRide,
 } from './planner-summaries';
 import type { RideFormSnapshot } from '@/components/planner/ride-form';
 import type { BottleInventory } from '@/types/bottle';
-import type { FuelPlan, Product, RideCharacteristics } from '@/types';
+import type { Product, RideCharacteristics } from '@/types';
 
 const bottles: BottleInventory = { 550: 1, 750: 1, 950: 0 };
 
@@ -89,33 +88,6 @@ describe('planner summaries', () => {
     expect(
       isRideSnapshotEquivalentToRide({ ...snapshot, heatFactor: 'hot' }, ride)
     ).toBe(false);
-  });
-
-  it('strips persistence fields from a saved plan for result rendering', () => {
-    const plan: FuelPlan = {
-      id: 'plan-1',
-      createdAt: 100,
-      title: 'Saved',
-      rideCharacteristics: ride,
-      bottles: [],
-      solids: [],
-      consumptionGuide: [],
-      summary: {
-        totalCarbsPlanned: 180,
-        totalCaloriesPlanned: 720,
-        totalCarbsNeeded: 180,
-        hydrationMl: 1500,
-      },
-    };
-
-    expect(getFuelResultPlan(plan)).toEqual({
-      title: 'Saved',
-      rideCharacteristics: ride,
-      bottles: [],
-      solids: [],
-      consumptionGuide: [],
-      summary: plan.summary,
-    });
   });
 
   it('formats saved-plan dates with stable options', () => {

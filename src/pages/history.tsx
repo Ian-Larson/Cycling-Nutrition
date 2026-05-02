@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/store';
 import { Card, CardContent, Button } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
-import { FuelResult } from '@/components/planner/fuel-result';
+import { FuelResultV3 } from '@/components/planner/fuel-result-v3';
 import { buildPlannerDraftFromSavedPlan } from '@/lib/planner/saved-plan-draft';
 import {
   formatDateTime,
   formatDuration,
-  getFuelResultPlan,
 } from '@/lib/planner/planner-summaries';
 import type { FuelPlan } from '@/types';
 
@@ -46,9 +45,7 @@ export function HistoryPage() {
     deleteFuelPlan(planId);
     setConfirmingDeleteId((current) => (current === planId ? null : current));
     setExpandedPlanIds((previous) => {
-      if (!previous.has(planId)) {
-        return previous;
-      }
+      if (!previous.has(planId)) return previous;
       const next = new Set(previous);
       next.delete(planId);
       return next;
@@ -64,11 +61,7 @@ export function HistoryPage() {
     <div className="page-shell space-y-4 md:space-y-6">
       <PageIntro
         title="Saved plans"
-        description={
-          <>
-            Reuse a saved plan.
-          </>
-        }
+        description={<>Reuse a saved plan.</>}
       />
 
       <div role="status" aria-live="polite" className="sr-only">
@@ -91,16 +84,9 @@ export function HistoryPage() {
       ) : (
         <div className="space-y-3 md:space-y-3.5">
           {sortedPlans.map((plan) => {
-            const totalCaloriesPlanned =
-              plan.summary.totalCaloriesPlanned ??
-              Math.round(plan.summary.totalCarbsPlanned * 4);
-            const bottleNames = plan.bottles
-              .map((b, i) => `Bottle ${i + 1} (${b.capacityMl}ml)`)
-              .join(', ');
-
             const isConfirming = confirmingDeleteId === plan.id;
             const isExpanded = expandedPlanIds.has(plan.id);
-            const planDetails = getFuelResultPlan(plan);
+            const during = plan.prescription.during;
 
             return (
               <Card key={plan.id} className="overflow-hidden">
@@ -118,11 +104,11 @@ export function HistoryPage() {
                         ) : null}
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-5 text-ink-600 md:leading-6">
                           <span className="font-medium capitalize text-ink-900">
-                            {formatDuration(plan.rideCharacteristics.durationMinutes)}
+                            {formatDuration(plan.ride.durationMinutes)}
                           </span>
                           <span aria-hidden>•</span>
                           <span className="capitalize">
-                            {plan.rideCharacteristics.intensity} ride
+                            {plan.ride.intensity} ride
                           </span>
                         </div>
                       </div>
@@ -131,65 +117,49 @@ export function HistoryPage() {
                         <div className="surface-note px-3 py-2.5">
                           <p className="page-stat-label">Carbs</p>
                           <p className="font-sans text-[1.02rem] font-semibold leading-none text-brand-700 tabular-nums">
-                            {plan.summary.totalCarbsPlanned}g
-                          </p>
-                        </div>
-                        <div className="surface-note px-3 py-2.5">
-                          <p className="page-stat-label">Calories</p>
-                          <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900 tabular-nums">
-                            {totalCaloriesPlanned} kcal
+                            {during.totalCarbsGrams}g
                           </p>
                         </div>
                         <div className="surface-note px-3 py-2.5">
                           <p className="page-stat-label">Hydration</p>
                           <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900 tabular-nums">
-                            {plan.summary.hydrationMl}ml
+                            {during.totalHydrationMl}ml
                           </p>
                         </div>
-                        {plan.summary.sodiumMgPerHour !== undefined && (
-                          <div className="surface-note px-3 py-2.5">
-                            <p className="page-stat-label">Sodium / Hour</p>
-                            <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900 tabular-nums">
-                              {plan.summary.sodiumMgPerHour}mg
-                            </p>
-                          </div>
-                        )}
+                        <div className="surface-note px-3 py-2.5">
+                          <p className="page-stat-label">Sodium / Hour</p>
+                          <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900 tabular-nums">
+                            {during.sodiumMgPerHour}mg
+                          </p>
+                        </div>
+                        <div className="surface-note px-3 py-2.5">
+                          <p className="page-stat-label">Carbs / Hour</p>
+                          <p className="font-sans text-[1.02rem] font-semibold leading-none text-ink-900 tabular-nums">
+                            {during.carbsGPerHour}g
+                          </p>
+                        </div>
                       </div>
 
                       <div className="hidden md:flex md:flex-wrap md:gap-2">
                         <div className="surface-note min-w-[7.25rem] px-3 py-2">
                           <p className="page-stat-label">Carbs</p>
                           <p className="font-sans text-[0.98rem] font-semibold leading-none text-brand-700">
-                            {plan.summary.totalCarbsPlanned}g
-                          </p>
-                        </div>
-                        <div className="surface-note min-w-[7.75rem] px-3 py-2">
-                          <p className="page-stat-label">Calories</p>
-                          <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900 tabular-nums">
-                            {totalCaloriesPlanned} kcal
+                            {during.totalCarbsGrams}g
                           </p>
                         </div>
                         <div className="surface-note min-w-[7.75rem] px-3 py-2">
                           <p className="page-stat-label">Hydration</p>
                           <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900 tabular-nums">
-                            {plan.summary.hydrationMl}ml
+                            {during.totalHydrationMl}ml
                           </p>
                         </div>
-                        {plan.summary.sodiumMgPerHour !== undefined && (
-                          <div className="surface-note min-w-[8.25rem] px-3 py-2">
-                            <p className="page-stat-label">Sodium / Hour</p>
-                            <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900 tabular-nums">
-                              {plan.summary.sodiumMgPerHour}mg
-                            </p>
-                          </div>
-                        )}
+                        <div className="surface-note min-w-[8.25rem] px-3 py-2">
+                          <p className="page-stat-label">Sodium / Hour</p>
+                          <p className="font-sans text-[0.98rem] font-semibold leading-none text-ink-900 tabular-nums">
+                            {during.sodiumMgPerHour}mg
+                          </p>
+                        </div>
                       </div>
-
-                      {bottleNames && (
-                        <p className="hidden text-sm leading-5 text-ink-600 md:block">
-                          Bottles: {bottleNames}
-                        </p>
-                      )}
                     </div>
 
                     <div className="flex flex-col gap-2">
@@ -238,8 +208,9 @@ export function HistoryPage() {
                   </div>
                   {isExpanded && (
                     <div className="border-t border-[color:var(--border-soft)] pt-3 md:pt-4">
-                      <FuelResult
-                        plan={planDetails}
+                      <FuelResultV3
+                        section="all"
+                        prescription={plan.prescription}
                         products={products}
                       />
                     </div>

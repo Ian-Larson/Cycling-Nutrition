@@ -19,7 +19,6 @@ export type ParsedSerializedAppState =
 
 type SerializeAppStateInput = Pick<
   AppState,
-  | 'bottleCounts'
   | 'products'
   | 'fuelPlans'
   | 'settings'
@@ -46,7 +45,6 @@ function withGearHubStateDefaults(
   state: SerializeAppStateInput
 ): Pick<
     AppState,
-    | 'bottleCounts'
     | 'products'
     | 'fuelPlans'
     | 'settings'

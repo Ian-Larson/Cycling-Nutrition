@@ -17,7 +17,7 @@ export const primaryNavItems: readonly PrimaryNavItem[] = [
     label: 'Fuel plan',
     mobileLabel: 'Fuel',
     section: 'nutrition',
-    matchPaths: ['/', '/nutrition-plan', '/inventory', '/bottles', '/products', '/history'],
+    matchPaths: ['/', '/nutrition-plan', '/products', '/history'],
   },
   {
     path: '/gear',
