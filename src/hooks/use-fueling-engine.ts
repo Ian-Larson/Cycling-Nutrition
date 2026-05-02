@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { Product, RideCharacteristics } from '@/types';
-import type { BottleSlot } from '@/lib/calculator/bottles';
+import type { BottleSlot } from '@/types/bottle';
 import { useStore } from '@/store';
 import { buildPrescription, type FuelingPrescription } from '@/lib/fueling';
 import { buildFuelingInputFromV2 } from '@/lib/fueling/adapters/from-v2-inputs';

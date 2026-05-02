@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { selectBottles } from '../select-bottles';
-import type { BottleSlot } from '@/lib/calculator/bottles';
+import type { BottleSlot } from '@/types/bottle';
 
 const bottles: BottleSlot[] = [
   { capacityMl: 550 },

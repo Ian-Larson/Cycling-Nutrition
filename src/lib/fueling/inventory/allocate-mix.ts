@@ -1,5 +1,5 @@
 import type { Product } from '@/types';
-import type { BottleSlot } from '@/lib/calculator/bottles';
+import type { BottleSlot } from '@/types/bottle';
 import type { BottleAllocation, Warning } from '../types';
 import { MAX_BOTTLE_CONC_G_PER_ML } from '../constants/science';
 

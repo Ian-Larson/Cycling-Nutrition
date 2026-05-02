@@ -4,7 +4,7 @@ import type {
   HeatFactor,
   IntensityLevel,
 } from '@/types';
-import type { BottleSlot } from '@/lib/calculator/bottles';
+import type { BottleSlot } from '@/types/bottle';
 import type { AthleteProfile, TemperatureUnit } from '@/store';
 import type { FuelingInput } from '..';
 import type {

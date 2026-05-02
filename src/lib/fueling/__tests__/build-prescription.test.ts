@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { buildPrescription } from '../index';
 import type { RiderProfile, SessionPlan } from '../types';
 import type { Product } from '@/types';
-import type { BottleSlot } from '@/lib/calculator/bottles';
+import type { BottleSlot } from '@/types/bottle';
 
 const baseRider: RiderProfile = {
   sex: 'male',

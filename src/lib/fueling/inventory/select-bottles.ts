@@ -1,4 +1,4 @@
-import type { BottleSlot } from '@/lib/calculator/bottles';
+import type { BottleSlot } from '@/types/bottle';
 
 export interface BottleSelectionResult {
   selectedBottles: BottleSlot[];

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { allocateMix } from '../allocate-mix';
 import type { Product } from '@/types';
-import type { BottleSlot } from '@/lib/calculator/bottles';
+import type { BottleSlot } from '@/types/bottle';
 
 const drinkMix: Product = {
   id: 'mix1', name: 'PF 30', type: 'drink_mix', isAvailable: true,

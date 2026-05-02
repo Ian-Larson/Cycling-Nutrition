@@ -30,3 +30,7 @@ export function cloneBottleInventory(
 ): BottleInventory {
   return { 550: inventory[550], 750: inventory[750], 950: inventory[950] };
 }
+
+export interface BottleSlot {
+  capacityMl: number;
+}
