@@ -7,49 +7,13 @@ import {
   Stepper,
   Toggle,
 } from '@/components/ui';
+import { AthleteSection } from '@/components/account/athlete-section';
 import { DisconnectStravaDialog } from '@/components/account/disconnect-strava-dialog';
 import { useAuth } from '@/lib/auth/auth-context';
 import { type AnthropometricsUnit } from '@/lib/athlete/anthropometrics';
 import { formatRelativeTime } from '@/lib/format/relative-time';
 import { useStore, type TemperatureUnit } from '@/store';
-
-interface RowProps {
-  label: ReactNode;
-  control: ReactNode;
-  helper?: ReactNode;
-  id?: string;
-}
-
-function Row({ label, control, helper, id }: RowProps) {
-  return (
-    <li id={id} className="scroll-mt-24 py-2.5 md:py-3">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <div className="w-32 shrink-0 text-sm font-medium text-ink-800">{label}</div>
-        <div className="min-w-0">{control}</div>
-      </div>
-      {helper ? (
-        <p className="mt-1 pl-[9rem] text-xs leading-5 text-ink-500">{helper}</p>
-      ) : null}
-    </li>
-  );
-}
-
-interface SectionProps {
-  kicker: string;
-  children: ReactNode;
-  id?: string;
-}
-
-function Section({ kicker, children, id }: SectionProps) {
-  return (
-    <section id={id} className="scroll-mt-24">
-      <p className="section-kicker mb-1 uppercase tracking-[0.08em] text-ink-500">
-        {kicker}
-      </p>
-      <ul className="divide-y divide-[color:var(--border-soft)]">{children}</ul>
-    </section>
-  );
-}
+import { Row, Section } from '@/components/account/section-list';
 
 export function Settings() {
   const settings = useStore((s) => s.settings);
@@ -64,6 +28,8 @@ export function Settings() {
 
   return (
     <div className="space-y-7 md:space-y-8">
+      <AthleteSection />
+
       <Section kicker="Fuel">
         <Row
           label="Gut target"

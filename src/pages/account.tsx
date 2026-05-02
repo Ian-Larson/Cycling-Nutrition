@@ -1,5 +1,4 @@
 import { Link, useSearchParams } from 'react-router-dom';
-import { IdentityStrip } from '@/components/account/identity-strip';
 import { Settings } from '@/components/account/settings';
 
 export function AccountPage() {
@@ -18,8 +17,6 @@ export function AccountPage() {
             ← Back to plan
           </Link>
         ) : null}
-
-        <IdentityStrip />
 
         <Settings />
       </div>
