@@ -8,7 +8,7 @@ import {
   DividedRowList,
   Stepper,
 } from '@/components/ui';
-import { formatTime } from '@/lib/calculator/timing';
+import { formatTime } from '@/lib/format/time';
 import {
   formatPercent,
   formatCarbsGrams,

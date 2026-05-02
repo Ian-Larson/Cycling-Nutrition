@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui';
-import { formatTime } from '@/lib/calculator/timing';
+import { formatTime } from '@/lib/format/time';
 import { BOTTLE_SIZES } from '@/types/bottle';
 import type { BottleInventory } from '@/types/bottle';
 import type { FuelPlan, Product } from '@/types';
