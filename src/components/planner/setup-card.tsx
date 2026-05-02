@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { clsx } from 'clsx';
 import {
   Card,
@@ -15,7 +14,6 @@ import type { BottleInventory, BottleSize } from '@/types/bottle';
 import type { Product } from '@/types';
 
 interface SetupCardProps {
-  bottleCounts?: BottleInventory;
   selectedBottleCounts: BottleInventory;
   drinkMixes: Product[];
   solidProducts: Product[];
@@ -69,33 +67,26 @@ function SelectionRow({
 function BottleSizeCounter({
   size,
   count,
-  max,
   onChange,
 }: {
   size: BottleSize;
   count: number;
-  max: number;
   onChange: (value: number) => void;
 }) {
-  const disabled = max === 0;
-
   return (
     <div
       className={clsx(
         'flex flex-col items-center gap-2 rounded-xl border px-3 py-3 transition-colors',
-        disabled
-          ? 'border-[color:var(--border-soft)] bg-shell-50 opacity-40'
-          : count > 0
-            ? 'border-brand-300 bg-brand-50/60'
-            : 'border-[color:var(--border-soft)] bg-white'
+        count > 0
+          ? 'border-brand-300 bg-brand-50/60'
+          : 'border-[color:var(--border-soft)] bg-white'
       )}
     >
       <p className="font-semibold text-ink-900">{size}ml</p>
-      <p className="text-xs text-ink-500">max {max}</p>
       <div className="flex items-center gap-2">
         <button
           type="button"
-          disabled={disabled || count <= 0}
+          disabled={count <= 0}
           onClick={() => onChange(count - 1)}
           className="flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-white text-ink-700 transition-colors hover:bg-shell-100 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label={`Remove one ${size}ml bottle`}
@@ -107,9 +98,8 @@ function BottleSizeCounter({
         </span>
         <button
           type="button"
-          disabled={disabled || count >= max}
           onClick={() => onChange(count + 1)}
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-white text-ink-700 transition-colors hover:bg-shell-100 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-white text-ink-700 transition-colors hover:bg-shell-100"
           aria-label={`Add one ${size}ml bottle`}
         >
           +
@@ -132,7 +122,6 @@ function getFuelSummary(
 }
 
 export function SetupCard({
-  bottleCounts,
   selectedBottleCounts,
   drinkMixes,
   solidProducts,
@@ -144,7 +133,6 @@ export function SetupCard({
   variant = 'card',
 }: SetupCardProps) {
   const selectedCount = totalBottleCount(selectedBottleCounts);
-  const inventoryTotal = bottleCounts ? totalBottleCount(bottleCounts) : 0;
   const [bottlesOpen, setBottlesOpen] = useState(selectedCount === 0);
   const [fuelOpen, setFuelOpen] = useState(selectedDrinkMixId === null);
 
@@ -171,33 +159,22 @@ export function SetupCard({
               <p className="section-title text-base">Available bottles</p>
               <p className="mt-1 text-sm leading-5 text-brand-800">
                 {selectedCount === 0
-                  ? 'Select bottles'
-                  : `${selectedCount} selected`}
+                  ? 'Add bottles'
+                  : `${selectedCount} in pool`}
               </p>
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent className="border-t border-[color:var(--border-soft)] px-4 py-4 md:px-5">
-            {inventoryTotal === 0 ? (
-              <p className="text-sm leading-6 text-ink-600">
-                No bottles in inventory.{' '}
-                <Link to="/inventory" className="font-semibold text-brand-700 underline">
-                  Add bottles
-                </Link>
-                .
-              </p>
-            ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {BOTTLE_SIZES.map((size) => (
-                  <BottleSizeCounter
-                    key={size}
-                    size={size}
-                    count={selectedBottleCounts[size]}
-                    max={bottleCounts?.[size] ?? Infinity}
-                    onChange={(value) => onBottleCountChange(size, value)}
-                  />
-                ))}
-              </div>
-            )}
+            <div className="grid grid-cols-3 gap-2">
+              {BOTTLE_SIZES.map((size) => (
+                <BottleSizeCounter
+                  key={size}
+                  size={size}
+                  count={selectedBottleCounts[size]}
+                  onChange={(value) => onBottleCountChange(size, value)}
+                />
+              ))}
+            </div>
           </CollapsibleContent>
         </Collapsible>
 

@@ -16,7 +16,6 @@ describe('SetupCard bottle pool', () => {
     const onBottleCountChange = vi.fn();
     renderSetupCard({
       variant: 'embedded',
-      bottleCounts: { 550: 0, 750: 0, 950: 1 },
       selectedBottleCounts: { 550: 0, 750: 0, 950: 1 },
       drinkMixes: [],
       solidProducts: [],
@@ -44,7 +43,6 @@ describe('SetupCard bottle pool', () => {
     const onBottleCountChange = vi.fn();
     renderSetupCard({
       variant: 'embedded',
-      bottleCounts: { 550: 0, 750: 0, 950: 1 },
       selectedBottleCounts: { 550: 0, 750: 0, 950: 0 },
       drinkMixes: [],
       solidProducts: [],
