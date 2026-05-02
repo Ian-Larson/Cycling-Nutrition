@@ -20,7 +20,7 @@ import {
   SegmentedControl,
   Select,
 } from '@/components/ui';
-import { calculateAutoTarget } from '@/lib/calculator/auto-target';
+import { calculateAutoTarget } from '@/lib/planner/auto-target';
 import { useStore } from '@/store';
 import type { AutoInputPair, RideCharacteristics } from '@/types';
 import { NeedsIntensityBar } from './needs-intensity-bar';
