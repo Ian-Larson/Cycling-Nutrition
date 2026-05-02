@@ -154,6 +154,26 @@
   animation: fade-in 0.2s ease-out;
 }
 
+@keyframes saved-row-pulse {
+  from {
+    background-color: var(--color-brand-100);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+@utility animate-saved-row {
+  animation: saved-row-pulse 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes saved-row-pulse {
+    from { background-color: var(--color-brand-100); }
+    to { background-color: var(--color-brand-100); }
+  }
+}
+
 @layer components {
   .app-shell {
     background: var(--color-shell-100);

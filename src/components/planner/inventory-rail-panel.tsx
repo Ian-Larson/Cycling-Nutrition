@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { Chip, Toggle } from '@/components/ui';
-import { ProductForm } from '@/components/products/product-form';
+import { FuelEditorSheet } from '@/components/products/fuel-editor-sheet';
 import { useStore } from '@/store';
 import type { Product } from '@/types';
 import { NutritionRailPanel } from './nutrition-rail';
 
 type ProductFilter = 'all' | 'drink_mix' | 'solid';
-type EditorMode = { kind: 'list' } | { kind: 'add' } | { kind: 'edit'; productId: string };
+type EditorMode = { kind: 'closed' } | { kind: 'add' } | { kind: 'edit'; productId: string };
 
 const PRODUCT_TYPE_LABELS: Record<Product['type'], string> = {
   drink_mix: 'Drink mix',
@@ -37,7 +37,46 @@ export function InventoryRailPanel({
   const deleteProduct = useStore((s) => s.deleteProduct);
 
   const [filter, setFilter] = useState<ProductFilter>('all');
-  const [mode, setMode] = useState<EditorMode>({ kind: 'list' });
+  const [mode, setMode] = useState<EditorMode>({ kind: 'closed' });
+  const [pulsed, setPulsed] = useState<{ id: string; token: number } | null>(null);
+  const [flashSummary, setFlashSummary] = useState<string | null>(null);
+  const pulseTimerRef = useRef<number | null>(null);
+  const flashTimerRef = useRef<number | null>(null);
+  const pendingNameRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (pulseTimerRef.current) window.clearTimeout(pulseTimerRef.current);
+      if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
+    };
+  }, []);
+
+  const triggerPulse = useCallback((productId: string) => {
+    if (pulseTimerRef.current) window.clearTimeout(pulseTimerRef.current);
+    setPulsed((prev) => ({ id: productId, token: (prev?.token ?? 0) + 1 }));
+    pulseTimerRef.current = window.setTimeout(() => {
+      setPulsed(null);
+      pulseTimerRef.current = null;
+    }, 700);
+  }, []);
+
+  const flashLogged = useCallback(() => {
+    if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
+    setFlashSummary('Logged.');
+    flashTimerRef.current = window.setTimeout(() => {
+      setFlashSummary(null);
+      flashTimerRef.current = null;
+    }, 1600);
+  }, []);
+
+  // When products list updates after an add, find the new row and pulse it.
+  useEffect(() => {
+    if (!pendingNameRef.current) return;
+    const target = products.find((p) => p.name === pendingNameRef.current);
+    if (!target) return;
+    pendingNameRef.current = null;
+    triggerPulse(target.id);
+  }, [products, triggerPulse]);
 
   const drinkMixCount = products.filter((p) => p.type === 'drink_mix').length;
   const solidCount = products.length - drinkMixCount;
@@ -54,60 +93,44 @@ export function InventoryRailPanel({
     mode.kind === 'edit'
       ? products.find((product) => product.id === mode.productId) ?? null
       : null;
+  const sheetOpen =
+    mode.kind === 'add' || (mode.kind === 'edit' && editingProduct !== null);
 
-  const summary =
+  const baseSummary =
     products.length === 0
       ? undefined
       : `${drinkMixCount} drink mix · ${solidCount} ${
           solidCount === 1 ? 'solid' : 'solids'
         }`;
+  const summary = flashSummary ?? baseSummary;
 
   const handleAdd = (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
+    pendingNameRef.current = data.name;
     addProduct(data);
-    setMode({ kind: 'list' });
+    setMode({ kind: 'closed' });
+    flashLogged();
   };
 
   const handleEdit = (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (mode.kind !== 'edit') return;
-    updateProduct(mode.productId, data);
-    setMode({ kind: 'list' });
+    const id = mode.productId;
+    updateProduct(id, data);
+    setMode({ kind: 'closed' });
+    triggerPulse(id);
+    flashLogged();
   };
 
   const handleDelete = () => {
     if (mode.kind !== 'edit') return;
     deleteProduct(mode.productId);
-    setMode({ kind: 'list' });
+    setMode({ kind: 'closed' });
   };
 
-  const cancelEditor = () => setMode({ kind: 'list' });
+  const closeEditor = () => setMode({ kind: 'closed' });
 
   return (
-    <NutritionRailPanel title="Fuel inventory" summary={summary} defaultOpen>
-      {mode.kind === 'add' ? (
-        <div className="space-y-3">
-          <p className="section-kicker text-[0.66rem] text-ink-500">Add fuel</p>
-          <ProductForm
-            compact
-            onSubmit={handleAdd}
-            onCancel={cancelEditor}
-            submitLabel="Add fuel"
-          />
-        </div>
-      ) : editingProduct ? (
-        <div className="space-y-3">
-          <p className="section-kicker text-[0.66rem] text-ink-500">
-            Edit {editingProduct.name}
-          </p>
-          <ProductForm
-            compact
-            initialData={editingProduct}
-            onSubmit={handleEdit}
-            onCancel={cancelEditor}
-            onDelete={handleDelete}
-            submitLabel="Save"
-          />
-        </div>
-      ) : (
+    <>
+      <NutritionRailPanel title="Fuel inventory" summary={summary} defaultOpen>
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-1.5">
             {products.length > 0
@@ -151,8 +174,7 @@ export function InventoryRailPanel({
 
           {products.length === 0 ? (
             <p className="text-sm leading-5 text-ink-600">
-              No fuel saved yet. Add your first drink mix, gel, chew, or bar
-              with the button above.
+              Start with whatever's on the bench.
             </p>
           ) : visibleProducts.length === 0 ? (
             <p className="text-sm leading-5 text-ink-600">
@@ -160,37 +182,44 @@ export function InventoryRailPanel({
             </p>
           ) : (
             <ul className="max-h-[22rem] divide-y divide-[color:var(--border-soft)] overflow-y-auto">
-              {visibleProducts.map((product, index) => (
-                <li
-                  key={product.id}
-                  className={clsx(
-                    'flex items-center justify-between gap-3 py-2.5',
-                    index === 0 && 'pt-0'
-                  )}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setMode({ kind: 'edit', productId: product.id })}
-                    className="-mx-1 min-w-0 flex-1 rounded-md px-1 py-0.5 text-left transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200"
-                    aria-label={`Edit ${product.name}`}
+              {visibleProducts.map((product, index) => {
+                const isPulsed = pulsed?.id === product.id;
+                const rowKey = isPulsed
+                  ? `pulse-${product.id}-${pulsed.token}`
+                  : product.id;
+                return (
+                  <li
+                    key={rowKey}
+                    className={clsx(
+                      'flex items-center justify-between gap-3 py-2.5',
+                      index === 0 && 'pt-0',
+                      isPulsed && 'animate-saved-row rounded-md'
+                    )}
                   >
-                    <p className="truncate text-sm font-semibold text-ink-900">
-                      {product.name}
-                    </p>
-                    <p className="mt-0.5 truncate text-xs leading-5 text-ink-600">
-                      {PRODUCT_TYPE_LABELS[product.type]} ·{' '}
-                      {product.nutrition.carbsGrams}g carbs
-                    </p>
-                  </button>
-                  <Toggle
-                    checked={product.isAvailable}
-                    onChange={(checked) =>
-                      onToggleProductAvailability(product.id, checked)
-                    }
-                    label={`Use ${product.name} in planning`}
-                  />
-                </li>
-              ))}
+                    <button
+                      type="button"
+                      onClick={() => setMode({ kind: 'edit', productId: product.id })}
+                      className="-mx-1 min-w-0 flex-1 rounded-md px-1 py-0.5 text-left transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200"
+                      aria-label={`Edit ${product.name}`}
+                    >
+                      <p className="truncate text-sm font-semibold text-ink-900">
+                        {product.name}
+                      </p>
+                      <p className="mt-0.5 truncate text-xs leading-5 text-ink-600">
+                        {PRODUCT_TYPE_LABELS[product.type]} ·{' '}
+                        {product.nutrition.carbsGrams}g carbs
+                      </p>
+                    </button>
+                    <Toggle
+                      checked={product.isAvailable}
+                      onChange={(checked) =>
+                        onToggleProductAvailability(product.id, checked)
+                      }
+                      label={`Use ${product.name} in planning`}
+                    />
+                  </li>
+                );
+              })}
             </ul>
           )}
 
@@ -201,7 +230,16 @@ export function InventoryRailPanel({
             </p>
           ) : null}
         </div>
+      </NutritionRailPanel>
+
+      {sheetOpen && (
+        <FuelEditorSheet
+          initialData={editingProduct ?? undefined}
+          onSubmit={mode.kind === 'edit' ? handleEdit : handleAdd}
+          onCancel={closeEditor}
+          onDelete={mode.kind === 'edit' ? handleDelete : undefined}
+        />
       )}
-    </NutritionRailPanel>
+    </>
   );
 }

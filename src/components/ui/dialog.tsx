@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 
-type DialogSize = 'sm' | 'md' | 'lg';
+type DialogSize = 'sm' | 'md' | 'lg' | 'xl';
 
 interface DialogProps {
   open: boolean;
@@ -21,12 +21,15 @@ interface DialogProps {
   ariaLabel?: string;
   /** ID of the heading element that labels the dialog. */
   ariaLabelledBy?: string;
+  /** Skip default padding so the consumer can manage flex layout (sticky footer, scroll body). */
+  bare?: boolean;
 }
 
 const sizeClasses: Record<DialogSize, string> = {
   sm: 'md:max-w-sm',
   md: 'md:max-w-md',
   lg: 'md:max-w-lg',
+  xl: 'md:max-w-xl',
 };
 
 export function Dialog({
@@ -38,6 +41,7 @@ export function Dialog({
   className,
   ariaLabel,
   ariaLabelledBy,
+  bare = false,
 }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -64,8 +68,9 @@ export function Dialog({
         onClose();
       }}
       className={clsx(
-        'm-0 mt-auto w-full max-w-none rounded-t-2xl bg-white p-4 shadow-[var(--shadow-float)]',
-        'md:m-auto md:rounded-2xl md:p-6',
+        'm-0 mt-auto w-full max-w-none rounded-t-2xl bg-white shadow-[var(--shadow-float)]',
+        'md:m-auto md:rounded-2xl',
+        !bare && 'p-4 md:p-6',
         'backdrop:bg-[color-mix(in_oklch,var(--color-ink-900)_42%,transparent)] backdrop:backdrop-blur-sm',
         sizeClasses[size],
         className
