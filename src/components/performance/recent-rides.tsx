@@ -1,4 +1,7 @@
+import { DividedRowList } from '@/components/ui';
 import type { Activity } from '@/types/activity';
+
+const MAX_RIDES = 5;
 
 interface RecentRidesProps {
   activities: Activity[];
@@ -18,29 +21,46 @@ function formatDuration(seconds: number): string {
   return `${h}h ${m.toString().padStart(2, '0')}m`;
 }
 
+function formatDistance(meters: number | null): string {
+  if (meters === null) return '—';
+  return `${(meters / 1000).toFixed(1)} km`;
+}
+
 export function RecentRides({ activities }: RecentRidesProps) {
+  const items = activities.slice(0, MAX_RIDES);
+
   return (
-    <section>
-      <h2 className="text-xs uppercase tracking-wider text-ink-500 mb-2">
+    <section aria-labelledby="recent-rides-title">
+      <h2
+        id="recent-rides-title"
+        className="section-kicker mb-2 uppercase tracking-wider text-ink-500"
+      >
         Recent rides
       </h2>
-      <ul className="divide-y divide-[color:var(--border-soft)]">
-        {activities.map((a) => (
-          <li
-            key={a.stravaId}
-            className="flex items-center justify-between py-2.5 text-sm tabular-nums"
+      <DividedRowList
+        items={items}
+        getKey={(a) => a.stravaId}
+        renderItem={(a) => (
+          <a
+            href={`https://www.strava.com/activities/${a.stravaId}`}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="grid grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 text-sm tabular-nums transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-200 md:px-4"
           >
-            <div className="min-w-0">
-              <div className="text-ink-900 truncate">{a.name}</div>
-              <div className="text-xs text-ink-500">{formatDate(a.startedAt)}</div>
-            </div>
-            <div className="text-ink-700 ml-4 flex items-center gap-4">
+            <span className="text-xs uppercase tracking-wider text-ink-500">
+              {formatDate(a.startedAt)}
+            </span>
+            <span className="truncate text-ink-900">{a.name}</span>
+            <span className="flex items-center gap-3 text-xs text-ink-600">
+              <span>{formatDistance(a.distanceM)}</span>
+              <span className="text-ink-400" aria-hidden>
+                ·
+              </span>
               <span>{formatDuration(a.durationS)}</span>
-              <span>{a.npWatts !== null ? `${a.npWatts} W` : '—'}</span>
-            </div>
-          </li>
-        ))}
-      </ul>
+            </span>
+          </a>
+        )}
+      />
     </section>
   );
 }

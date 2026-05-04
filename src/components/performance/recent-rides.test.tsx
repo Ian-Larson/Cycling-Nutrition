@@ -20,14 +20,35 @@ const sample: Activity = {
 };
 
 describe('RecentRides', () => {
-  it('renders rows for each activity', () => {
+  it('renders rows for each activity with date, name, distance and duration', () => {
     render(<RecentRides activities={[sample]} />);
     expect(screen.getByText('Morning Ride')).toBeInTheDocument();
-    expect(screen.getByText(/220\s*W/)).toBeInTheDocument();
+    expect(screen.getByText(/30\.0\s*km/)).toBeInTheDocument();
+    expect(screen.getByText(/1h\s*01m/)).toBeInTheDocument();
   });
 
-  it('shows a dash when NP is missing', () => {
-    render(<RecentRides activities={[{ ...sample, npWatts: null }]} />);
+  it('shows a dash when distance is missing', () => {
+    render(<RecentRides activities={[{ ...sample, distanceM: null }]} />);
     expect(screen.getByText('—')).toBeInTheDocument();
+  });
+
+  it('caps the list to the five most recent rides', () => {
+    const many: Activity[] = Array.from({ length: 8 }, (_, i) => ({
+      ...sample,
+      stravaId: `id-${i}`,
+      name: `Ride ${i}`,
+    }));
+    render(<RecentRides activities={many} />);
+    expect(screen.getByText('Ride 0')).toBeInTheDocument();
+    expect(screen.getByText('Ride 4')).toBeInTheDocument();
+    expect(screen.queryByText('Ride 5')).not.toBeInTheDocument();
+  });
+
+  it('links each row to the Strava activity', () => {
+    render(<RecentRides activities={[sample]} />);
+    expect(screen.getByRole('link')).toHaveAttribute(
+      'href',
+      'https://www.strava.com/activities/1'
+    );
   });
 });

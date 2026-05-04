@@ -1,9 +1,27 @@
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-export type PeriodPreset =
-  | 'this-year-vs-last-year'
-  | 'last-90d-vs-previous-90d'
-  | 'last-30d-vs-all-time-best';
+export type PeriodKey = '30d' | '90d' | '6mo' | '12mo';
+
+export const PERIOD_DAYS: Record<PeriodKey, number> = {
+  '30d': 30,
+  '90d': 90,
+  '6mo': 180,
+  '12mo': 365,
+};
+
+export const PERIOD_SHORT_LABELS: Record<PeriodKey, string> = {
+  '30d': '30d',
+  '90d': '90d',
+  '6mo': '6mo',
+  '12mo': '12mo',
+};
+
+export const PERIOD_FULL_LABELS: Record<PeriodKey, string> = {
+  '30d': 'Last 30d',
+  '90d': 'Last 90d',
+  '6mo': 'Last 6 months',
+  '12mo': 'Last 12 months',
+};
 
 export interface PeriodRange {
   fromIso: string;
@@ -16,59 +34,24 @@ export interface ComparisonPeriods {
   comparison: PeriodRange;
 }
 
-export function resolveComparisonPeriods(
-  preset: PeriodPreset,
+export function resolvePeriodComparison(
+  key: PeriodKey,
   now: Date = new Date()
 ): ComparisonPeriods {
-  switch (preset) {
-    case 'this-year-vs-last-year': {
-      const thisYear = now.getUTCFullYear();
-      const startThis = new Date(Date.UTC(thisYear, 0, 1));
-      const startLast = new Date(Date.UTC(thisYear - 1, 0, 1));
-      const endLast = new Date(Date.UTC(thisYear - 1, 11, 31, 23, 59, 59, 999));
-      return {
-        current: {
-          fromIso: startThis.toISOString(),
-          toIso: now.toISOString(),
-          label: `${thisYear}`,
-        },
-        comparison: {
-          fromIso: startLast.toISOString(),
-          toIso: endLast.toISOString(),
-          label: `${thisYear - 1}`,
-        },
-      };
-    }
-    case 'last-90d-vs-previous-90d': {
-      const start90 = new Date(now.getTime() - 90 * MS_PER_DAY);
-      const start180 = new Date(now.getTime() - 180 * MS_PER_DAY);
-      return {
-        current: {
-          fromIso: start90.toISOString(),
-          toIso: now.toISOString(),
-          label: 'Last 90d',
-        },
-        comparison: {
-          fromIso: start180.toISOString(),
-          toIso: start90.toISOString(),
-          label: 'Previous 90d',
-        },
-      };
-    }
-    case 'last-30d-vs-all-time-best': {
-      const start30 = new Date(now.getTime() - 30 * MS_PER_DAY);
-      return {
-        current: {
-          fromIso: start30.toISOString(),
-          toIso: now.toISOString(),
-          label: 'Last 30d',
-        },
-        comparison: {
-          fromIso: new Date(0).toISOString(),
-          toIso: now.toISOString(),
-          label: 'All-time',
-        },
-      };
-    }
-  }
+  const days = PERIOD_DAYS[key];
+  const t = now.getTime();
+  const startCurrent = new Date(t - days * MS_PER_DAY);
+  const startPrior = new Date(t - days * 2 * MS_PER_DAY);
+  return {
+    current: {
+      fromIso: startCurrent.toISOString(),
+      toIso: now.toISOString(),
+      label: PERIOD_FULL_LABELS[key],
+    },
+    comparison: {
+      fromIso: startPrior.toISOString(),
+      toIso: startCurrent.toISOString(),
+      label: `Prior ${PERIOD_SHORT_LABELS[key]}`,
+    },
+  };
 }

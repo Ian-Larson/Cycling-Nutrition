@@ -36,7 +36,7 @@ describe('usePerformanceRecords', () => {
     ]);
 
     const { result } = renderHook(() =>
-      usePerformanceRecords('last-90d-vs-previous-90d')
+      usePerformanceRecords('90d')
     );
 
     expect(result.current.isLoading).toBe(true);
@@ -62,7 +62,7 @@ describe('usePerformanceRecords', () => {
       },
     ]);
     const { result } = renderHook(() =>
-      usePerformanceRecords('last-90d-vs-previous-90d')
+      usePerformanceRecords('90d')
     );
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.radar.current).toHaveLength(6);

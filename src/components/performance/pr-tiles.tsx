@@ -13,10 +13,16 @@ interface PrTilesProps {
 
 export function PrTiles({ tiles }: PrTilesProps) {
   return (
-    <section>
-      <h2 className="text-xs uppercase tracking-wider text-ink-500 mb-2">
-        Power records
-      </h2>
+    <section aria-labelledby="pr-section-title">
+      <div className="mb-2 flex items-baseline justify-between gap-3">
+        <h2
+          id="pr-section-title"
+          className="section-kicker uppercase tracking-wider text-ink-500"
+        >
+          Power records
+        </h2>
+        <span className="text-xs text-ink-500">Best in this period</span>
+      </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {tiles.map((t) => (
           <PrTile

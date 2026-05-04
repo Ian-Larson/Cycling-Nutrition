@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { getSupabaseClient } from '@/lib/supabase/client';
 import { listActivitiesWithCurvesInRange } from '@/lib/performance/curves';
 import {
-  resolveComparisonPeriods,
-  type PeriodPreset,
+  resolvePeriodComparison,
+  type PeriodKey,
   type PeriodRange,
 } from '@/lib/performance/period';
 import {
@@ -47,12 +47,12 @@ const EMPTY_RADAR: RadarPoint[] = RADAR_DURATIONS.map((d) => ({
 }));
 
 export function usePerformanceRecords(
-  preset: PeriodPreset
+  period: PeriodKey
 ): UsePerformanceRecordsResult {
   const supabase = useMemo(() => getSupabaseClient(), []);
   const weightHistory = useStore((s) => s.weightHistory);
   const profileWeightKg = useStore((s) => s.settings.athleteProfile.weightKg);
-  const periods = useMemo(() => resolveComparisonPeriods(preset), [preset]);
+  const periods = useMemo(() => resolvePeriodComparison(period), [period]);
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tiles, setTiles] = useState<PrTile[]>(
