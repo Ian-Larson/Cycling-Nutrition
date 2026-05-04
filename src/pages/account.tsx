@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from 'react-router-dom';
+import { HistoryEditor } from '@/components/account/history-editor';
 import { Settings } from '@/components/account/settings';
 import { PageIntro } from '@/components/layout/page-intro';
 
@@ -25,6 +26,7 @@ export function AccountPage() {
         />
 
         <Settings />
+        <HistoryEditor />
       </div>
     </div>
   );
