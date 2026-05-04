@@ -61,7 +61,7 @@ describe('cloud app-state snapshots', () => {
     expect(snapshot.data.settings.athleteProfile.ftpWatts).toBe(280);
   });
 
-  it('serializes gear hub v2 data into a schema version 2 snapshot', () => {
+  it('serializes gear hub data into the current schema version snapshot', () => {
     const snapshot = serializeAppState(
       {
         ...baseState,
