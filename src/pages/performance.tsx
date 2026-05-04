@@ -16,6 +16,13 @@ import {
 } from '@/lib/performance/wkg';
 import { closestPriorEntry } from '@/lib/performance/history';
 import { useStore } from '@/store';
+import { useAuth } from '@/lib/auth/auth-context';
+import { useActivities } from '@/hooks/use-activities';
+import { useStravaActivitySync } from '@/hooks/use-strava-activity-sync';
+import { BackfillPrompt } from '@/components/performance/backfill-prompt';
+import { SyncButton } from '@/components/performance/sync-button';
+import { RecentRides } from '@/components/performance/recent-rides';
+import { StravaReauthBanner } from '@/components/performance/strava-reauth-banner';
 
 const RANGE_DAYS: Record<RangeKey, number | null> = {
   '3mo': 90,
@@ -31,6 +38,22 @@ export function PerformancePage() {
   const ftpHistory = useStore((s) => s.ftpHistory);
   const weightHistory = useStore((s) => s.weightHistory);
   const profile = useStore((s) => s.settings.athleteProfile);
+
+  const { stravaConnection, connectStrava } = useAuth();
+  const { activities, refresh: refreshActivities } = useActivities();
+  const sync = useStravaActivitySync();
+
+  const hasActivityScope =
+    stravaConnection?.scopes?.includes('activity:read') ?? false;
+  const isStravaConnected = Boolean(stravaConnection);
+
+  const handleSync = async () => {
+    const since =
+      sync.lastSyncedAt ??
+      new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+    await sync.start({ since });
+    await refreshActivities();
+  };
 
   const currentWkg = computeCurrentWkg(profile.ftpWatts, profile.weightKg);
 
@@ -72,6 +95,32 @@ export function PerformancePage() {
       </div>
 
       <TrendTrioChart series={series} />
+
+      {isStravaConnected && !hasActivityScope && (
+        <StravaReauthBanner onReconnect={connectStrava} />
+      )}
+
+      {isStravaConnected && hasActivityScope && activities.length === 0 && sync.state === 'idle' && (
+        <BackfillPrompt
+          onStart={async ({ since }) => {
+            await sync.start({ since });
+            await refreshActivities();
+          }}
+        />
+      )}
+
+      {isStravaConnected && hasActivityScope && (activities.length > 0 || sync.state !== 'idle') && (
+        <SyncButton
+          state={sync.state}
+          imported={sync.imported}
+          lastSyncedAt={sync.lastSyncedAt}
+          rateLimitedUntil={sync.rateLimitedUntil}
+          error={sync.error}
+          onSync={handleSync}
+        />
+      )}
+
+      {activities.length > 0 && <RecentRides activities={activities} />}
     </div>
   );
 }
