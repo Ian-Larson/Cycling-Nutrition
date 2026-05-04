@@ -28,7 +28,8 @@ export interface DurationRecord {
 export function computeBestForDuration(
   activities: readonly ActivityForRecords[],
   weightHistory: readonly WeightHistoryEntry[],
-  durationSeconds: number
+  durationSeconds: number,
+  fallbackWeightKg?: number
 ): DurationRecord | null {
   let best: { activity: ActivityForRecords; watts: number } | null = null;
   for (const a of activities) {
@@ -41,7 +42,7 @@ export function computeBestForDuration(
   if (!best) return null;
 
   const weightEntry = closestPriorEntry(weightHistory, best.activity.startedAt);
-  const weightKg = weightEntry?.weightKg;
+  const weightKg = weightEntry?.weightKg ?? fallbackWeightKg;
   return {
     stravaId: best.activity.stravaId,
     name: best.activity.name,

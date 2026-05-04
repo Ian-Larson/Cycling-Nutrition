@@ -55,10 +55,26 @@ describe('computeBestForDuration', () => {
     expect(result?.weightKgAtTime).toBe(73);
   });
 
-  it('returns watts but no wkg when weight history is empty', () => {
+  it('returns watts but no wkg when weight history is empty and no fallback', () => {
     const result = computeBestForDuration(activities, [], 1200);
     expect(result?.watts).toBe(295);
     expect(result?.wkg).toBeUndefined();
+  });
+
+  it('uses fallbackWeightKg when weight history is empty', () => {
+    const result = computeBestForDuration(activities, [], 1200, 70);
+    expect(result?.watts).toBe(295);
+    expect(result?.wkg).toBeCloseTo(295 / 70, 2);
+    expect(result?.weightKgAtTime).toBe(70);
+  });
+
+  it('still uses closest-prior weight when both history and fallback present', () => {
+    const result = computeBestForDuration(activities, [
+      { id: 'w1', recordedAt: '2025-01-01', weightKg: 75 },
+      { id: 'w2', recordedAt: '2025-09-01', weightKg: 73 },
+    ], 1200, 70);
+    expect(result?.weightKgAtTime).toBe(73); // history wins
+    expect(result?.wkg).toBeCloseTo(295 / 73, 2);
   });
 
   it('skips activities with null curves', () => {

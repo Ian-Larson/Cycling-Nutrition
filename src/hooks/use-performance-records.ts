@@ -51,6 +51,7 @@ export function usePerformanceRecords(
 ): UsePerformanceRecordsResult {
   const supabase = useMemo(() => getSupabaseClient(), []);
   const weightHistory = useStore((s) => s.weightHistory);
+  const profileWeightKg = useStore((s) => s.settings.athleteProfile.weightKg);
   const periods = useMemo(() => resolveComparisonPeriods(preset), [preset]);
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,11 +86,11 @@ export function usePerformanceRecords(
         if (cancelled) return;
         const nextTiles: PrTile[] = PR_TILE_DURATIONS.map((d) => ({
           durationSeconds: d,
-          record: computeBestForDuration(currentActs, weightHistory, d),
+          record: computeBestForDuration(currentActs, weightHistory, d, profileWeightKg),
         }));
         const radarFor = (acts: typeof currentActs): RadarPoint[] =>
           RADAR_DURATIONS.map((d) => {
-            const r = computeBestForDuration(acts, weightHistory, d);
+            const r = computeBestForDuration(acts, weightHistory, d, profileWeightKg);
             return { durationSeconds: d, wkg: r?.wkg ?? null };
           });
         setTiles(nextTiles);
@@ -112,7 +113,7 @@ export function usePerformanceRecords(
     return () => {
       cancelled = true;
     };
-  }, [supabase, periods, weightHistory]);
+  }, [supabase, periods, weightHistory, profileWeightKg]);
 
   return {
     isLoading,
