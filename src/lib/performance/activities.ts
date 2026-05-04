@@ -10,7 +10,7 @@ interface ActivityRow {
   np_watts: number | null;
   max_watts: number | null;
   kj: number | null;
-  mean_max_curve: Uint8Array | null;
+  mean_max_curve: string | null;
   bike_id: string | null;
   strava_gear_id: string | null;
   name: string;

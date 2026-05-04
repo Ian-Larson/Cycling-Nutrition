@@ -44,6 +44,13 @@ function packCurveInt16(curve: readonly number[]): Uint8Array {
   return new Uint8Array(buf);
 }
 
+// PostgREST does not auto-encode Uint8Array to bytea — pass hex `\xDEADBEEF` form.
+function toByteaHex(bytes: Uint8Array): string {
+  let s = '\\x';
+  for (const b of bytes) s += b.toString(16).padStart(2, '0');
+  return s;
+}
+
 async function refreshAccessToken(
   refreshToken: string,
   clientId: string,
@@ -196,7 +203,7 @@ serve(async (req) => {
           np_watts: a.weighted_average_watts ? Math.round(a.weighted_average_watts) : null,
           max_watts: a.max_watts ? Math.round(a.max_watts) : null,
           kj: a.kilojoules ? Math.round(a.kilojoules) : null,
-          mean_max_curve: curveBytes,
+          mean_max_curve: curveBytes ? toByteaHex(curveBytes) : null,
           strava_gear_id: a.gear_id ?? null,
           name: a.name,
           source: 'strava',

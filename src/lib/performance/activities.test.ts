@@ -28,7 +28,7 @@ describe('listRecentActivities', () => {
         np_watts: 220,
         max_watts: 800,
         kj: 720,
-        mean_max_curve: new Uint8Array([1, 2]),
+        mean_max_curve: '\\x0102',
         bike_id: null,
         strava_gear_id: 'b1',
         name: 'Morning Ride',
