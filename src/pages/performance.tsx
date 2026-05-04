@@ -23,6 +23,9 @@ import { BackfillPrompt } from '@/components/performance/backfill-prompt';
 import { SyncButton } from '@/components/performance/sync-button';
 import { RecentRides } from '@/components/performance/recent-rides';
 import { StravaReauthBanner } from '@/components/performance/strava-reauth-banner';
+import { resolveBikeLinks } from '@/lib/performance/auto-link-bike';
+import { listRecentActivities } from '@/lib/performance/activities';
+import { getSupabaseClient } from '@/lib/supabase/client';
 
 const RANGE_DAYS: Record<RangeKey, number | null> = {
   '3mo': 90,
@@ -38,6 +41,7 @@ export function PerformancePage() {
   const ftpHistory = useStore((s) => s.ftpHistory);
   const weightHistory = useStore((s) => s.weightHistory);
   const profile = useStore((s) => s.settings.athleteProfile);
+  const bikes = useStore((s) => s.bikes);
 
   const { stravaConnection, connectStrava } = useAuth();
   const { activities, refresh: refreshActivities } = useActivities();
@@ -47,11 +51,29 @@ export function PerformancePage() {
     stravaConnection?.scopes?.includes('activity:read') ?? false;
   const isStravaConnected = Boolean(stravaConnection);
 
+  const applyBikeLinks = async () => {
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+    const fresh = await listRecentActivities(supabase, 200);
+    const links = resolveBikeLinks(fresh, bikes);
+    if (links.length === 0) return;
+    await Promise.all(
+      links.map(({ stravaId, bikeId }) =>
+        supabase
+          .from('activities')
+          .update({ bike_id: bikeId })
+          .eq('strava_id', stravaId)
+      )
+    );
+  };
+
   const handleSync = async () => {
     const since =
       sync.lastSyncedAt ??
       new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
     await sync.start({ since });
+    await refreshActivities();
+    await applyBikeLinks();
     await refreshActivities();
   };
 
@@ -104,6 +126,8 @@ export function PerformancePage() {
         <BackfillPrompt
           onStart={async ({ since }) => {
             await sync.start({ since });
+            await refreshActivities();
+            await applyBikeLinks();
             await refreshActivities();
           }}
         />
