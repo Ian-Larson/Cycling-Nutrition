@@ -18,3 +18,11 @@ export interface ActivitySyncMeta {
   lastSyncedAt: string | null;
   lastStravaAfter: string | null;
 }
+
+export interface ActivityWithCurve {
+  stravaId: string;
+  startedAt: string;
+  durationS: number;
+  name: string;
+  curve: number[] | null;
+}
