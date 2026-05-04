@@ -19,6 +19,8 @@ const baseState: Pick<
   | 'gearInstallRecords'
   | 'gearServiceEvents'
   | 'gearSelectedBikeId'
+  | 'ftpHistory'
+  | 'weightHistory'
 > = {
   products: [
     {
@@ -49,6 +51,8 @@ const baseState: Pick<
   gearInstallRecords: [],
   gearServiceEvents: [],
   gearSelectedBikeId: null,
+  ftpHistory: [],
+  weightHistory: [],
 };
 
 describe('cloud app-state snapshots', () => {

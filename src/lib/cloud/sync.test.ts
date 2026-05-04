@@ -30,6 +30,8 @@ function makeAppData(productCount: number): AppDataSnapshot {
     gearInstallRecords: [],
     gearServiceEvents: [],
     gearSelectedBikeId: null,
+    ftpHistory: [],
+    weightHistory: [],
   };
 }
 
