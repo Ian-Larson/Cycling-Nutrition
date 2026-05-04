@@ -9,6 +9,7 @@ describe('primary navigation grouping', () => {
     expect(primaryNavItems.map((item) => item.label)).toEqual([
       'Fuel plan',
       'Garage',
+      'Performance',
       'Labs',
       'Account',
     ]);
@@ -18,6 +19,7 @@ describe('primary navigation grouping', () => {
     ['/', 'Fuel plan'],
     ['/history', 'Fuel plan'],
     ['/gear', 'Garage'],
+    ['/performance', 'Performance'],
     ['/power-meter-analyzer', 'Labs'],
     ['/account', 'Account'],
     ['/athlete', 'Account'],
