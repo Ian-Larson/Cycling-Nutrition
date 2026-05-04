@@ -466,3 +466,52 @@ describe('Weight history actions', () => {
     expect(useStore.getState().weightHistory).toHaveLength(0);
   });
 });
+
+describe('updateAthleteProfile history append', () => {
+  beforeEach(() => {
+    useStore.setState({
+      ftpHistory: [],
+      weightHistory: [],
+      settings: {
+        ...useStore.getState().settings,
+        athleteProfile: {
+          ...useStore.getState().settings.athleteProfile,
+          ftpWatts: 250,
+          weightKg: 75,
+        },
+      },
+    });
+  });
+
+  it('appends an FTP history entry when ftpWatts changes', () => {
+    useStore.getState().updateAthleteProfile({ ftpWatts: 270 });
+    const history = useStore.getState().ftpHistory;
+    expect(history).toHaveLength(1);
+    expect(history[0].ftpWatts).toBe(270);
+    expect(history[0].recordedAt).toMatch(/^\d{4}-\d{2}-\d{2}/);
+  });
+
+  it('appends a weight history entry when weightKg changes', () => {
+    useStore.getState().updateAthleteProfile({ weightKg: 73 });
+    const history = useStore.getState().weightHistory;
+    expect(history).toHaveLength(1);
+    expect(history[0].weightKg).toBe(73);
+  });
+
+  it('does not append when the value is unchanged', () => {
+    useStore.getState().updateAthleteProfile({ ftpWatts: 250 });
+    expect(useStore.getState().ftpHistory).toHaveLength(0);
+  });
+
+  it('does not append when the field is not part of the update', () => {
+    useStore.getState().updateAthleteProfile({ name: 'Ian' });
+    expect(useStore.getState().ftpHistory).toHaveLength(0);
+    expect(useStore.getState().weightHistory).toHaveLength(0);
+  });
+
+  it('appends both when both change in one update', () => {
+    useStore.getState().updateAthleteProfile({ ftpWatts: 270, weightKg: 73 });
+    expect(useStore.getState().ftpHistory).toHaveLength(1);
+    expect(useStore.getState().weightHistory).toHaveLength(1);
+  });
+});

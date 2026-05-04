@@ -1297,6 +1297,33 @@ export const useStore = create<AppState>()(
 
       updateAthleteProfile: (updates) =>
         set((state) => {
+          const today = new Date().toISOString().slice(0, 10);
+          const previous = state.settings.athleteProfile;
+
+          if (
+            typeof updates.ftpWatts === 'number' &&
+            updates.ftpWatts > 0 &&
+            updates.ftpWatts !== previous.ftpWatts
+          ) {
+            state.ftpHistory.push({
+              id: nanoid(),
+              recordedAt: today,
+              ftpWatts: updates.ftpWatts,
+            });
+          }
+
+          if (
+            typeof updates.weightKg === 'number' &&
+            updates.weightKg > 0 &&
+            updates.weightKg !== previous.weightKg
+          ) {
+            state.weightHistory.push({
+              id: nanoid(),
+              recordedAt: today,
+              weightKg: updates.weightKg,
+            });
+          }
+
           Object.assign(state.settings.athleteProfile, updates);
         }),
 
