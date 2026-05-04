@@ -208,7 +208,7 @@ export function AthleteSection() {
   const weightDisplay = formatWeightDisplay(athleteProfile.weightKg, unit) ?? EMPTY;
 
   return (
-    <Section kicker="Athlete">
+    <Section kicker="Athlete" id="athlete">
       <EditableValueRow
         field="name"
         label="Name"
