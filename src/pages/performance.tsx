@@ -36,6 +36,9 @@ const RANGE_DAYS: Record<RangeKey, number | null> = {
 
 const SAMPLE_POINTS = 48;
 
+/** How many activities to fetch when resolving bike links after a sync. */
+const AUTO_LINK_FETCH_LIMIT = 200;
+
 export function PerformancePage() {
   const [range, setRange] = useState<RangeKey>('12mo');
   const ftpHistory = useStore((s) => s.ftpHistory);
@@ -54,7 +57,9 @@ export function PerformancePage() {
   const applyBikeLinks = useCallback(async () => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
-    const fresh = await listRecentActivities(supabase, 200);
+    // Re-fetch the latest 200 activities directly to avoid the stale-closure
+    // trap on `activities` after a sync just appended new rows.
+    const fresh = await listRecentActivities(supabase, AUTO_LINK_FETCH_LIMIT);
     const links = resolveBikeLinks(fresh, bikes);
     if (links.length === 0) return;
     await Promise.all(
