@@ -140,6 +140,7 @@ serve(async (req) => {
     }
 
     let imported = 0;
+    let exhausted = false;
     let page = 1;
     let latestStartIso = sinceIso;
 
@@ -164,7 +165,10 @@ serve(async (req) => {
         }
         throw e;
       }
-      if (pageActivities.length === 0) break;
+      if (pageActivities.length === 0) {
+        exhausted = true;
+        break;
+      }
 
       for (const a of pageActivities) {
         if (imported >= max) break pageLoop;
@@ -217,7 +221,10 @@ serve(async (req) => {
         if (a.start_date > latestStartIso) latestStartIso = a.start_date;
       }
 
-      if (pageActivities.length < PER_PAGE) break;
+      if (pageActivities.length < PER_PAGE) {
+        exhausted = true;
+        break;
+      }
       page += 1;
     }
 
@@ -225,7 +232,7 @@ serve(async (req) => {
 
     const resp: SyncResponse = {
       imported,
-      done: imported < max,
+      done: exhausted || imported < max,
       next_since: latestStartIso,
     };
     return jsonResponse(resp);
