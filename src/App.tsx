@@ -6,6 +6,7 @@ import { PlannerPage } from '@/pages/planner';
 import { HistoryPage } from '@/pages/history';
 import { GearPage } from '@/pages/gear';
 import { AuthCallbackPage } from '@/pages/auth-callback';
+import { PerformancePage } from '@/pages/performance';
 import { PowerMeterAnalyzerPage } from '@/pages/power-meter-analyzer';
 import { AccountPage } from '@/pages/account';
 import { StravaCallbackPage } from '@/pages/strava-callback';
@@ -46,6 +47,7 @@ function App() {
                 element={<Navigate to="/power-meter-analyzer" replace />}
               />
               <Route path="/account" element={<AccountPage />} />
+              <Route path="/performance" element={<PerformancePage />} />
               <Route path="/power-meter-analyzer" element={<PowerMeterAnalyzerPage />} />
               <Route
                 path="/settings"

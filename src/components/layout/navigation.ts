@@ -1,4 +1,9 @@
-export type NavSection = 'nutrition' | 'gear' | 'labs' | 'account';
+export type NavSection =
+  | 'nutrition'
+  | 'gear'
+  | 'performance'
+  | 'labs'
+  | 'account';
 
 export interface NavRouteItem {
   path: string;
@@ -24,6 +29,12 @@ export const primaryNavItems: readonly PrimaryNavItem[] = [
     label: 'Garage',
     section: 'gear',
     matchPaths: ['/gear'],
+  },
+  {
+    path: '/performance',
+    label: 'Performance',
+    section: 'performance',
+    matchPaths: ['/performance'],
   },
   {
     path: '/power-meter-analyzer',
