@@ -403,3 +403,66 @@ describe('gearSelectedBikeId', () => {
     expect(useStore.getState().gearSelectedBikeId).toBe(null);
   });
 });
+
+describe('FTP history actions', () => {
+  beforeEach(() => {
+    useStore.setState({ ftpHistory: [], weightHistory: [] });
+  });
+
+  it('addFtpEntry appends a row with a generated id', () => {
+    useStore.getState().addFtpEntry({
+      recordedAt: '2025-06-01',
+      ftpWatts: 270,
+    });
+    const history = useStore.getState().ftpHistory;
+    expect(history).toHaveLength(1);
+    expect(history[0].id).toBeTruthy();
+    expect(history[0].ftpWatts).toBe(270);
+  });
+
+  it('editFtpEntry updates the matching row', () => {
+    useStore.getState().addFtpEntry({ recordedAt: '2025-06-01', ftpWatts: 270 });
+    const id = useStore.getState().ftpHistory[0].id;
+    useStore.getState().editFtpEntry(id, { ftpWatts: 275, note: 'recheck' });
+    const updated = useStore.getState().ftpHistory[0];
+    expect(updated.ftpWatts).toBe(275);
+    expect(updated.note).toBe('recheck');
+  });
+
+  it('removeFtpEntry drops the matching row', () => {
+    useStore.getState().addFtpEntry({ recordedAt: '2025-06-01', ftpWatts: 270 });
+    const id = useStore.getState().ftpHistory[0].id;
+    useStore.getState().removeFtpEntry(id);
+    expect(useStore.getState().ftpHistory).toHaveLength(0);
+  });
+});
+
+describe('Weight history actions', () => {
+  beforeEach(() => {
+    useStore.setState({ ftpHistory: [], weightHistory: [] });
+  });
+
+  it('addWeightEntry appends a row with a generated id', () => {
+    useStore.getState().addWeightEntry({
+      recordedAt: '2025-06-01',
+      weightKg: 73,
+    });
+    const history = useStore.getState().weightHistory;
+    expect(history).toHaveLength(1);
+    expect(history[0].weightKg).toBe(73);
+  });
+
+  it('editWeightEntry updates the matching row', () => {
+    useStore.getState().addWeightEntry({ recordedAt: '2025-06-01', weightKg: 73 });
+    const id = useStore.getState().weightHistory[0].id;
+    useStore.getState().editWeightEntry(id, { weightKg: 73.5 });
+    expect(useStore.getState().weightHistory[0].weightKg).toBe(73.5);
+  });
+
+  it('removeWeightEntry drops the matching row', () => {
+    useStore.getState().addWeightEntry({ recordedAt: '2025-06-01', weightKg: 73 });
+    const id = useStore.getState().weightHistory[0].id;
+    useStore.getState().removeWeightEntry(id);
+    expect(useStore.getState().weightHistory).toHaveLength(0);
+  });
+});

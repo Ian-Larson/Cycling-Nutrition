@@ -17,6 +17,10 @@ import type {
   GearServiceEvent,
   BikeSlotKey,
 } from '@/types';
+import type {
+  FtpHistoryEntry,
+  WeightHistoryEntry,
+} from '@/types/performance';
 import {
   BOTTLE_SIZES,
   EMPTY_BOTTLE_INVENTORY,
@@ -88,6 +92,8 @@ export interface AppDataSnapshot {
   gearInstallRecords: GearInstallRecord[];
   gearServiceEvents: GearServiceEvent[];
   gearSelectedBikeId: string | null;
+  ftpHistory: FtpHistoryEntry[];
+  weightHistory: WeightHistoryEntry[];
 }
 
 export interface AppReadiness {
@@ -113,6 +119,8 @@ export interface AppState {
   gearServiceEvents: GearServiceEvent[];
   gearSelectedBikeId: string | null;
   gearSectionsOpen: GarageSectionsOpen;
+  ftpHistory: FtpHistoryEntry[];
+  weightHistory: WeightHistoryEntry[];
   _initialized: boolean;
 
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -214,6 +222,15 @@ export interface AppState {
 
   updateSettings: (settings: SettingsUpdate) => void;
   updateAthleteProfile: (updates: Partial<AthleteProfile>) => void;
+
+  addFtpEntry: (entry: Omit<FtpHistoryEntry, 'id'>) => void;
+  editFtpEntry: (id: string, updates: Partial<Omit<FtpHistoryEntry, 'id'>>) => void;
+  removeFtpEntry: (id: string) => void;
+
+  addWeightEntry: (entry: Omit<WeightHistoryEntry, 'id'>) => void;
+  editWeightEntry: (id: string, updates: Partial<Omit<WeightHistoryEntry, 'id'>>) => void;
+  removeWeightEntry: (id: string) => void;
+
   replaceAppData: (data: Partial<AppDataSnapshot>) => void;
   getReadiness: () => AppReadiness;
 
@@ -482,6 +499,8 @@ export function getAppDataFromState(
     | 'gearInstallRecords'
     | 'gearServiceEvents'
     | 'gearSelectedBikeId'
+    | 'ftpHistory'
+    | 'weightHistory'
   >
 ): AppDataSnapshot {
   return {
@@ -496,6 +515,8 @@ export function getAppDataFromState(
     gearInstallRecords: state.gearInstallRecords,
     gearServiceEvents: state.gearServiceEvents,
     gearSelectedBikeId: state.gearSelectedBikeId,
+    ftpHistory: state.ftpHistory,
+    weightHistory: state.weightHistory,
   };
 }
 
@@ -544,6 +565,12 @@ export function normalizeAppData(
         : incoming?.gearSelectedBikeId === null
           ? null
           : fallback.gearSelectedBikeId,
+    ftpHistory: Array.isArray(incoming?.ftpHistory)
+      ? (incoming.ftpHistory as FtpHistoryEntry[])
+      : fallback.ftpHistory,
+    weightHistory: Array.isArray(incoming?.weightHistory)
+      ? (incoming.weightHistory as WeightHistoryEntry[])
+      : fallback.weightHistory,
   };
 }
 
@@ -607,6 +634,8 @@ export const useStore = create<AppState>()(
       gearServiceEvents: [],
       gearSelectedBikeId: null,
       gearSectionsOpen: { ...DEFAULT_GARAGE_SECTIONS_OPEN },
+      ftpHistory: [],
+      weightHistory: [],
       _initialized: false,
 
       addProduct: (product) =>
@@ -1269,6 +1298,56 @@ export const useStore = create<AppState>()(
       updateAthleteProfile: (updates) =>
         set((state) => {
           Object.assign(state.settings.athleteProfile, updates);
+        }),
+
+      addFtpEntry: (entry) =>
+        set((state) => {
+          state.ftpHistory.push({
+            ...entry,
+            id: nanoid(),
+          });
+        }),
+
+      editFtpEntry: (id, updates) =>
+        set((state) => {
+          const index = state.ftpHistory.findIndex((e) => e.id === id);
+          if (index !== -1) {
+            state.ftpHistory[index] = {
+              ...state.ftpHistory[index],
+              ...updates,
+              id: state.ftpHistory[index].id,
+            };
+          }
+        }),
+
+      removeFtpEntry: (id) =>
+        set((state) => {
+          state.ftpHistory = state.ftpHistory.filter((e) => e.id !== id);
+        }),
+
+      addWeightEntry: (entry) =>
+        set((state) => {
+          state.weightHistory.push({
+            ...entry,
+            id: nanoid(),
+          });
+        }),
+
+      editWeightEntry: (id, updates) =>
+        set((state) => {
+          const index = state.weightHistory.findIndex((e) => e.id === id);
+          if (index !== -1) {
+            state.weightHistory[index] = {
+              ...state.weightHistory[index],
+              ...updates,
+              id: state.weightHistory[index].id,
+            };
+          }
+        }),
+
+      removeWeightEntry: (id) =>
+        set((state) => {
+          state.weightHistory = state.weightHistory.filter((e) => e.id !== id);
         }),
 
       replaceAppData: (data) =>
