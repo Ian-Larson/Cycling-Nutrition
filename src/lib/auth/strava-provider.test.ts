@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createStravaProvider } from './strava-provider';
+import { createStravaProvider, getRequestedStravaScopes } from './strava-provider';
 
 describe('createStravaProvider', () => {
   afterEach(() => {
@@ -24,7 +24,15 @@ describe('createStravaProvider', () => {
       'https://example.com/auth/strava/callback'
     );
     expect(parsed.searchParams.get('response_type')).toBe('code');
-    expect(parsed.searchParams.get('scope')).toBe('read,profile:read_all');
+    expect(parsed.searchParams.get('scope')).toBe('read,profile:read_all,activity:read,activity:read_all');
     expect(parsed.searchParams.get('state')).toBe('state-123');
+  });
+});
+
+describe('getRequestedStravaScopes', () => {
+  it('requests activity scopes for performance tracking', () => {
+    const scopes = getRequestedStravaScopes();
+    expect(scopes).toContain('activity:read');
+    expect(scopes).toContain('activity:read_all');
   });
 });

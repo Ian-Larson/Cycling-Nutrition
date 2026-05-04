@@ -3,7 +3,7 @@ import { getDefaultAuthRedirectUrl } from '@/lib/supabase/client';
 import type { StravaOAuthProvider } from './types';
 
 const STRAVA_OAUTH_STATE_KEY = 'strava_oauth_state';
-const STRAVA_SCOPE = 'read,profile:read_all';
+const STRAVA_SCOPE = 'read,profile:read_all,activity:read,activity:read_all';
 
 function getStravaConfig() {
   const clientId = import.meta.env.VITE_STRAVA_CLIENT_ID;
