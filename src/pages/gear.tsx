@@ -1,21 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { PageIntro } from '@/components/layout/page-intro';
-import { PlanningStepPanel } from '@/components/planner/planning-step-panel';
 import { useStore } from '@/store';
 import { useStravaGear } from '@/hooks/use-strava-gear';
-import { BikePillRow } from '@/components/gear/bike-pill-row';
-import { BikeSystemCard } from '@/components/gear/bike-system-card';
+import { BikeRailCard } from '@/components/gear/bike-rail-card';
 import { ActiveSetupList } from '@/components/gear/active-setup-list';
 import { ServiceTimeline } from '@/components/gear/service-timeline';
 import { InstallPartSheet } from '@/components/gear/install-part-sheet';
 import { LogGearServiceSheet } from '@/components/gear/log-gear-service-sheet';
 import { RemovePartSheet } from '@/components/gear/remove-part-sheet';
 import { EditServiceEventSheet } from '@/components/gear/edit-service-event-sheet';
+import { GearShelf } from '@/components/gear/gear-shelf';
+import { AddPartSheet } from '@/components/gear/add-part-sheet';
 import { deriveActiveSetup } from '@/lib/gear/derive-active-setup';
 import { deriveGearDue } from '@/lib/gear/derive-gear-due';
 import { deriveGarageStatus } from '@/lib/gear/garage-status';
-import { Card, CardContent } from '@/components/ui';
+import { Button, Card, CardContent, SectionPanel } from '@/components/ui';
+import type { GarageSectionKey } from '@/store';
 import type {
   Bike,
   BikeSlotKey,
@@ -25,8 +25,6 @@ import type {
 import type { ActiveSetupRow } from '@/lib/gear/derive-active-setup';
 import type { GearDueItem } from '@/lib/gear/derive-gear-due';
 import type { GarageStatus } from '@/lib/gear/garage-status';
-
-type OpenPanel = 'active' | 'service' | null;
 
 function todayIso(): string {
   const date = new Date();
@@ -187,6 +185,8 @@ export function GearPage() {
   );
   const selectedBikeId = useStore((s) => s.gearSelectedBikeId);
   const setGearSelectedBikeId = useStore((s) => s.setGearSelectedBikeId);
+  const sectionsOpen = useStore((s) => s.gearSectionsOpen);
+  const toggleGearSection = useStore((s) => s.toggleGearSection);
 
   const [installSlotKey, setInstallSlotKey] = useState<BikeSlotKey | null>(null);
   const [removeInstallId, setRemoveInstallId] = useState<string | null>(null);
@@ -197,6 +197,8 @@ export function GearPage() {
     typeKey?: GearServiceTypeKey;
   } | null>(null);
   const [editEventId, setEditEventId] = useState<string | null>(null);
+  const [addPartOpen, setAddPartOpen] = useState(false);
+  const [editPartInstanceId, setEditPartInstanceId] = useState<string | null>(null);
 
   const selectedBikeIdForView = useMemo(() => {
     if (selectedBikeId && bikes.some((bike) => bike.id === selectedBikeId)) {
@@ -287,16 +289,16 @@ export function GearPage() {
     (row) => row.installRecord !== null
   ).length;
 
-  const sparesCount = useMemo(
+  const shelfSparesCount = useMemo(
+    () => gearPartInstances.filter((i) => i.status === 'spare').length,
+    [gearPartInstances]
+  );
+  const shelfHistoryCount = useMemo(
     () =>
       gearPartInstances.filter(
-        (instance) =>
-          !gearInstallRecords.some(
-            (record) =>
-              record.partInstanceId === instance.id && isInstallActive(record)
-          )
+        (i) => i.status === 'removed' || i.status === 'retired'
       ).length,
-    [gearPartInstances, gearInstallRecords]
+    [gearPartInstances]
   );
 
   const hasAnyHistory =
@@ -312,10 +314,16 @@ export function GearPage() {
     selectedBikeIdForView,
     hasAnyHistory
   );
-
-  const [openPanel, setOpenPanel] = useState<OpenPanel>(() =>
-    garageStatus.hasAttention ? 'service' : 'active'
-  );
+  const shelfSummary = (() => {
+    if (shelfSparesCount === 0 && shelfHistoryCount === 0) {
+      return 'Track spares, retired parts, and what’s come off the bike.';
+    }
+    const sparesPiece =
+      shelfSparesCount === 0
+        ? 'Nothing on the shelf'
+        : `${shelfSparesCount} ${shelfSparesCount === 1 ? 'spare' : 'spares'}`;
+    return `${sparesPiece} · across your garage`;
+  })();
 
   // Mirror fresh Strava bikes into the store whenever they arrive.
   useEffect(() => {
@@ -345,8 +353,8 @@ export function GearPage() {
     setGearSelectedBikeId(bikeId);
   };
 
-  const togglePanel = (panel: 'active' | 'service') => {
-    setOpenPanel((current) => (current === panel ? null : panel));
+  const togglePanel = (section: GarageSectionKey) => {
+    toggleGearSection(section);
   };
 
   const handleQueueService = (context: {
@@ -377,7 +385,7 @@ export function GearPage() {
 
   const handleSelectBikeFromStack = (bikeId: string) => {
     setGearSelectedBikeId(bikeId);
-    setOpenPanel('active');
+    if (!sectionsOpen.active) toggleGearSection('active');
   };
 
   const removeInstallRecord =
@@ -399,58 +407,70 @@ export function GearPage() {
       ? selectedBike
       : bikes.find((bike) => bike.id === serviceContext.bikeId) ?? selectedBike;
 
-  const inventoryLinkLabel =
-    sparesCount > 0
-      ? `Inventory · ${sparesCount} ${sparesCount === 1 ? 'spare' : 'spares'}`
-      : 'Inventory';
+  const metaPieces: string[] = [];
+  if (shelfSparesCount > 0) {
+    metaPieces.push(
+      `${shelfSparesCount} ${shelfSparesCount === 1 ? 'spare' : 'spares'}`
+    );
+  }
+  if (shelfHistoryCount > 0) {
+    metaPieces.push(`${shelfHistoryCount} in history`);
+  }
+  const metaLabel = metaPieces.join(' · ');
 
   return (
     <div className="page-shell space-y-4 md:space-y-6">
       <PageIntro
         title="Garage"
-        description="Installed parts, service schedule, and maintenance log."
+        description="Installed parts, service schedule, shelf."
         meta={
-          <Link
-            to="/gear/inventory"
-            className="inline-flex items-center gap-1 text-xs font-medium text-brand-700 transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
-          >
-            {inventoryLinkLabel}
-            <span aria-hidden>→</span>
-          </Link>
+          metaLabel ? (
+            <a
+              href="#shelf"
+              onClick={(event) => {
+                event.preventDefault();
+                if (!sectionsOpen.shelf) toggleGearSection('shelf');
+                window.history.replaceState(null, '', '#shelf');
+                requestAnimationFrame(() => {
+                  document
+                    .getElementById('shelf')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+              }}
+              className="inline-flex items-center gap-1 text-xs font-medium tabular-nums text-brand-700 transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+            >
+              {metaLabel}
+              <span aria-hidden>↓</span>
+            </a>
+          ) : null
         }
       />
 
       <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] lg:items-start lg:gap-5 lg:space-y-0 xl:gap-6">
         <aside className="space-y-3 lg:order-2 lg:sticky lg:top-[5.25rem]">
-          <div className="surface-note p-3 md:p-4">
-            <BikePillRow
-              bikes={bikes}
-              selectedBikeId={selectedBikeIdForView}
-              onSelect={handleSelectBike}
-              onRefresh={handleRefresh}
-              isRefreshing={isFetching}
-              lastSyncedAt={lastSyncedAt}
-              stravaError={error}
-              perBikeUrgency={garageStatus.perBikeUrgency}
-              worstAcrossGarage={garageStatus.worstAcrossGarage}
-            />
-          </div>
-          {selectedBike ? (
-            <BikeSystemCard
-              bike={selectedBike}
-              installRecords={gearInstallRecords}
-              instances={gearPartInstances}
-              catalog={gearPartCatalog}
-            />
-          ) : null}
+          <BikeRailCard
+            bikes={bikes}
+            selectedBike={selectedBike}
+            selectedBikeId={selectedBikeIdForView}
+            perBikeUrgency={garageStatus.perBikeUrgency}
+            worstAcrossGarage={garageStatus.worstAcrossGarage}
+            installRecords={gearInstallRecords}
+            instances={gearPartInstances}
+            catalog={gearPartCatalog}
+            onSelectBike={handleSelectBike}
+            onRefresh={handleRefresh}
+            isRefreshing={isFetching}
+            lastSyncedAt={lastSyncedAt}
+            stravaError={error}
+          />
         </aside>
 
         <section className="min-w-0 space-y-3 md:space-y-4 lg:order-1">
-          <PlanningStepPanel
+          <SectionPanel
+            id="active"
             title="Active setup"
-            summary={activeSummary}
-            active={openPanel === 'active'}
-            complete={false}
+            subtitle={activeSummary}
+            open={sectionsOpen.active}
             onToggle={() => togglePanel('active')}
           >
             {selectedBike ? (
@@ -483,13 +503,13 @@ export function GearPage() {
                 </CardContent>
               </Card>
             )}
-          </PlanningStepPanel>
+          </SectionPanel>
 
-          <PlanningStepPanel
+          <SectionPanel
+            id="service"
             title="Service"
-            summary={serviceSummary}
-            active={openPanel === 'service'}
-            complete={false}
+            subtitle={serviceSummary}
+            open={sectionsOpen.service}
             onToggle={() => togglePanel('service')}
           >
             <ServiceTimeline
@@ -503,7 +523,35 @@ export function GearPage() {
               onLogService={handleQueueDueService}
               onEditEvent={(id) => setEditEventId(id)}
             />
-          </PlanningStepPanel>
+          </SectionPanel>
+
+          <SectionPanel
+            id="shelf"
+            title="Shelf"
+            subtitle={shelfSummary}
+            open={sectionsOpen.shelf}
+            onToggle={() => togglePanel('shelf')}
+            actions={
+              gearPartInstances.length > 0 ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setAddPartOpen(true)}
+                >
+                  + Add part
+                </Button>
+              ) : null
+            }
+          >
+            <GearShelf
+              catalog={gearPartCatalog}
+              instances={gearPartInstances}
+              installRecords={gearInstallRecords}
+              bikes={bikes}
+              onAddPart={() => setAddPartOpen(true)}
+              onEdit={(id) => setEditPartInstanceId(id)}
+            />
+          </SectionPanel>
         </section>
       </div>
 
@@ -547,6 +595,15 @@ export function GearPage() {
         onSave={(event) => {
           logGearServiceEvent(event);
           setServiceContext(null);
+        }}
+      />
+
+      <AddPartSheet
+        open={addPartOpen || editPartInstanceId !== null}
+        instanceId={editPartInstanceId}
+        onClose={() => {
+          setAddPartOpen(false);
+          setEditPartInstanceId(null);
         }}
       />
 

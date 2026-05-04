@@ -10,6 +10,7 @@ export { Dialog, DialogHeader, DialogContent, DialogFooter } from './dialog';
 export { IconButton } from './icon-button';
 export { Input } from './input';
 export { PresetButtons } from './preset-buttons';
+export { SectionPanel } from './section-panel';
 export { SegmentedControl } from './segmented-control';
 export type { SegmentedControlOption } from './segmented-control';
 export { Select } from './select';

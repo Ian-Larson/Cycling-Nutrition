@@ -66,6 +66,16 @@ export interface PlannerDraft {
   title?: string;
 }
 
+export type GarageSectionKey = 'active' | 'service' | 'shelf';
+
+export type GarageSectionsOpen = Record<GarageSectionKey, boolean>;
+
+export const DEFAULT_GARAGE_SECTIONS_OPEN: GarageSectionsOpen = {
+  active: true,
+  service: true,
+  shelf: true,
+};
+
 export interface AppDataSnapshot {
   products: Product[];
   fuelPlans: FuelPlan[];
@@ -102,6 +112,7 @@ export interface AppState {
   gearInstallRecords: GearInstallRecord[];
   gearServiceEvents: GearServiceEvent[];
   gearSelectedBikeId: string | null;
+  gearSectionsOpen: GarageSectionsOpen;
   _initialized: boolean;
 
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -132,6 +143,8 @@ export interface AppState {
   ) => void;
   setBikeOdometer: (bikeId: string, odometerMi: number) => void;
   setGearSelectedBikeId: (bikeId: string | null) => void;
+  setGearSectionOpen: (section: GarageSectionKey, open: boolean) => void;
+  toggleGearSection: (section: GarageSectionKey) => void;
 
   addServiceEntry: (
     entry: Omit<
@@ -593,6 +606,7 @@ export const useStore = create<AppState>()(
       gearInstallRecords: [],
       gearServiceEvents: [],
       gearSelectedBikeId: null,
+      gearSectionsOpen: { ...DEFAULT_GARAGE_SECTIONS_OPEN },
       _initialized: false,
 
       addProduct: (product) =>
@@ -761,6 +775,16 @@ export const useStore = create<AppState>()(
       setGearSelectedBikeId: (bikeId) =>
         set((state) => {
           state.gearSelectedBikeId = bikeId;
+        }),
+
+      setGearSectionOpen: (section, open) =>
+        set((state) => {
+          state.gearSectionsOpen[section] = open;
+        }),
+
+      toggleGearSection: (section) =>
+        set((state) => {
+          state.gearSectionsOpen[section] = !state.gearSectionsOpen[section];
         }),
 
       addServiceEntry: (entry) =>
@@ -1349,8 +1373,32 @@ export const useStore = create<AppState>()(
               : incoming.gearSelectedBikeId === null
                 ? null
                 : currentState.gearSelectedBikeId,
+          gearSectionsOpen: normalizeGearSectionsOpen(
+            incoming.gearSectionsOpen
+          ),
         };
       },
     }
   )
 );
+
+function normalizeGearSectionsOpen(value: unknown): GarageSectionsOpen {
+  if (!value || typeof value !== 'object') {
+    return { ...DEFAULT_GARAGE_SECTIONS_OPEN };
+  }
+  const incoming = value as Partial<Record<GarageSectionKey, unknown>>;
+  return {
+    active:
+      typeof incoming.active === 'boolean'
+        ? incoming.active
+        : DEFAULT_GARAGE_SECTIONS_OPEN.active,
+    service:
+      typeof incoming.service === 'boolean'
+        ? incoming.service
+        : DEFAULT_GARAGE_SECTIONS_OPEN.service,
+    shelf:
+      typeof incoming.shelf === 'boolean'
+        ? incoming.shelf
+        : DEFAULT_GARAGE_SECTIONS_OPEN.shelf,
+  };
+}

@@ -5,7 +5,6 @@ import { MobileNav } from '@/components/layout/mobile-nav';
 import { PlannerPage } from '@/pages/planner';
 import { HistoryPage } from '@/pages/history';
 import { GearPage } from '@/pages/gear';
-import { GearInventoryPage } from '@/pages/gear-inventory';
 import { AuthCallbackPage } from '@/pages/auth-callback';
 import { PowerMeterAnalyzerPage } from '@/pages/power-meter-analyzer';
 import { AccountPage } from '@/pages/account';
@@ -36,7 +35,12 @@ function App() {
               <Route path="/products" element={<Navigate to="/" replace />} />
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/gear" element={<GearPage />} />
-              <Route path="/gear/inventory" element={<GearInventoryPage />} />
+              <Route
+                path="/gear/inventory"
+                element={
+                  <Navigate to={{ pathname: '/gear', hash: '#shelf' }} replace />
+                }
+              />
               <Route
                 path="/labs"
                 element={<Navigate to="/power-meter-analyzer" replace />}
