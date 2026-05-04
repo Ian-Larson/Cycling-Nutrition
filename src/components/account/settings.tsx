@@ -137,6 +137,10 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
   }, [lastSyncedAt]);
 
   const syncedRelative = formatRelativeTime(lastSyncedAt);
+  const stravaLabel = stravaConnection
+    ? stravaConnection.athleteName ||
+      `Athlete ${stravaConnection.athleteId}`
+    : null;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -184,10 +188,14 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
       <Row
         label="Account"
         helper={authMessage ?? undefined}
+        helperLive="polite"
         control={
           signedIn ? (
-            <div className="flex items-center gap-3">
-              <span className="max-w-[14rem] truncate text-sm text-ink-600">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span
+                className="min-w-0 truncate text-sm text-ink-600 sm:max-w-[14rem]"
+                title={user?.email ?? undefined}
+              >
                 {user?.email}
               </span>
               <Button
@@ -203,7 +211,10 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
           ) : authStatus === 'loading' ? (
             <span className="text-sm text-ink-500">Checking session…</span>
           ) : (
-            <form onSubmit={handleSubmit} className="flex items-center gap-2">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col gap-2 sm:flex-row sm:items-center"
+            >
               <Input
                 id="connections-email"
                 type="email"
@@ -213,7 +224,7 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="you@example.com"
                 disabled={isSubmitting}
-                className="!min-h-9 !w-56 !py-1"
+                className="!min-h-11 !w-full !py-2 sm:!w-56 md:!min-h-10"
               />
               <Button type="submit" size="sm" disabled={isSubmitting}>
                 {isSubmitting ? 'Sending…' : 'Send link'}
@@ -226,6 +237,7 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
       <Row
         label="Sync"
         helper={syncMessage ?? undefined}
+        helperLive="polite"
         control={
           signedIn ? (
             <div className="flex items-center gap-3">
@@ -252,12 +264,15 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
         id="strava"
         label="Strava"
         helper={stravaMessage ?? undefined}
+        helperLive="polite"
         control={
           stravaConnection ? (
-            <div className="flex items-center gap-3">
-              <span className="max-w-[12rem] truncate text-sm text-ink-600">
-                {stravaConnection.athleteName ||
-                  `Athlete ${stravaConnection.athleteId}`}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span
+                className="min-w-0 truncate text-sm text-ink-600 sm:max-w-[12rem]"
+                title={stravaLabel ?? undefined}
+              >
+                {stravaLabel}
               </span>
               <Button
                 type="button"
@@ -295,5 +310,5 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
 }
 
 function MutedAction({ children }: { children: ReactNode }) {
-  return <span className="text-sm text-ink-400">{children}</span>;
+  return <span className="text-sm text-ink-500">{children}</span>;
 }

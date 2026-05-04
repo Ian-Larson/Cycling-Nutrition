@@ -319,6 +319,14 @@ function EditableValueRow({
     if (field !== 'name') node.select?.();
   }, [editing, field]);
 
+  useEffect(() => {
+    if (!editing || !error) return;
+    const node = inputRef.current;
+    if (!node) return;
+    node.focus();
+    node.select?.();
+  }, [editing, error]);
+
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -345,7 +353,7 @@ function EditableValueRow({
       aria-invalid={error ? true : undefined}
       aria-describedby={error ? `${inputId}-error` : undefined}
       className={clsx(
-        'min-h-9 w-44 rounded-lg border bg-white px-2.5 py-1 text-base text-ink-900',
+        'min-h-11 w-44 rounded-lg border bg-shell-100 px-2.5 py-2 text-base text-ink-900 md:min-h-9 md:py-1',
         '[font-variant-numeric:tabular-nums] placeholder:text-ink-400',
         'transition-[border-color,box-shadow] duration-150 ease-out motion-reduce:transition-none',
         'focus:outline-none focus-visible:border-brand-400 focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
@@ -360,7 +368,7 @@ function EditableValueRow({
       onClick={onEnterEdit}
       aria-label={`Edit ${typeof label === 'string' ? label.toLowerCase() : field}`}
       className={clsx(
-        '-mx-2 flex min-h-9 w-44 items-center rounded-lg px-2 text-left text-base',
+        '-mx-2 flex min-h-11 w-44 items-center rounded-lg px-2 text-left text-base md:min-h-9',
         '[font-variant-numeric:tabular-nums]',
         'transition-colors duration-150 ease-out motion-reduce:transition-none',
         'hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100',
