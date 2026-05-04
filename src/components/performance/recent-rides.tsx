@@ -19,13 +19,6 @@ function formatDuration(seconds: number): string {
 }
 
 export function RecentRides({ activities }: RecentRidesProps) {
-  if (activities.length === 0) {
-    return (
-      <div className="rounded-md border border-dashed border-ink-300 bg-shell-50 p-6 text-center text-sm text-ink-600">
-        No rides synced yet.
-      </div>
-    );
-  }
   return (
     <section>
       <h2 className="text-xs uppercase tracking-wider text-ink-500 mb-2">

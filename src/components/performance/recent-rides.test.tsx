@@ -20,11 +20,6 @@ const sample: Activity = {
 };
 
 describe('RecentRides', () => {
-  it('renders an empty state when there are no activities', () => {
-    render(<RecentRides activities={[]} />);
-    expect(screen.getByText(/no rides synced yet/i)).toBeInTheDocument();
-  });
-
   it('renders rows for each activity', () => {
     render(<RecentRides activities={[sample]} />);
     expect(screen.getByText('Morning Ride')).toBeInTheDocument();
