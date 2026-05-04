@@ -5,7 +5,7 @@ import {
   type AppState,
 } from '@/store';
 
-export const APP_STATE_SCHEMA_VERSION = 2;
+export const APP_STATE_SCHEMA_VERSION = 3;
 
 export interface SerializedAppState {
   schemaVersion: typeof APP_STATE_SCHEMA_VERSION;
@@ -34,6 +34,8 @@ type SerializeAppStateInput = Pick<
       | 'gearInstallRecords'
       | 'gearServiceEvents'
       | 'gearSelectedBikeId'
+      | 'ftpHistory'
+      | 'weightHistory'
     >
   >;
 
@@ -56,6 +58,8 @@ function withGearHubStateDefaults(
     | 'gearInstallRecords'
     | 'gearServiceEvents'
     | 'gearSelectedBikeId'
+    | 'ftpHistory'
+    | 'weightHistory'
   > {
   return {
     ...state,
@@ -64,6 +68,8 @@ function withGearHubStateDefaults(
     gearInstallRecords: state.gearInstallRecords ?? [],
     gearServiceEvents: state.gearServiceEvents ?? [],
     gearSelectedBikeId: state.gearSelectedBikeId ?? null,
+    ftpHistory: state.ftpHistory ?? [],
+    weightHistory: state.weightHistory ?? [],
   };
 }
 
@@ -89,6 +95,7 @@ export function parseSerializedAppState(
   const incoming = value as Partial<SerializedAppState>;
   if (
     incoming.schemaVersion !== APP_STATE_SCHEMA_VERSION &&
+    incoming.schemaVersion !== 2 &&
     incoming.schemaVersion !== 1
   ) {
     return {

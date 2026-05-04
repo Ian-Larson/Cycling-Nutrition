@@ -116,7 +116,7 @@ describe('cloud app-state snapshots', () => {
       new Date('2026-04-18T12:00:00Z')
     );
 
-    expect(snapshot.schemaVersion).toBe(2);
+    expect(snapshot.schemaVersion).toBe(APP_STATE_SCHEMA_VERSION);
     expect(snapshot.data.gearPartCatalog).toHaveLength(1);
     expect(snapshot.data.gearPartInstances).toHaveLength(1);
     expect(snapshot.data.gearInstallRecords).toHaveLength(1);
@@ -228,5 +228,37 @@ describe('cloud app-state snapshots', () => {
     );
 
     expect(parsed.ok).toBe(false);
+  });
+});
+
+describe('serializeAppState — performance history', () => {
+  it('round-trips ftpHistory and weightHistory', () => {
+    const ftp = [
+      { id: 'f1', recordedAt: '2025-06-01', ftpWatts: 270 },
+    ];
+    const weight = [
+      { id: 'w1', recordedAt: '2025-06-01', weightKg: 73 },
+    ];
+    const serialized = serializeAppState({
+      ...baseState,
+      ftpHistory: ftp,
+      weightHistory: weight,
+    });
+    expect(serialized.schemaVersion).toBe(3);
+    expect(serialized.data.ftpHistory).toEqual(ftp);
+    expect(serialized.data.weightHistory).toEqual(weight);
+  });
+});
+
+describe('parseSerializedAppState — schema version 3', () => {
+  it('accepts a v3 snapshot', () => {
+    const fallback = serializeAppState(baseState).data;
+    const snapshot = {
+      schemaVersion: 3,
+      clientUpdatedAt: '2026-05-04T00:00:00.000Z',
+      data: fallback,
+    };
+    const parsed = parseSerializedAppState(snapshot, fallback);
+    expect(parsed.ok).toBe(true);
   });
 });
