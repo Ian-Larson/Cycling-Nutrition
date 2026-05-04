@@ -13,15 +13,12 @@ interface BackfillPromptProps {
   onStart: (options: { since: string }) => void;
 }
 
-export function BackfillPrompt({ onStart }: BackfillPromptProps) {
-  const handleStart = (days: number | null) => {
-    const since =
-      days === null
-        ? new Date(0).toISOString()
-        : new Date(Date.now() - days * MS_PER_DAY).toISOString();
-    onStart({ since });
-  };
+function computeSince(days: number | null): string {
+  if (days === null) return new Date(0).toISOString();
+  return new Date(Date.now() - days * MS_PER_DAY).toISOString();
+}
 
+export function BackfillPrompt({ onStart }: BackfillPromptProps) {
   return (
     <div className="rounded-md border border-dashed border-ink-300 bg-shell-50 p-6">
       <p className="text-sm font-medium text-ink-800">Import your Strava rides</p>
@@ -35,7 +32,7 @@ export function BackfillPrompt({ onStart }: BackfillPromptProps) {
             key={p.label}
             variant="secondary"
             size="sm"
-            onClick={() => handleStart(p.days)}
+            onClick={() => onStart({ since: computeSince(p.days) })}
           >
             {p.label}
           </Button>

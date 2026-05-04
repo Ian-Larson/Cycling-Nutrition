@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { listRecentActivities, getActivitySyncMeta } from './activities';
 
 function makeMockSupabase(rows: unknown[]) {
@@ -12,7 +13,7 @@ function makeMockSupabase(rows: unknown[]) {
   return {
     from: vi.fn().mockReturnValue(builder),
     _builder: builder,
-  } as any;
+  } as unknown as SupabaseClient;
 }
 
 describe('listRecentActivities', () => {
@@ -72,7 +73,7 @@ describe('getActivitySyncMeta', () => {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
       }),
-    } as any;
+    } as unknown as SupabaseClient;
     const meta = await getActivitySyncMeta(supabase);
     expect(meta.lastSyncedAt).toBeNull();
     expect(meta.lastStravaAfter).toBeNull();
@@ -91,7 +92,7 @@ describe('getActivitySyncMeta', () => {
           error: null,
         }),
       }),
-    } as any;
+    } as unknown as SupabaseClient;
     const meta = await getActivitySyncMeta(supabase);
     expect(meta.lastSyncedAt).toBe('2026-05-04T12:00:00Z');
     expect(meta.lastStravaAfter).toBe('2026-05-04T11:00:00Z');
