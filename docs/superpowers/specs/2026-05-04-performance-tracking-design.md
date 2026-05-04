@@ -37,7 +37,7 @@ Empty / partial states are spelled out under [Empty and edge states](#empty-and-
 
 ## Data model
 
-Three new persisted shapes. All follow Domestique's local-first + Supabase mirror pattern (same as gear, fuel plans).
+Three new persisted shapes. **`ftp_history` and `weight_history`** ride inside the existing JSONB `app_state` blob (same as gear, fuel plans). **`activities`** lives in its own dedicated Supabase table — at 30-60 KB per ride, it would bloat the JSONB blob past usable read/write latency once a rider syncs more than ~50 rides. The activities table sits alongside the existing `strava_connections` and `strava_tokens` tables, RLS-scoped to `auth.uid()`.
 
 ### `activities`
 
