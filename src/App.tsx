@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Header } from '@/components/layout/header';
 import { MobileNav } from '@/components/layout/mobile-nav';
@@ -11,31 +11,7 @@ import { PowerMeterAnalyzerPage } from '@/pages/power-meter-analyzer';
 import { AccountPage } from '@/pages/account';
 import { StravaCallbackPage } from '@/pages/strava-callback';
 import { AuthProvider } from '@/lib/auth/auth-provider';
-import { useAuth } from '@/lib/auth/auth-context';
-import { useStravaActivitySync } from '@/hooks/use-strava-activity-sync';
 import { useStore } from '@/store';
-
-function ActivityAutoSync() {
-  const { stravaConnection } = useAuth();
-  const sync = useStravaActivitySync();
-  const fired = useRef(false);
-
-  useEffect(() => {
-    if (fired.current) return;
-    if (!stravaConnection?.scopes?.includes('activity:read')) return;
-    const last = sync.lastSyncedAt ? new Date(sync.lastSyncedAt).getTime() : 0;
-    const oneDay = 24 * 60 * 60 * 1000;
-    if (Date.now() - last < oneDay) return;
-    fired.current = true;
-    const since =
-      sync.lastSyncedAt ?? new Date(Date.now() - 90 * oneDay).toISOString();
-    sync.start({ since }).catch(() => {
-      // Silent — surfaces on /performance via the state machine.
-    });
-  }, [stravaConnection, sync]);
-
-  return null;
-}
 
 function App() {
   const basename = import.meta.env.BASE_URL;
@@ -48,7 +24,6 @@ function App() {
   return (
     <BrowserRouter basename={basename}>
       <AuthProvider>
-        <ActivityAutoSync />
         <div className="app-shell min-h-screen">
           <Header />
           <main>

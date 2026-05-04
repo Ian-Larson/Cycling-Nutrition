@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PageIntro } from '@/components/layout/page-intro';
 import { HeroStrip } from '@/components/performance/hero-strip';
 import {
@@ -51,7 +51,7 @@ export function PerformancePage() {
     stravaConnection?.scopes?.includes('activity:read') ?? false;
   const isStravaConnected = Boolean(stravaConnection);
 
-  const applyBikeLinks = async () => {
+  const applyBikeLinks = useCallback(async () => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
     const fresh = await listRecentActivities(supabase, 200);
@@ -65,9 +65,9 @@ export function PerformancePage() {
           .eq('strava_id', stravaId)
       )
     );
-  };
+  }, [bikes]);
 
-  const handleSync = async () => {
+  const handleSync = useCallback(async () => {
     const since =
       sync.lastSyncedAt ??
       new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
@@ -75,7 +75,21 @@ export function PerformancePage() {
     await refreshActivities();
     await applyBikeLinks();
     await refreshActivities();
-  };
+  }, [sync, refreshActivities, applyBikeLinks]);
+
+  const autoFired = useRef(false);
+
+  useEffect(() => {
+    if (autoFired.current) return;
+    if (!hasActivityScope) return;
+    const oneDay = 24 * 60 * 60 * 1000;
+    const last = sync.lastSyncedAt ? new Date(sync.lastSyncedAt).getTime() : 0;
+    if (Date.now() - last < oneDay) return;
+    autoFired.current = true;
+    handleSync().catch(() => {
+      // Surfaces in the sync state machine if it fails.
+    });
+  }, [hasActivityScope, sync.lastSyncedAt, handleSync]);
 
   const currentWkg = computeCurrentWkg(profile.ftpWatts, profile.weightKg);
 
