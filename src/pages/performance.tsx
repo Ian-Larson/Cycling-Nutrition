@@ -26,6 +26,11 @@ import { StravaReauthBanner } from '@/components/performance/strava-reauth-banne
 import { resolveBikeLinks } from '@/lib/performance/auto-link-bike';
 import { listRecentActivities } from '@/lib/performance/activities';
 import { getSupabaseClient } from '@/lib/supabase/client';
+import { usePerformanceRecords } from '@/hooks/use-performance-records';
+import { PrTiles } from '@/components/performance/pr-tiles';
+import { PowerProfileHexagon } from '@/components/performance/power-profile-hexagon';
+import { PeriodPresetSelector } from '@/components/performance/period-preset-selector';
+import type { PeriodPreset } from '@/lib/performance/period';
 
 const RANGE_DAYS: Record<RangeKey, number | null> = {
   '3mo': 90,
@@ -46,9 +51,12 @@ export function PerformancePage() {
   const profile = useStore((s) => s.settings.athleteProfile);
   const bikes = useStore((s) => s.bikes);
 
+  const [periodPreset, setPeriodPreset] = useState<PeriodPreset>('last-90d-vs-previous-90d');
   const { stravaConnection, connectStrava } = useAuth();
   const { activities, refresh: refreshActivities } = useActivities();
   const sync = useStravaActivitySync();
+  const records = usePerformanceRecords(periodPreset);
+  const hasAnyActivity = activities.length > 0;
 
   const hasActivityScope =
     stravaConnection?.scopes?.includes('activity:read') ?? false;
@@ -136,6 +144,26 @@ export function PerformancePage() {
       </div>
 
       <TrendTrioChart series={series} />
+
+      {hasAnyActivity && (
+        <>
+          <PrTiles tiles={records.tiles} />
+
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs uppercase tracking-wider text-ink-500">
+              Power profile
+            </h2>
+            <PeriodPresetSelector value={periodPreset} onChange={setPeriodPreset} />
+          </div>
+
+          <PowerProfileHexagon
+            current={records.radar.current}
+            comparison={records.radar.comparison}
+            currentLabel={records.radar.currentLabel}
+            comparisonLabel={records.radar.comparisonLabel}
+          />
+        </>
+      )}
 
       {isStravaConnected && !hasActivityScope && (
         <StravaReauthBanner onReconnect={connectStrava} />

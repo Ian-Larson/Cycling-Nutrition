@@ -65,20 +65,23 @@ export function usePerformanceRecords(
   });
 
   useEffect(() => {
-    if (!supabase) {
-      setError('Supabase is not configured.');
-      setLoading(false);
-      return;
-    }
     let cancelled = false;
-    setLoading(true);
-    setError(null);
 
-    Promise.all([
-      listActivitiesWithCurvesInRange(supabase, periods.current.fromIso, periods.current.toIso),
-      listActivitiesWithCurvesInRange(supabase, periods.comparison.fromIso, periods.comparison.toIso),
-    ])
-      .then(([currentActs, comparisonActs]) => {
+    const run = async () => {
+      setLoading(true);
+      setError(null);
+
+      if (!supabase) {
+        setError('Supabase is not configured.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const [currentActs, comparisonActs] = await Promise.all([
+          listActivitiesWithCurvesInRange(supabase, periods.current.fromIso, periods.current.toIso),
+          listActivitiesWithCurvesInRange(supabase, periods.comparison.fromIso, periods.comparison.toIso),
+        ]);
         if (cancelled) return;
         const nextTiles: PrTile[] = PR_TILE_DURATIONS.map((d) => ({
           durationSeconds: d,
@@ -97,12 +100,14 @@ export function usePerformanceRecords(
           comparisonLabel: periods.comparison.label,
         });
         setLoading(false);
-      })
-      .catch((e) => {
+      } catch (e) {
         if (cancelled) return;
         setError(e instanceof Error ? e.message : 'Failed to load records');
         setLoading(false);
-      });
+      }
+    };
+
+    run();
 
     return () => {
       cancelled = true;
