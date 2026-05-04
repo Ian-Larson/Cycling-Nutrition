@@ -10,7 +10,7 @@ const PRESETS = [
 ] as const;
 
 interface BackfillPromptProps {
-  onStart: (options: { since: string }) => void;
+  onStart: (options: { since: string }) => void | Promise<void>;
 }
 
 function computeSince(days: number | null): string {
