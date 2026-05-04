@@ -48,7 +48,7 @@ function FtpSection({ history, onAdd, onRemove }: FtpSectionProps) {
 
   return (
     <section>
-      <h3 className="text-sm font-semibold text-neutral-900 mb-2">
+      <h3 className="text-sm font-semibold text-ink-900 mb-2">
         FTP history
       </h3>
       <ul className="space-y-1 mb-3">
@@ -56,7 +56,7 @@ function FtpSection({ history, onAdd, onRemove }: FtpSectionProps) {
           <li
             key={entry.id}
             data-testid="ftp-history-row"
-            className="flex items-center justify-between text-sm text-neutral-700 tabular-nums"
+            className="flex items-center justify-between text-sm text-ink-700 tabular-nums"
           >
             <span>
               {entry.recordedAt} — {entry.ftpWatts} W
@@ -65,7 +65,7 @@ function FtpSection({ history, onAdd, onRemove }: FtpSectionProps) {
               type="button"
               aria-label={`Delete FTP ${entry.ftpWatts}`}
               onClick={() => onRemove(entry.id)}
-              className="text-xs text-neutral-500 hover:text-red-600"
+              className="text-xs text-ink-500 hover:text-error-700"
             >
               Delete
             </button>
@@ -82,7 +82,7 @@ function FtpSection({ history, onAdd, onRemove }: FtpSectionProps) {
           setWatts('');
         }}
       >
-        <label className="text-xs text-neutral-700">
+        <label className="text-xs text-ink-700">
           FTP date
           <Input
             type="date"
@@ -90,7 +90,7 @@ function FtpSection({ history, onAdd, onRemove }: FtpSectionProps) {
             onChange={(e) => setDate(e.target.value)}
           />
         </label>
-        <label className="text-xs text-neutral-700">
+        <label className="text-xs text-ink-700">
           FTP watts
           <Input
             type="number"
@@ -123,7 +123,7 @@ function WeightSection({ history, onAdd, onRemove }: WeightSectionProps) {
 
   return (
     <section>
-      <h3 className="text-sm font-semibold text-neutral-900 mb-2">
+      <h3 className="text-sm font-semibold text-ink-900 mb-2">
         Weight history
       </h3>
       <ul className="space-y-1 mb-3">
@@ -131,7 +131,7 @@ function WeightSection({ history, onAdd, onRemove }: WeightSectionProps) {
           <li
             key={entry.id}
             data-testid="weight-history-row"
-            className="flex items-center justify-between text-sm text-neutral-700 tabular-nums"
+            className="flex items-center justify-between text-sm text-ink-700 tabular-nums"
           >
             <span>
               {entry.recordedAt} — {entry.weightKg} kg
@@ -140,7 +140,7 @@ function WeightSection({ history, onAdd, onRemove }: WeightSectionProps) {
               type="button"
               aria-label={`Delete weight ${entry.weightKg}`}
               onClick={() => onRemove(entry.id)}
-              className="text-xs text-neutral-500 hover:text-red-600"
+              className="text-xs text-ink-500 hover:text-error-700"
             >
               Delete
             </button>
@@ -157,7 +157,7 @@ function WeightSection({ history, onAdd, onRemove }: WeightSectionProps) {
           setKg('');
         }}
       >
-        <label className="text-xs text-neutral-700">
+        <label className="text-xs text-ink-700">
           Weight date
           <Input
             type="date"
@@ -165,7 +165,7 @@ function WeightSection({ history, onAdd, onRemove }: WeightSectionProps) {
             onChange={(e) => setDate(e.target.value)}
           />
         </label>
-        <label className="text-xs text-neutral-700">
+        <label className="text-xs text-ink-700">
           Weight kg
           <Input
             type="number"

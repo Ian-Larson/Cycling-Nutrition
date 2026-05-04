@@ -23,7 +23,7 @@ interface TrendTrioChartProps {
 }
 
 const COLORS = {
-  wkg: '#f8622e',
+  wkg: 'var(--color-brand-500)',
   ftp: '#2563eb',
   weight: '#059669',
 };
@@ -49,7 +49,7 @@ export function TrendTrioChart({ series }: TrendTrioChartProps) {
 
   if (allEmpty || !xExtent) {
     return (
-      <div className="flex h-[280px] items-center justify-center rounded-md border border-dashed border-neutral-300 bg-neutral-50 text-sm text-neutral-600">
+      <div className="flex h-[280px] items-center justify-center rounded-md border border-dashed border-ink-300 bg-shell-50 text-sm text-ink-600">
         Log your FTP and weight to see your w/kg trend.
       </div>
     );
@@ -81,7 +81,7 @@ export function TrendTrioChart({ series }: TrendTrioChartProps) {
           );
         })}
       </svg>
-      <ul className="flex gap-4 px-2 pt-2 text-xs text-neutral-700">
+      <ul className="flex gap-4 px-2 pt-2 text-xs text-ink-700">
         {(['wkg', 'ftp', 'weight'] as Key[]).map((key) => (
           <li key={key} className="flex items-center gap-1.5">
             <span

@@ -16,7 +16,7 @@ interface RangeToggleProps {
 
 export function RangeToggle({ value, onChange }: RangeToggleProps) {
   return (
-    <div className="inline-flex rounded-md border border-neutral-200 bg-white p-0.5">
+    <div className="inline-flex rounded-md border border-ink-200 bg-white p-0.5">
       {OPTIONS.map((opt) => {
         const pressed = opt.key === value;
         return (
@@ -28,8 +28,8 @@ export function RangeToggle({ value, onChange }: RangeToggleProps) {
             className={clsx(
               'px-3 py-1 text-sm font-medium rounded-sm transition-colors',
               pressed
-                ? 'bg-neutral-900 text-white'
-                : 'text-neutral-700 hover:bg-neutral-100'
+                ? 'bg-ink-900 text-white'
+                : 'text-ink-700 hover:bg-shell-100'
             )}
           >
             {opt.label}
