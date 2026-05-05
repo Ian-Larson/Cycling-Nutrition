@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Alert,
@@ -13,6 +13,12 @@ import {
   Toggle,
 } from '@/components/ui';
 import { useFuelPrescription } from '@/hooks/use-fuel-prescription';
+import {
+  formatNumberInputValue,
+  kilogramsToPounds,
+  poundsToKilograms,
+  type AnthropometricsUnit,
+} from '@/lib/athlete/anthropometrics';
 import {
   formatCarbsGrams,
   formatCarbsPerHour,
@@ -67,6 +73,47 @@ function getFirstDrinkMix(products: Product[], selectedId: string | null): Produ
 function buildBottleSlots(bottlePool: BottleInventory) {
   return BOTTLE_SIZES.flatMap((size) =>
     Array.from({ length: bottlePool[size] }, () => ({ capacityMl: size }))
+  );
+}
+
+function getWeightInputValue(
+  weightKg: number | undefined,
+  unit: AnthropometricsUnit
+): string {
+  const fallbackKg = weightKg ?? 72;
+  return unit === 'imperial'
+    ? formatNumberInputValue(kilogramsToPounds(fallbackKg), 1)
+    : formatNumberInputValue(fallbackKg, 1);
+}
+
+function convertWeightInputUnit(
+  value: string,
+  fromUnit: AnthropometricsUnit,
+  toUnit: AnthropometricsUnit
+): string {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return '';
+  const next =
+    fromUnit === 'imperial' && toUnit === 'metric'
+      ? poundsToKilograms(parsed)
+      : fromUnit === 'metric' && toUnit === 'imperial'
+        ? kilogramsToPounds(parsed)
+        : parsed;
+  return formatNumberInputValue(next, 1);
+}
+
+function FieldGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium text-ink-700">{label}</p>
+      {children}
+    </div>
   );
 }
 
@@ -194,8 +241,14 @@ export function OnboardingPage() {
   const [step, setStep] = useState<OnboardingStep>('welcome');
   const [email, setEmail] = useState('');
   const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
-  const [weightKg, setWeightKg] = useState(
-    String(settings.athleteProfile.weightKg ?? 72)
+  const [weightUnit, setWeightUnit] = useState<AnthropometricsUnit>(
+    settings.athleteProfile.anthropometricsUnit ?? 'metric'
+  );
+  const [weightInput, setWeightInput] = useState(
+    getWeightInputValue(
+      settings.athleteProfile.weightKg,
+      settings.athleteProfile.anthropometricsUnit ?? 'metric'
+    )
   );
   const [carbTargetStyle, setCarbTargetStyle] =
     useState<CarbTargetStyle>('standard');
@@ -252,7 +305,11 @@ export function OnboardingPage() {
   }, [bottlePool, fuelEngine, ride, selectedDrinkMix]);
 
   const progress = stepNumber(step);
-  const parsedWeightKg = Number(weightKg);
+  const parsedWeightInput = Number(weightInput);
+  const parsedWeightKg =
+    weightUnit === 'imperial'
+      ? poundsToKilograms(parsedWeightInput)
+      : parsedWeightInput;
   const weightValid = Number.isFinite(parsedWeightKg) && parsedWeightKg > 0;
   const signedIn = auth.authStatus === 'signedIn' && auth.user !== null;
   const canConnectStrava = signedIn && auth.stravaConnection === null;
@@ -286,10 +343,19 @@ export function OnboardingPage() {
     if (!weightValid) return;
     updateAthleteProfile({
       weightKg: parsedWeightKg,
+      anthropometricsUnit: weightUnit,
       heavySweater: sweatTendency === 'heavy',
       gutTrainingTargetGph: CARB_TARGETS[carbTargetStyle],
     });
     goTo('ride');
+  };
+
+  const handleWeightUnitChange = (nextUnit: AnthropometricsUnit) => {
+    setWeightInput((current) =>
+      convertWeightInputUnit(current, weightUnit, nextUnit)
+    );
+    setWeightUnit(nextUnit);
+    updateAthleteProfile({ anthropometricsUnit: nextUnit });
   };
 
   const handleBottleCountChange = (size: keyof BottleInventory, value: number) => {
@@ -477,38 +543,57 @@ export function OnboardingPage() {
                     These set the first calculation. You can tune them later from Account.
                   </p>
                 </div>
-                <Input
-                  id="onboarding-weight"
-                  label="Weight, kg"
-                  type="number"
-                  min="1"
-                  inputMode="decimal"
-                  value={weightKg}
-                  onChange={(event) => setWeightKg(event.target.value)}
-                  error={weightValid ? undefined : 'Enter rider weight.'}
-                />
-                <SegmentedControl
-                  label="Carb target style"
-                  options={[
-                    { value: 'conservative', label: 'Conservative' },
-                    { value: 'standard', label: 'Standard' },
-                    { value: 'aggressive', label: 'Aggressive' },
-                  ]}
-                  value={carbTargetStyle}
-                  onChange={setCarbTargetStyle}
-                  className="w-full"
-                />
-                <SegmentedControl
-                  label="Sweat tendency"
-                  options={[
-                    { value: 'light', label: 'Light' },
-                    { value: 'average', label: 'Average' },
-                    { value: 'heavy', label: 'Heavy' },
-                  ]}
-                  value={sweatTendency}
-                  onChange={setSweatTendency}
-                  className="w-full"
-                />
+                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem] sm:items-start">
+                  <Input
+                    id="onboarding-weight"
+                    label={`Weight, ${weightUnit === 'imperial' ? 'lb' : 'kg'}`}
+                    type="number"
+                    min="1"
+                    inputMode="decimal"
+                    value={weightInput}
+                    onChange={(event) => setWeightInput(event.target.value)}
+                    error={weightValid ? undefined : 'Enter rider weight.'}
+                  />
+                  <FieldGroup label="Units">
+                    <SegmentedControl
+                      size="sm"
+                      label="Weight unit"
+                      options={[
+                        { value: 'metric', label: 'kg' },
+                        { value: 'imperial', label: 'lb' },
+                      ]}
+                      value={weightUnit}
+                      onChange={handleWeightUnitChange}
+                      className="w-full"
+                    />
+                  </FieldGroup>
+                </div>
+                <FieldGroup label="Carb target style">
+                  <SegmentedControl
+                    label="Carb target style"
+                    options={[
+                      { value: 'conservative', label: 'Conservative' },
+                      { value: 'standard', label: 'Standard' },
+                      { value: 'aggressive', label: 'Aggressive' },
+                    ]}
+                    value={carbTargetStyle}
+                    onChange={setCarbTargetStyle}
+                    className="w-full"
+                  />
+                </FieldGroup>
+                <FieldGroup label="Sweat tendency">
+                  <SegmentedControl
+                    label="Sweat tendency"
+                    options={[
+                      { value: 'light', label: 'Light' },
+                      { value: 'average', label: 'Average' },
+                      { value: 'heavy', label: 'Heavy' },
+                    ]}
+                    value={sweatTendency}
+                    onChange={setSweatTendency}
+                    className="w-full"
+                  />
+                </FieldGroup>
                 <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
                   <Button type="button" variant="ghost" onClick={goBack}>
                     Back

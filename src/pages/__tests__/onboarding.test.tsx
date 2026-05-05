@@ -5,6 +5,11 @@ import { OnboardingPage } from '@/pages/onboarding';
 import { AuthProvider } from '@/lib/auth/auth-provider';
 import { DEFAULT_ONBOARDING, useStore } from '@/store';
 
+function reachRiderDefaults() {
+  fireEvent.click(screen.getByRole('button', { name: /Start setup/i }));
+  fireEvent.click(screen.getByRole('button', { name: /Do this later/i }));
+}
+
 function renderOnboarding() {
   return render(
     <MemoryRouter>
@@ -41,5 +46,29 @@ describe('OnboardingPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /Skip for now/i }));
 
     expect(useStore.getState().onboarding.skipped).toBe(true);
+  });
+
+  it('labels rider presets so the choices have context', () => {
+    renderOnboarding();
+
+    reachRiderDefaults();
+
+    expect(screen.getByText('Carb target style')).toBeInTheDocument();
+    expect(screen.getByText('Sweat tendency')).toBeInTheDocument();
+  });
+
+  it('lets the rider enter pounds and persists the account unit preference', () => {
+    renderOnboarding();
+
+    reachRiderDefaults();
+    fireEvent.click(screen.getByRole('radio', { name: 'lb' }));
+    fireEvent.change(screen.getByLabelText(/Weight, lb/i), {
+      target: { value: '160' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^Continue$/i }));
+
+    const profile = useStore.getState().settings.athleteProfile;
+    expect(profile.anthropometricsUnit).toBe('imperial');
+    expect(profile.weightKg).toBeCloseTo(72.57, 1);
   });
 });
