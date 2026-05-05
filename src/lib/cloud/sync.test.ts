@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DEFAULT_SETTINGS, type AppDataSnapshot, type AppState } from '@/store';
+import {
+  DEFAULT_ONBOARDING,
+  DEFAULT_SETTINGS,
+  type AppDataSnapshot,
+  type AppState,
+} from '@/store';
 import { serializeAppState, type SerializedAppState } from './app-state';
 import {
   createDebouncedCloudWriter,
@@ -23,6 +28,7 @@ function makeAppData(productCount: number): AppDataSnapshot {
     fuelPlans: [],
     settings: DEFAULT_SETTINGS,
     plannerDraft: null,
+    onboarding: { ...DEFAULT_ONBOARDING },
     bikes: [],
     serviceEntries: [],
     gearPartCatalog: [],
@@ -108,7 +114,7 @@ describe('cloud sync initialization', () => {
     });
 
     expect(result.kind).toBe('applied-cloud');
-    expect(replaceAppData).toHaveBeenCalledWith(cloudData);
+    expect(replaceAppData).toHaveBeenCalledWith(cloudSnapshot.data);
     expect(saveBackup).toHaveBeenCalledTimes(1);
     expect(repo.upserts).toHaveLength(0);
   });

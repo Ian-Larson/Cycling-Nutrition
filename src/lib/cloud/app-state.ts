@@ -1,4 +1,5 @@
 import {
+  DEFAULT_ONBOARDING,
   getAppDataFromState,
   normalizeAppData,
   type AppDataSnapshot,
@@ -29,6 +30,7 @@ type SerializeAppStateInput = Pick<
   Partial<
     Pick<
       AppState,
+      | 'onboarding'
       | 'gearPartCatalog'
       | 'gearPartInstances'
       | 'gearInstallRecords'
@@ -51,6 +53,7 @@ function withGearHubStateDefaults(
     | 'fuelPlans'
     | 'settings'
     | 'plannerDraft'
+    | 'onboarding'
     | 'bikes'
     | 'serviceEntries'
     | 'gearPartCatalog'
@@ -63,6 +66,7 @@ function withGearHubStateDefaults(
   > {
   return {
     ...state,
+    onboarding: state.onboarding ?? { ...DEFAULT_ONBOARDING },
     gearPartCatalog: state.gearPartCatalog ?? [],
     gearPartInstances: state.gearPartInstances ?? [],
     gearInstallRecords: state.gearInstallRecords ?? [],

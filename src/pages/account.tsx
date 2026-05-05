@@ -23,6 +23,14 @@ export function AccountPage() {
         <PageIntro
           title="Account"
           description="Profile, fueling preferences, and connections."
+          meta={
+            <Link
+              to="/onboarding"
+              className="inline-flex min-h-9 items-center rounded-xl border border-[color:var(--border-soft)] bg-shell-100 px-3 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+            >
+              Replay setup
+            </Link>
+          }
         />
 
         <Settings />

@@ -70,6 +70,20 @@ export interface PlannerDraft {
   title?: string;
 }
 
+export interface OnboardingState {
+  completed: boolean;
+  skipped: boolean;
+  accountStepDismissed: boolean;
+  stravaStepDismissed: boolean;
+}
+
+export const DEFAULT_ONBOARDING: OnboardingState = {
+  completed: false,
+  skipped: false,
+  accountStepDismissed: false,
+  stravaStepDismissed: false,
+};
+
 export type GarageSectionKey = 'active' | 'service' | 'shelf';
 
 export type GarageSectionsOpen = Record<GarageSectionKey, boolean>;
@@ -85,6 +99,7 @@ export interface AppDataSnapshot {
   fuelPlans: FuelPlan[];
   settings: Settings;
   plannerDraft: PlannerDraft | null;
+  onboarding?: OnboardingState;
   bikes: Bike[];
   serviceEntries: ServiceEntry[];
   gearPartCatalog: GearPartCatalogItem[];
@@ -111,6 +126,7 @@ export interface AppState {
   fuelPlans: FuelPlan[];
   settings: Settings;
   plannerDraft: PlannerDraft | null;
+  onboarding: OnboardingState;
   bikes: Bike[];
   serviceEntries: ServiceEntry[];
   gearPartCatalog: GearPartCatalogItem[];
@@ -131,6 +147,10 @@ export interface AppState {
   deleteFuelPlan: (id: string) => void;
   setPlannerDraft: (draft: PlannerDraft | null) => void;
   consumePlannerDraft: () => PlannerDraft | null;
+  completeOnboarding: () => void;
+  skipOnboarding: () => void;
+  dismissOnboardingAccountStep: () => void;
+  dismissOnboardingStravaStep: () => void;
 
   addBike: (
     bike: Omit<
@@ -485,6 +505,39 @@ export function normalizePlannerDraft(value: unknown): PlannerDraft | null {
   };
 }
 
+export function normalizeOnboarding(value: unknown): OnboardingState {
+  if (!value || typeof value !== 'object') {
+    return { ...DEFAULT_ONBOARDING };
+  }
+
+  const incoming = value as Partial<Record<keyof OnboardingState, unknown>>;
+  return {
+    completed:
+      typeof incoming.completed === 'boolean'
+        ? incoming.completed
+        : DEFAULT_ONBOARDING.completed,
+    skipped:
+      typeof incoming.skipped === 'boolean'
+        ? incoming.skipped
+        : DEFAULT_ONBOARDING.skipped,
+    accountStepDismissed:
+      typeof incoming.accountStepDismissed === 'boolean'
+        ? incoming.accountStepDismissed
+        : DEFAULT_ONBOARDING.accountStepDismissed,
+    stravaStepDismissed:
+      typeof incoming.stravaStepDismissed === 'boolean'
+        ? incoming.stravaStepDismissed
+        : DEFAULT_ONBOARDING.stravaStepDismissed,
+  };
+}
+
+export function getShouldShowOnboarding(
+  state: Pick<AppState, 'fuelPlans' | 'onboarding'>
+): boolean {
+  if (state.onboarding.completed || state.onboarding.skipped) return false;
+  return state.fuelPlans.length === 0;
+}
+
 export function getAppDataFromState(
   state: Pick<
     AppState,
@@ -492,6 +545,7 @@ export function getAppDataFromState(
     | 'fuelPlans'
     | 'settings'
     | 'plannerDraft'
+    | 'onboarding'
     | 'bikes'
     | 'serviceEntries'
     | 'gearPartCatalog'
@@ -508,6 +562,7 @@ export function getAppDataFromState(
     fuelPlans: state.fuelPlans,
     settings: state.settings,
     plannerDraft: state.plannerDraft,
+    onboarding: state.onboarding,
     bikes: state.bikes,
     serviceEntries: [],
     gearPartCatalog: state.gearPartCatalog,
@@ -541,6 +596,10 @@ export function normalizeAppData(
       incoming?.plannerDraft === undefined
         ? fallback.plannerDraft
         : normalizePlannerDraft(incoming.plannerDraft),
+    onboarding:
+      incoming?.onboarding === undefined
+        ? normalizeOnboarding(fallback.onboarding)
+        : normalizeOnboarding(incoming.onboarding),
     bikes: Array.isArray(incoming?.bikes) ? incoming.bikes : fallback.bikes,
     serviceEntries: [],
     gearPartCatalog:
@@ -626,6 +685,7 @@ export const useStore = create<AppState>()(
         athleteProfile: { ...DEFAULT_SETTINGS.athleteProfile },
       },
       plannerDraft: null,
+      onboarding: { ...DEFAULT_ONBOARDING },
       bikes: [],
       serviceEntries: [],
       gearPartCatalog: [],
@@ -695,6 +755,27 @@ export const useStore = create<AppState>()(
 
         return current;
       },
+
+      completeOnboarding: () =>
+        set((state) => {
+          state.onboarding.completed = true;
+          state.onboarding.skipped = false;
+        }),
+
+      skipOnboarding: () =>
+        set((state) => {
+          state.onboarding.skipped = true;
+        }),
+
+      dismissOnboardingAccountStep: () =>
+        set((state) => {
+          state.onboarding.accountStepDismissed = true;
+        }),
+
+      dismissOnboardingStravaStep: () =>
+        set((state) => {
+          state.onboarding.stravaStepDismissed = true;
+        }),
 
       addBike: (bike) =>
         set((state) => {
@@ -1384,6 +1465,7 @@ export const useStore = create<AppState>()(
           state.fuelPlans = normalized.fuelPlans;
           state.settings = normalized.settings;
           state.plannerDraft = normalized.plannerDraft;
+          state.onboarding = normalizeOnboarding(normalized.onboarding);
           state.bikes = normalized.bikes;
           state.serviceEntries = [];
           state.gearPartCatalog = normalized.gearPartCatalog;
@@ -1403,6 +1485,7 @@ export const useStore = create<AppState>()(
         set((draft) => {
           draft._initialized = true;
           draft.settings = normalizeSettings(draft.settings);
+          draft.onboarding = normalizeOnboarding(draft.onboarding);
           draft.products = normalizeProducts(draft.products, []);
           draft.fuelPlans = normalizeFuelPlans(draft.fuelPlans, []);
           draft.serviceEntries = [];
@@ -1459,6 +1542,7 @@ export const useStore = create<AppState>()(
           ),
           settings: normalizeSettings(incoming.settings),
           plannerDraft: normalizePlannerDraft(incoming.plannerDraft),
+          onboarding: normalizeOnboarding(incoming.onboarding),
           bikes: Array.isArray(incoming.bikes) ? incoming.bikes : currentState.bikes,
           serviceEntries: [],
           gearPartCatalog: normalizeGearPartCatalog(

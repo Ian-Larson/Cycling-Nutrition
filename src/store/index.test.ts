@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { getReadinessFromState, normalizeProducts, type Settings } from './index';
+import {
+  getReadinessFromState,
+  getShouldShowOnboarding,
+  normalizeOnboarding,
+  normalizeProducts,
+  type Settings,
+} from './index';
 import type { Product } from '@/types';
 import { useStore } from './index';
 
@@ -32,6 +38,83 @@ describe('normalizeProducts', () => {
     expect(migrated).toHaveLength(1);
     expect(migrated[0].isAvailable).toBe(true);
     expect(migrated[0].nutrition.calories).toBe(240);
+  });
+});
+
+describe('onboarding state', () => {
+  it('normalizes missing and partial onboarding flags', () => {
+    expect(normalizeOnboarding(undefined)).toEqual({
+      completed: false,
+      skipped: false,
+      accountStepDismissed: false,
+      stravaStepDismissed: false,
+    });
+
+    expect(
+      normalizeOnboarding({
+        completed: true,
+        skipped: true,
+        accountStepDismissed: true,
+      })
+    ).toEqual({
+      completed: true,
+      skipped: true,
+      accountStepDismissed: true,
+      stravaStepDismissed: false,
+    });
+  });
+
+  it('shows onboarding only for a new local rider without a plan', () => {
+    expect(
+      getShouldShowOnboarding({
+        fuelPlans: [],
+        onboarding: {
+          completed: false,
+          skipped: false,
+          accountStepDismissed: false,
+          stravaStepDismissed: false,
+        },
+      })
+    ).toBe(true);
+
+    expect(
+      getShouldShowOnboarding({
+        fuelPlans: [],
+        onboarding: {
+          completed: false,
+          skipped: true,
+          accountStepDismissed: false,
+          stravaStepDismissed: false,
+        },
+      })
+    ).toBe(false);
+
+    expect(
+      getShouldShowOnboarding({
+        fuelPlans: [
+          {
+            id: 'plan',
+            createdAt: 0,
+            ride: {
+              durationMinutes: 90,
+              intensity: 'endurance',
+              heatFactor: 'moderate',
+              carbTargetGramsPerHour: 60,
+            },
+            bottlePool: { 550: 0, 750: 2, 950: 0 },
+            selectedDrinkMixId: 'mix',
+            selectedSolidIds: [],
+            prescription: {} as never,
+          },
+        ],
+        onboarding: {
+          completed: false,
+          skipped: false,
+          accountStepDismissed: false,
+          stravaStepDismissed: false,
+        },
+      })
+    ).toBe(false);
   });
 });
 
