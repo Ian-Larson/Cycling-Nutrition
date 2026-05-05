@@ -15,9 +15,9 @@ export function SetupCard({
   return (
     <Card>
       <CardContent className="md:px-5 md:py-5">
-        <div className="section-kicker uppercase tracking-wider text-ink-500">
+        <p className="section-kicker uppercase tracking-wider text-ink-500">
           Set up
-        </div>
+        </p>
         <h2 className="section-title mt-1.5">Set up your fitness picture</h2>
         <p className="mt-1.5 max-w-[58ch] text-sm leading-6 text-ink-600">
           Add your FTP and weight to see w/kg and trends. Connect Strava to pull

@@ -47,7 +47,7 @@ export function SnapshotCard({
     return (
       <Card>
         <CardContent className="md:px-5 md:py-4">
-          <p className="section-title">Set up your fitness picture</p>
+          <h2 className="section-title">Set up your fitness picture</h2>
           <p className="mt-1.5 text-sm leading-6 text-ink-600">
             Add your FTP and weight in Account to see w/kg, trends, and how you
             compare across periods.
@@ -70,9 +70,9 @@ export function SnapshotCard({
       <CardContent className="md:px-5 md:py-4">
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8">
           <div className="min-w-0">
-            <div className="section-kicker uppercase tracking-wider text-ink-500">
+            <h2 className="section-kicker uppercase tracking-wider text-ink-500">
               Snapshot
-            </div>
+            </h2>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="font-sans text-[2rem] font-bold tabular-nums leading-none tracking-tight text-ink-900 md:text-[2.25rem]">
                 {currentWkg.toFixed(2)}
@@ -128,7 +128,7 @@ function renderVerdict(
   if (delta >= 0.1) {
     return (
       <span>
-        <span className="font-semibold text-ink-900">Stronger</span> — w/kg up{' '}
+        <span className="font-semibold text-ink-900">Stronger.</span> W/kg up{' '}
         <span className="tabular-nums">{delta.toFixed(2)}</span> vs {periodLabel}.
       </span>
     );
@@ -136,14 +136,14 @@ function renderVerdict(
   if (delta <= -0.1) {
     return (
       <span>
-        <span className="font-semibold text-ink-900">Slipping</span> — w/kg down{' '}
+        <span className="font-semibold text-ink-900">Slipping.</span> W/kg down{' '}
         <span className="tabular-nums">{Math.abs(delta).toFixed(2)}</span> vs {periodLabel}.
       </span>
     );
   }
   return (
     <span>
-      <span className="font-semibold text-ink-900">Holding steady</span> — w/kg{' '}
+      <span className="font-semibold text-ink-900">Holding steady.</span> W/kg{' '}
       <span className="tabular-nums">{delta >= 0 ? '+' : ''}{delta.toFixed(2)}</span> vs {periodLabel}.
     </span>
   );

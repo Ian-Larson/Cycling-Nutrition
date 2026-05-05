@@ -28,7 +28,6 @@ export function PeriodControl({ value, onChange, sticky }: PeriodControlProps) {
         options={OPTIONS}
         value={value}
         onChange={onChange}
-        size="sm"
       />
     </div>
   );

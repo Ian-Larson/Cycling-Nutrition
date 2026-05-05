@@ -59,9 +59,9 @@ export function PowerProfileHexagon({
   return (
     <Card>
       <CardHeader className="flex items-baseline justify-between gap-3">
-        <div className="section-kicker uppercase tracking-wider text-ink-500">
+        <h2 className="section-kicker uppercase tracking-wider text-ink-500">
           Power profile
-        </div>
+        </h2>
         <div className="text-xs text-ink-500">w/kg by duration</div>
       </CardHeader>
       <CardContent className="md:px-5 md:py-5">
@@ -102,14 +102,13 @@ export function PowerProfileHexagon({
                 const [x, y] = pointAt(angle, RADIUS);
                 const [lx, ly] = pointAt(angle, RADIUS + 20);
                 const isActive = activeAxis === p.durationSeconds;
+                const label = AXIS_LABELS[p.durationSeconds] ?? `${p.durationSeconds}s`;
+                const toggle = () =>
+                  setActiveAxis((cur) =>
+                    cur === p.durationSeconds ? null : p.durationSeconds
+                  );
                 return (
-                  <g
-                    key={p.durationSeconds}
-                    onMouseEnter={() => setActiveAxis(p.durationSeconds)}
-                    onMouseLeave={() => setActiveAxis(null)}
-                    onFocus={() => setActiveAxis(p.durationSeconds)}
-                    onBlur={() => setActiveAxis(null)}
-                  >
+                  <g key={p.durationSeconds}>
                     <line
                       x1={CENTER}
                       y1={CENTER}
@@ -118,23 +117,56 @@ export function PowerProfileHexagon({
                       stroke="var(--color-ink-100)"
                       strokeWidth={1}
                     />
-                    <text
-                      x={lx}
-                      y={ly}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize="11"
-                      fontWeight={600}
-                      fill={
-                        isActive
-                          ? 'var(--color-ink-900)'
-                          : 'var(--color-ink-600)'
-                      }
+                    <g
+                      role="button"
                       tabIndex={0}
-                      style={{ cursor: 'pointer' }}
+                      aria-label={`Show ${label} value`}
+                      aria-pressed={isActive}
+                      onMouseEnter={() => setActiveAxis(p.durationSeconds)}
+                      onMouseLeave={() => setActiveAxis(null)}
+                      onFocus={() => setActiveAxis(p.durationSeconds)}
+                      onBlur={() => setActiveAxis(null)}
+                      onClick={toggle}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggle();
+                        }
+                      }}
+                      style={{ cursor: 'pointer', outline: 'none' }}
                     >
-                      {AXIS_LABELS[p.durationSeconds] ?? `${p.durationSeconds}s`}
-                    </text>
+                      <circle
+                        cx={lx}
+                        cy={ly}
+                        r={12}
+                        fill={
+                          isActive
+                            ? 'var(--color-brand-100)'
+                            : 'transparent'
+                        }
+                        stroke={
+                          isActive
+                            ? 'var(--color-brand-300)'
+                            : 'transparent'
+                        }
+                        strokeWidth={1.25}
+                      />
+                      <text
+                        x={lx}
+                        y={ly}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fontSize="11"
+                        fontWeight={600}
+                        fill={
+                          isActive
+                            ? 'var(--color-brand-800)'
+                            : 'var(--color-ink-600)'
+                        }
+                      >
+                        {label}
+                      </text>
+                    </g>
                   </g>
                 );
               })}

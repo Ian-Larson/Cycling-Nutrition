@@ -88,9 +88,9 @@ export function TrendMultiples({
   return (
     <Card>
       <CardHeader className="flex items-baseline justify-between gap-3">
-        <div className="section-kicker uppercase tracking-wider text-ink-500">
+        <h2 className="section-kicker uppercase tracking-wider text-ink-500">
           Trend
-        </div>
+        </h2>
         <div className="text-xs text-ink-500">
           {PERIOD_FULL_LABELS[period]}
         </div>
@@ -184,7 +184,7 @@ function SparkRow({ spec, points }: SparkRowProps) {
 
   if (points.length === 0) {
     return (
-      <div className="grid grid-cols-[5rem_1fr_auto] items-center gap-3 py-1.5">
+      <div className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-3 py-1.5 md:grid-cols-[5rem_1fr_auto]">
         <div className="text-xs font-semibold uppercase tracking-wider text-ink-500">
           {spec.label}
         </div>
@@ -217,9 +217,9 @@ function SparkRow({ spec, points }: SparkRowProps) {
 
   const last = points[points.length - 1];
 
-  const handleMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const px = ((e.clientX - rect.left) / rect.width) * ROW_W;
+  const nearestIndexAtClientX = (clientX: number, target: SVGSVGElement) => {
+    const rect = target.getBoundingClientRect();
+    const px = ((clientX - rect.left) / rect.width) * ROW_W;
     let nearest = 0;
     let bestDx = Infinity;
     for (let i = 0; i < xy.length; i++) {
@@ -229,17 +229,46 @@ function SparkRow({ spec, points }: SparkRowProps) {
         nearest = i;
       }
     }
-    setHoverIndex(nearest);
+    return nearest;
+  };
+
+  const handleMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    setHoverIndex(nearestIndexAtClientX(e.clientX, e.currentTarget));
+  };
+
+  const handleTouch = (e: React.TouchEvent<SVGSVGElement>) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    setHoverIndex(nearestIndexAtClientX(touch.clientX, e.currentTarget));
   };
 
   const handleLeave = () => setHoverIndex(null);
+
+  const handleKey = (e: React.KeyboardEvent<SVGSVGElement>) => {
+    if (xy.length === 0) return;
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      setHoverIndex((i) => Math.min((i ?? -1) + 1, xy.length - 1));
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      setHoverIndex((i) => Math.max((i ?? xy.length) - 1, 0));
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      setHoverIndex(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      setHoverIndex(xy.length - 1);
+    } else if (e.key === 'Escape') {
+      setHoverIndex(null);
+    }
+  };
 
   const active = hoverIndex !== null ? xy[hoverIndex] : null;
   const activeValue =
     hoverIndex !== null ? points[hoverIndex] : null;
 
   return (
-    <div className="grid grid-cols-[5rem_1fr_auto] items-center gap-3 py-1.5">
+    <div className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-3 py-1.5 md:grid-cols-[5rem_1fr_auto]">
       <div className="text-xs font-semibold uppercase tracking-wider text-ink-500">
         {spec.label}
       </div>
@@ -247,10 +276,16 @@ function SparkRow({ spec, points }: SparkRowProps) {
         <svg
           viewBox={`0 0 ${ROW_W} ${ROW_H}`}
           role="img"
-          aria-label={`${spec.label} trend over the selected period`}
-          className="block h-[72px] w-full touch-none"
+          aria-label={`${spec.label} trend over the selected period. Use arrow keys to inspect values.`}
+          tabIndex={0}
+          className="block h-[72px] w-full rounded-md outline-none touch-pan-y focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
           onMouseMove={handleMove}
           onMouseLeave={handleLeave}
+          onTouchStart={handleTouch}
+          onTouchMove={handleTouch}
+          onTouchEnd={handleLeave}
+          onKeyDown={handleKey}
+          onBlur={handleLeave}
         >
           <line
             x1={ROW_PAD.left}

@@ -10,9 +10,9 @@ export function ConnectStravaCard({ onConnect }: ConnectStravaCardProps) {
       <CardContent className="md:px-5 md:py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="min-w-0">
-            <div className="section-kicker uppercase tracking-wider text-ink-500">
+            <h2 className="section-kicker uppercase tracking-wider text-ink-500">
               Power records
-            </div>
+            </h2>
             <p className="mt-1 max-w-[52ch] text-sm leading-5 text-ink-600">
               Connect Strava to import rides and surface 5-min, 20-min, and 1-hour
               power records in this period.

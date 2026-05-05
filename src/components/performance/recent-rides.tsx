@@ -53,11 +53,12 @@ export function RecentRides({ activities }: RecentRidesProps) {
             <span className="truncate text-ink-900">{a.name}</span>
             <span className="flex items-center gap-3 text-xs text-ink-600">
               <span>{formatDistance(a.distanceM)}</span>
-              <span className="text-ink-400" aria-hidden>
+              <span aria-hidden className="text-ink-400">
                 ·
               </span>
               <span>{formatDuration(a.durationS)}</span>
             </span>
+            <span className="sr-only">Opens in Strava in a new tab.</span>
           </a>
         )}
       />

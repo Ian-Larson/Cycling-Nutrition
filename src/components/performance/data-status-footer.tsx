@@ -55,9 +55,9 @@ export function DataStatusFooter(props: DataStatusFooterProps) {
   return (
     <Card>
       <CardContent className="md:px-5 md:py-4">
-        <div className="section-kicker uppercase tracking-wider text-ink-500">
+        <h2 className="section-kicker uppercase tracking-wider text-ink-500">
           Data status
-        </div>
+        </h2>
         <div className="mt-2">
           <FooterBody {...props} />
         </div>

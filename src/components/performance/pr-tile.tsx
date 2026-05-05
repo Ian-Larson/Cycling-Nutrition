@@ -37,7 +37,10 @@ export function PrTile({ label, record }: PrTileProps) {
         <div className="text-xs font-semibold uppercase tracking-wider text-ink-500">
           {label}
         </div>
-        <div className="mt-3 text-3xl font-bold tabular-nums leading-none text-ink-300">
+        <div
+          aria-hidden
+          className="mt-3 text-3xl font-bold tabular-nums leading-none text-ink-300"
+        >
           —
         </div>
         <div className="mt-3 text-xs text-ink-500">No qualifying ride yet</div>
@@ -81,6 +84,7 @@ export function PrTile({ label, record }: PrTileProps) {
       <div className="text-[11px] tabular-nums text-ink-500">
         {formatRelativeOrAbsolute(record.startedAt)}
       </div>
+      <span className="sr-only">Opens in Strava in a new tab.</span>
     </a>
   );
 }
