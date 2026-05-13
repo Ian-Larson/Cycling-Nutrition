@@ -467,6 +467,26 @@ export function GearPage() {
 
         <section className="min-w-0 space-y-3 md:space-y-4 lg:order-1">
           <SectionPanel
+            id="service"
+            title="Service"
+            subtitle={serviceSummary}
+            open={sectionsOpen.service}
+            onToggle={() => togglePanel('service')}
+          >
+            <ServiceTimeline
+              dueItems={filteredDueItems}
+              events={filteredServiceEvents}
+              installRecords={filteredInstallRecords}
+              bikes={bikes}
+              catalog={gearPartCatalog}
+              instances={gearPartInstances}
+              showBikeName={selectedBikeIdForView === null}
+              onLogService={handleQueueDueService}
+              onEditEvent={(id) => setEditEventId(id)}
+            />
+          </SectionPanel>
+
+          <SectionPanel
             id="active"
             title="Active setup"
             subtitle={activeSummary}
@@ -503,26 +523,6 @@ export function GearPage() {
                 </CardContent>
               </Card>
             )}
-          </SectionPanel>
-
-          <SectionPanel
-            id="service"
-            title="Service"
-            subtitle={serviceSummary}
-            open={sectionsOpen.service}
-            onToggle={() => togglePanel('service')}
-          >
-            <ServiceTimeline
-              dueItems={filteredDueItems}
-              events={filteredServiceEvents}
-              installRecords={filteredInstallRecords}
-              bikes={bikes}
-              catalog={gearPartCatalog}
-              instances={gearPartInstances}
-              showBikeName={selectedBikeIdForView === null}
-              onLogService={handleQueueDueService}
-              onEditEvent={(id) => setEditEventId(id)}
-            />
           </SectionPanel>
 
           <SectionPanel
