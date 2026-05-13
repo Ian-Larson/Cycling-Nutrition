@@ -97,12 +97,12 @@ export function SnapshotCard({
             <div className="grid grid-cols-2 gap-x-6 gap-y-0.5 md:min-w-[16rem]">
               <SpecRow
                 label="FTP"
-                value={ftpWatts ? `${ftpWatts} W` : '—'}
+                value={ftpWatts ? `${Math.round(ftpWatts)} W` : '—'}
                 muted={!ftpWatts}
               />
               <SpecRow
                 label="Weight"
-                value={weightKg ? `${weightKg} kg` : '—'}
+                value={weightKg ? `${weightKg.toFixed(1)} kg` : '—'}
                 muted={!weightKg}
               />
             </div>
