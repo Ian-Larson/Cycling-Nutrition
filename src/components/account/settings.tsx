@@ -114,7 +114,10 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
     syncMessage,
     stravaMessage,
     lastSyncedAt,
+    pendingEmailVerification,
     signInWithEmail,
+    verifyEmailOtp,
+    cancelEmailVerification,
     signOut,
     syncNow,
     connectStrava,
@@ -124,6 +127,8 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
   const signedIn = authStatus === 'signedIn' && user !== null;
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
@@ -145,8 +150,21 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
+    setOtpCode('');
     await signInWithEmail(email);
     setIsSubmitting(false);
+  };
+
+  const handleVerifyOtp = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsVerifying(true);
+    await verifyEmailOtp(otpCode);
+    setIsVerifying(false);
+  };
+
+  const handleUseDifferentEmail = () => {
+    cancelEmailVerification();
+    setOtpCode('');
   };
 
   const handleSyncNow = async () => {
@@ -208,8 +226,46 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
                 {isSigningOut ? 'Signing out…' : 'Sign out'}
               </Button>
             </div>
-          ) : authStatus === 'loading' ? (
+          ) : authStatus === 'loading' && !pendingEmailVerification ? (
             <span className="text-sm text-ink-500">Checking session…</span>
+          ) : pendingEmailVerification ? (
+            <form
+              onSubmit={handleVerifyOtp}
+              className="flex flex-col gap-2 sm:flex-row sm:items-center"
+            >
+              <Input
+                id="connections-otp"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="\d{6}"
+                maxLength={6}
+                aria-label="6-digit code"
+                value={otpCode}
+                onChange={(event) =>
+                  setOtpCode(event.target.value.replace(/\D/g, '').slice(0, 6))
+                }
+                placeholder="123456"
+                disabled={isVerifying}
+                className="!min-h-11 !w-full !py-2 sm:!w-32 md:!min-h-10"
+              />
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isVerifying || otpCode.length !== 6}
+              >
+                {isVerifying ? 'Verifying…' : 'Verify'}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={handleUseDifferentEmail}
+                disabled={isVerifying}
+              >
+                Cancel
+              </Button>
+            </form>
           ) : (
             <form
               onSubmit={handleSubmit}
@@ -219,7 +275,7 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
                 id="connections-email"
                 type="email"
                 autoComplete="email"
-                aria-label="Email for magic link"
+                aria-label="Email for sign-in code"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="you@example.com"
@@ -227,7 +283,7 @@ function ConnectionsRows({ auth }: ConnectionsRowsProps) {
                 className="!min-h-11 !w-full !py-2 sm:!w-56 md:!min-h-10"
               />
               <Button type="submit" size="sm" disabled={isSubmitting}>
-                {isSubmitting ? 'Sending…' : 'Send link'}
+                {isSubmitting ? 'Sending…' : 'Send code'}
               </Button>
             </form>
           )
