@@ -241,6 +241,8 @@ export function OnboardingPage() {
   const [step, setStep] = useState<OnboardingStep>('welcome');
   const [email, setEmail] = useState('');
   const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [weightUnit, setWeightUnit] = useState<AnthropometricsUnit>(
     settings.athleteProfile.anthropometricsUnit ?? 'metric'
   );
@@ -329,8 +331,21 @@ export function OnboardingPage() {
   const handleEmailSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmittingEmail(true);
+    setOtpCode('');
     await auth.signInWithEmail(email);
     setIsSubmittingEmail(false);
+  };
+
+  const handleOtpSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsVerifyingOtp(true);
+    await auth.verifyEmailOtp(otpCode);
+    setIsVerifyingOtp(false);
+  };
+
+  const handleUseDifferentEmail = () => {
+    auth.cancelEmailVerification();
+    setOtpCode('');
   };
 
   const handleConnectLater = () => {
@@ -465,6 +480,40 @@ export function OnboardingPage() {
                   <Alert variant="success">
                     Signed in as {auth.user?.email}. Cloud backup can keep this plan.
                   </Alert>
+                ) : auth.pendingEmailVerification ? (
+                  <form onSubmit={handleOtpSubmit} className="space-y-3">
+                    <Input
+                      id="onboarding-otp"
+                      label="6-digit code"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      pattern="\d{6}"
+                      maxLength={6}
+                      value={otpCode}
+                      onChange={(event) =>
+                        setOtpCode(event.target.value.replace(/\D/g, '').slice(0, 6))
+                      }
+                      placeholder="123456"
+                      disabled={isVerifyingOtp}
+                    />
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Button
+                        type="submit"
+                        disabled={isVerifyingOtp || otpCode.length !== 6}
+                      >
+                        {isVerifyingOtp ? 'Verifying…' : 'Verify and sign in'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={handleUseDifferentEmail}
+                        disabled={isVerifyingOtp}
+                      >
+                        Use a different email
+                      </Button>
+                    </div>
+                  </form>
                 ) : (
                   <form
                     onSubmit={handleEmailSubmit}

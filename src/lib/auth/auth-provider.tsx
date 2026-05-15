@@ -71,6 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [stravaConnection, setStravaConnection] =
     useState<StravaConnection | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [pendingEmailVerification, setPendingEmailVerification] = useState<
+    string | null
+  >(null);
   const applyingCloudSnapshotRef = useRef(false);
   const initializingCloudRef = useRef(false);
   const writerRef = useRef<ReturnType<
@@ -156,7 +159,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(nextUser);
       setAuthStatus(nextUser ? 'signedIn' : 'signedOut');
       setAuthMessage(nextUser ? null : 'Guest mode is active.');
-      if (!nextUser) {
+      if (nextUser) {
+        setPendingEmailVerification(null);
+      } else {
         setStravaConnection(null);
         setCloudSyncStatus('idle');
       }
@@ -296,14 +301,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         setAuthStatus('error');
         setAuthMessage(error.message);
+        setPendingEmailVerification(null);
         return;
       }
 
       setAuthStatus('signedOut');
-      setAuthMessage('Check your email for a sign-in link.');
+      setPendingEmailVerification(trimmedEmail);
+      setAuthMessage(
+        `We sent a 6-digit code to ${trimmedEmail}. Enter it below, or use the magic link in the email.`
+      );
     },
     [supabase]
   );
+
+  const verifyEmailOtp = useCallback(
+    async (token: string) => {
+      if (!supabase) {
+        setAuthMessage('Supabase is not configured. Add env vars to enable accounts.');
+        return;
+      }
+      if (!pendingEmailVerification) {
+        setAuthMessage('Enter your email first.');
+        return;
+      }
+
+      const trimmedToken = token.trim();
+      if (!trimmedToken) {
+        setAuthMessage('Enter the 6-digit code from your email.');
+        return;
+      }
+
+      setAuthStatus('loading');
+      const { error } = await supabase.auth.verifyOtp({
+        email: pendingEmailVerification,
+        token: trimmedToken,
+        type: 'email',
+      });
+
+      if (error) {
+        setAuthStatus('signedOut');
+        setAuthMessage(error.message);
+      }
+    },
+    [pendingEmailVerification, supabase]
+  );
+
+  const cancelEmailVerification = useCallback(() => {
+    setPendingEmailVerification(null);
+    setAuthStatus((current) => (current === 'loading' ? 'signedOut' : current));
+    setAuthMessage(null);
+  }, []);
 
   const signOut = useCallback(async () => {
     if (!supabase) return;
@@ -320,6 +367,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStravaConnection(null);
     setAuthStatus('signedOut');
     setCloudSyncStatus('idle');
+    setPendingEmailVerification(null);
     setAuthMessage('Signed out. Local data is still available on this device.');
   }, [supabase]);
 
@@ -377,7 +425,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       syncMessage,
       stravaMessage,
       lastSyncedAt,
+      pendingEmailVerification,
       signInWithEmail,
+      verifyEmailOtp,
+      cancelEmailVerification,
       signOut,
       syncNow,
       connectStrava,
@@ -387,10 +438,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [
       authMessage,
       authStatus,
+      cancelEmailVerification,
       cloudSyncStatus,
       connectStrava,
       handleDisconnectStrava,
       lastSyncedAt,
+      pendingEmailVerification,
       refreshStravaConnection,
       signInWithEmail,
       signOut,
@@ -399,6 +452,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       syncMessage,
       syncNow,
       user,
+      verifyEmailOtp,
     ]
   );
 

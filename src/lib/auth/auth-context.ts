@@ -16,7 +16,10 @@ export interface AuthContextValue {
   syncMessage: string | null;
   stravaMessage: string | null;
   lastSyncedAt: string | null;
+  pendingEmailVerification: string | null;
   signInWithEmail: (email: string) => Promise<void>;
+  verifyEmailOtp: (token: string) => Promise<void>;
+  cancelEmailVerification: () => void;
   signOut: () => Promise<void>;
   syncNow: () => Promise<void>;
   connectStrava: () => void;
