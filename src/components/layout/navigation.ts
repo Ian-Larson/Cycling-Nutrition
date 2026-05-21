@@ -33,6 +33,7 @@ export const primaryNavItems: readonly PrimaryNavItem[] = [
   {
     path: '/performance',
     label: 'Performance',
+    mobileLabel: 'Stats',
     section: 'performance',
     matchPaths: ['/performance'],
   },

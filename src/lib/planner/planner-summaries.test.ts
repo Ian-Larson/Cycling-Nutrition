@@ -5,6 +5,7 @@ import {
   formatRideSummary,
   formatSetupSummary,
   getPlanTitleSuggestion,
+  isGeneratedPlanTitle,
   isRideSnapshotEquivalentToRide,
 } from './planner-summaries';
 import type { RideFormSnapshot } from '@/components/planner/ride-form';
@@ -66,7 +67,13 @@ describe('planner summaries', () => {
   });
 
   it('suggests a saved plan title from ride details', () => {
-    expect(getPlanTitleSuggestion(ride)).toBe('2h 15m Tempo Plan');
+    expect(getPlanTitleSuggestion(ride)).toBe('2h 15m Tempo - 80g/h');
+  });
+
+  it('recognizes generated titles so stale auto-names can update', () => {
+    expect(isGeneratedPlanTitle('2h 15m Tempo - 80g/h', ride)).toBe(true);
+    expect(isGeneratedPlanTitle('2h 15m Tempo Plan', ride)).toBe(true);
+    expect(isGeneratedPlanTitle('Saturday club ride', ride)).toBe(false);
   });
 
   it('compares ride snapshots against calculated ride data', () => {

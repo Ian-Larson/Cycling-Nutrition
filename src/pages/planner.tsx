@@ -5,7 +5,9 @@ import {
   Button,
   Card,
   CardContent,
+  CardHeader,
   Input,
+  SegmentedControl,
   Tab,
   TabList,
   Tabs,
@@ -22,12 +24,19 @@ import { RideForm, type RideFormSnapshot } from '@/components/planner/ride-form'
 import { SavedPlansRailPanel } from '@/components/planner/saved-plans-rail-panel';
 import { SetupCard } from '@/components/planner/setup-card';
 import { useFuelPrescription } from '@/hooks/use-fuel-prescription';
+import {
+  formatNumberInputValue,
+  kilogramsToPounds,
+  poundsToKilograms,
+  type AnthropometricsUnit,
+} from '@/lib/athlete/anthropometrics';
 import type { FuelingPrescription } from '@/lib/fueling';
 import { buildPlannerDraftFromSavedPlan } from '@/lib/planner/saved-plan-draft';
 import {
   formatRideSummary,
   formatSetupSummary,
   getPlanTitleSuggestion,
+  isGeneratedPlanTitle,
   isRideSnapshotEquivalentToRide,
 } from '@/lib/planner/planner-summaries';
 import { useStore } from '@/store';
@@ -38,6 +47,32 @@ import type { PlannerDraft } from '@/store';
 
 type PlannerStep = 1 | 2 | 3;
 type ResultTab = 'pack' | 'guide' | 'metrics';
+
+function getQuickWeightDraft(
+  weightKg: number | undefined,
+  unit: AnthropometricsUnit
+): string {
+  if (typeof weightKg !== 'number' || !Number.isFinite(weightKg)) return '';
+  return unit === 'imperial'
+    ? formatNumberInputValue(kilogramsToPounds(weightKg), 1)
+    : formatNumberInputValue(weightKg, 1);
+}
+
+function convertQuickWeightDraft(
+  value: string,
+  fromUnit: AnthropometricsUnit,
+  toUnit: AnthropometricsUnit
+): string {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return '';
+  const next =
+    fromUnit === 'imperial' && toUnit === 'metric'
+      ? poundsToKilograms(parsed)
+      : fromUnit === 'metric' && toUnit === 'imperial'
+        ? kilogramsToPounds(parsed)
+        : parsed;
+  return formatNumberInputValue(next, 1);
+}
 
 function parseInitialStep(stepParam: string | null): PlannerStep {
   if (stepParam === '2') return 2;
@@ -156,9 +191,11 @@ export function PlannerPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const products = useStore((s) => s.products);
   const fuelPlans = useStore((s) => s.fuelPlans);
+  const athleteProfile = useStore((s) => s.settings.athleteProfile);
   const saveFuelPlan = useStore((s) => s.saveFuelPlan);
   const deleteFuelPlan = useStore((s) => s.deleteFuelPlan);
   const setPlannerDraft = useStore((s) => s.setPlannerDraft);
+  const updateAthleteProfile = useStore((s) => s.updateAthleteProfile);
   const updateProduct = useStore((s) => s.updateProduct);
   const [initialDraft] = useState<PlannerDraft | null>(() => {
     const current = useStore.getState().plannerDraft;
@@ -183,6 +220,16 @@ export function PlannerPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(
     isReusedDraft ? 'Plan loaded. Review setup, then continue.' : null
   );
+  const [quickWeightUnit, setQuickWeightUnit] = useState<AnthropometricsUnit>(
+    athleteProfile.anthropometricsUnit ?? 'metric'
+  );
+  const [quickWeightInput, setQuickWeightInput] = useState(
+    getQuickWeightDraft(
+      athleteProfile.weightKg,
+      athleteProfile.anthropometricsUnit ?? 'metric'
+    )
+  );
+  const [quickWeightError, setQuickWeightError] = useState<string | undefined>();
 
   useEffect(() => {
     if (!isReusedDraft) return;
@@ -347,12 +394,22 @@ export function PlannerPage() {
 
     if (!next) return;
 
+    const suggestedTitle = getPlanTitleSuggestion(ride);
+
     setPrescription(next);
     setPersistedRide(ride);
-    setPlanTitle((current) => current || getPlanTitleSuggestion(ride));
+    setPlanTitle((current) => {
+      if (!current.trim()) return suggestedTitle;
+      if (isGeneratedPlanTitle(current, ride)) return suggestedTitle;
+      if (persistedRide && isGeneratedPlanTitle(current, persistedRide)) {
+        return suggestedTitle;
+      }
+      return current;
+    });
     setPlanIsStale(false);
     setActiveStep(3);
     setResultTab('pack');
+    setToastMessage(null);
   };
 
   const handleSolidQuantityChange = (productId: string, quantity: number) => {
@@ -424,6 +481,30 @@ export function PlannerPage() {
   };
 
   const dismissToast = useCallback(() => setToastMessage(null), []);
+
+  const handleQuickWeightUnitChange = (unit: AnthropometricsUnit) => {
+    setQuickWeightInput((current) =>
+      convertQuickWeightDraft(current, quickWeightUnit, unit)
+    );
+    setQuickWeightUnit(unit);
+    setQuickWeightError(undefined);
+  };
+
+  const handleQuickWeightSubmit = () => {
+    const parsed = Number(quickWeightInput);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      setQuickWeightError('Enter a valid rider weight.');
+      return;
+    }
+    const weightKg =
+      quickWeightUnit === 'imperial' ? poundsToKilograms(parsed) : parsed;
+    updateAthleteProfile({
+      anthropometricsUnit: quickWeightUnit,
+      weightKg,
+    });
+    setQuickWeightError(undefined);
+    setToastMessage('Weight saved. Build your ride plan.');
+  };
 
   const canOpenStep = (targetStep: PlannerStep) => {
     if (targetStep === 1) return true;
@@ -499,19 +580,52 @@ export function PlannerPage() {
           main={
             !fuelEngine.weightReady ? (
               <Card className="overflow-hidden">
-                <CardContent className="space-y-3 py-8 text-center md:py-10">
-                  <h2 className="text-lg font-semibold text-ink-900">
-                    Set your weight to plan
-                  </h2>
-                  <p className="mx-auto max-w-prose text-sm leading-6 text-ink-600">
-                    The fueling engine sizes your carbs, fluid, and sodium against rider mass. Set it once on Account.
-                  </p>
-                  <div className="pt-1">
+                <CardContent className="space-y-4 py-6 md:py-8">
+                  <div className="space-y-2">
+                    <h2 className="text-lg font-semibold text-ink-900">
+                      Set your weight to plan
+                    </h2>
+                    <p className="max-w-prose text-sm leading-6 text-ink-600">
+                      One number sizes carbs, fluid, and sodium. Save it here,
+                      then keep building the ride plan.
+                    </p>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem] sm:items-end">
+                    <Input
+                      id="planner-quick-weight"
+                      label={`Weight, ${quickWeightUnit === 'imperial' ? 'lb' : 'kg'}`}
+                      type="number"
+                      min="1"
+                      inputMode="decimal"
+                      value={quickWeightInput}
+                      onChange={(event) => {
+                        setQuickWeightInput(event.target.value);
+                        setQuickWeightError(undefined);
+                      }}
+                      placeholder={quickWeightUnit === 'imperial' ? '160' : '72'}
+                      error={quickWeightError}
+                    />
+                    <SegmentedControl
+                      size="sm"
+                      label="Weight unit"
+                      options={[
+                        { value: 'metric', label: 'kg' },
+                        { value: 'imperial', label: 'lb' },
+                      ]}
+                      value={quickWeightUnit}
+                      onChange={handleQuickWeightUnitChange}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <Button type="button" onClick={handleQuickWeightSubmit}>
+                      Use this weight
+                    </Button>
                     <Link
-                      to="/account#preferences"
-                      className="inline-flex h-9 items-center rounded-xl bg-brand-500 px-4 text-sm font-semibold text-white shadow-[var(--shadow-brand-glow-md)] transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+                      to="/account#athlete"
+                      className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:min-h-10"
                     >
-                      Set weight in Account
+                      Edit full profile
                     </Link>
                   </div>
                 </CardContent>
@@ -613,6 +727,40 @@ export function PlannerPage() {
                 {prescription ? (
                   <div className="space-y-4">
                     <Card className="overflow-hidden">
+                      <CardContent className="space-y-3">
+                        <Tabs
+                          value={resultTab}
+                          onChange={(value) => setResultTab(value as ResultTab)}
+                        >
+                          <TabList
+                            label="Fuel plan view"
+                            className="grid w-full grid-cols-3 gap-1.5 md:gap-2"
+                          >
+                            <Tab value="pack">Bring</Tab>
+                            <Tab value="guide">Ride cues</Tab>
+                            <Tab value="metrics">Numbers</Tab>
+                          </TabList>
+                        </Tabs>
+                      </CardContent>
+                    </Card>
+
+                    <FuelResultV3
+                      section={resultTab}
+                      prescription={prescription}
+                      products={products}
+                      availableSolids={selectedSolidProducts}
+                      onSolidQuantityChange={handleSolidQuantityChange}
+                    />
+
+                    <Card className="overflow-hidden">
+                      <CardHeader className="bg-[var(--surface-soft)]">
+                        <div className="space-y-1">
+                          <h3 className="section-title">Save for later</h3>
+                          <p className="text-sm leading-5 text-ink-600">
+                            Optional. The prep list above is ready now.
+                          </p>
+                        </div>
+                      </CardHeader>
                       <CardContent className="space-y-3 md:space-y-4">
                         <Input
                           id="plan-title"
@@ -638,33 +786,11 @@ export function PlannerPage() {
                             className="w-full sm:w-auto"
                             onClick={handleResetPlan}
                           >
-                            Reset
+                            Start over
                           </Button>
                         </div>
-
-                        <Tabs
-                          value={resultTab}
-                          onChange={(value) => setResultTab(value as ResultTab)}
-                        >
-                          <TabList
-                            label="Fuel plan view"
-                            className="grid w-full grid-cols-3 gap-1.5 md:gap-2"
-                          >
-                            <Tab value="pack">Pack</Tab>
-                            <Tab value="guide">Ride guide</Tab>
-                            <Tab value="metrics">Stats</Tab>
-                          </TabList>
-                        </Tabs>
                       </CardContent>
                     </Card>
-
-                    <FuelResultV3
-                      section={resultTab}
-                      prescription={prescription}
-                      products={products}
-                      availableSolids={selectedSolidProducts}
-                      onSolidQuantityChange={handleSolidQuantityChange}
-                    />
 
                     {import.meta.env.DEV && (
                       <DebugCopyButton
@@ -700,7 +826,9 @@ export function PlannerPage() {
           rail={
             <NutritionRail>
               <InventoryRailPanel
+                key={prescription ? 'inventory-plan-ready' : 'inventory-editing'}
                 products={products}
+                defaultOpen={!prescription}
                 onToggleProductAvailability={(productId, isAvailable) => {
                   markPlanStale();
                   updateProduct(productId, { isAvailable });

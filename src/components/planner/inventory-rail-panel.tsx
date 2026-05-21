@@ -20,6 +20,7 @@ const PRODUCT_TYPE_LABELS: Record<Product['type'], string> = {
 interface InventoryRailPanelProps {
   products: Product[];
   onToggleProductAvailability: (productId: string, isAvailable: boolean) => void;
+  defaultOpen?: boolean;
 }
 
 function matchesFilter(product: Product, filter: ProductFilter): boolean {
@@ -31,6 +32,7 @@ function matchesFilter(product: Product, filter: ProductFilter): boolean {
 export function InventoryRailPanel({
   products,
   onToggleProductAvailability,
+  defaultOpen = true,
 }: InventoryRailPanelProps) {
   const addProduct = useStore((s) => s.addProduct);
   const updateProduct = useStore((s) => s.updateProduct);
@@ -130,7 +132,11 @@ export function InventoryRailPanel({
 
   return (
     <>
-      <NutritionRailPanel title="Fuel inventory" summary={summary} defaultOpen>
+      <NutritionRailPanel
+        title="Fuel inventory"
+        summary={summary}
+        defaultOpen={defaultOpen}
+      >
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-1.5">
             {products.length > 0

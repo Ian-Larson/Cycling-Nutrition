@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 import { PlannerPage } from '@/pages/planner';
@@ -25,7 +25,7 @@ describe('PlannerPage weight gate', () => {
     }));
   });
 
-  it('renders the gate empty state when weightKg is missing', () => {
+  it('lets the rider set weight without leaving the planner', () => {
     useStore.setState((state) => ({
       ...state,
       settings: {
@@ -38,9 +38,16 @@ describe('PlannerPage weight gate', () => {
     expect(
       screen.getByRole('heading', { name: /Set your weight to plan/i }),
     ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/Weight, kg/i), {
+      target: { value: '70' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Use this weight/i }));
+
+    expect(useStore.getState().settings.athleteProfile.weightKg).toBe(70);
     expect(
-      screen.getByRole('link', { name: /Set weight in Account/i }),
-    ).toBeInTheDocument();
+      screen.queryByRole('heading', { name: /Set your weight to plan/i }),
+    ).not.toBeInTheDocument();
   });
 
   it('does not render the gate when weightKg is set', () => {

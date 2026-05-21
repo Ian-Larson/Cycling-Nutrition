@@ -18,9 +18,27 @@ export function formatDateTime(timestamp: number): string {
   });
 }
 
+function formatIntensityTitle(ride: RideCharacteristics): string {
+  return `${ride.intensity[0].toUpperCase()}${ride.intensity.slice(1)}`;
+}
+
+function getLegacyPlanTitleSuggestion(ride: RideCharacteristics): string {
+  return `${formatDuration(ride.durationMinutes)} ${formatIntensityTitle(ride)} Plan`;
+}
+
 export function getPlanTitleSuggestion(ride: RideCharacteristics): string {
-  const intensity = `${ride.intensity[0].toUpperCase()}${ride.intensity.slice(1)}`;
-  return `${formatDuration(ride.durationMinutes)} ${intensity} Plan`;
+  return `${formatDuration(ride.durationMinutes)} ${formatIntensityTitle(ride)} - ${ride.carbTargetGramsPerHour}g/h`;
+}
+
+export function isGeneratedPlanTitle(
+  title: string,
+  ride: RideCharacteristics
+): boolean {
+  const normalizedTitle = title.trim();
+  return (
+    normalizedTitle === getPlanTitleSuggestion(ride) ||
+    normalizedTitle === getLegacyPlanTitleSuggestion(ride)
+  );
 }
 
 export function formatSetupSummary({
@@ -80,4 +98,3 @@ export function isRideSnapshotEquivalentToRide(
     (snapshot.refuelStops ?? 0) === (ride.refuelStops ?? 0)
   );
 }
-

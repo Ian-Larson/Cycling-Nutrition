@@ -365,11 +365,50 @@ function BringList({
   const hasBottles = packList.bottles.length > 0;
   const hasSolids = packList.solids.length > 0 || editableSolids;
   const shortfall = packList.fluidShortfallMl ?? 0;
+  const plannedSolidCount = packList.solids.reduce(
+    (sum, solid) => sum + solid.quantity,
+    0
+  );
+  const prepSummary = [
+    `${packList.bottles.length} ${
+      packList.bottles.length === 1 ? 'bottle' : 'bottles'
+    }`,
+    plannedSolidCount > 0
+      ? `${plannedSolidCount} ${plannedSolidCount === 1 ? 'solid' : 'solids'}`
+      : 'no solids',
+    formatCarbsPerHour(prescription.during.carbsGPerHour),
+  ].join(' · ');
+  const firstDuringCue = prescription.timeline?.find(
+    (item) => item.phase === 'during'
+  );
+  const firstCueLabel = firstDuringCue
+    ? `${formatTime(firstDuringCue.offsetMinutesFromStart)} · ${firstDuringCue.action}`
+    : null;
 
   if (!hasBottles && !hasSolids && shortfall <= 0) return null;
 
   return (
     <div className="space-y-3">
+      <Card className="overflow-hidden border-brand-200 bg-brand-50/45">
+        <CardContent className="space-y-2">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="section-title">Prep and bring</h3>
+              <p className="mt-1 text-sm leading-5 text-ink-700 tabular-nums">
+                {prepSummary}
+              </p>
+            </div>
+            <Badge variant="brand" size="sm">
+              Pack first
+            </Badge>
+          </div>
+          {firstCueLabel ? (
+            <p className="text-sm leading-6 text-brand-900">
+              First cue: {firstCueLabel}
+            </p>
+          ) : null}
+        </CardContent>
+      </Card>
       {shortfall > 0 ? <FluidShortfallNote shortfallMl={shortfall} /> : null}
       {hasBottles && (
         <DividedRowList
