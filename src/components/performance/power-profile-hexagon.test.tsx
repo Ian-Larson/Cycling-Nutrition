@@ -46,4 +46,19 @@ describe('PowerProfileHexagon', () => {
     );
     expect(screen.getByText(/not enough data/i)).toBeInTheDocument();
   });
+
+  it('does not show an empty state while profile data is loading', () => {
+    const empty = samplePoints.map((p) => ({ ...p, wkg: null }));
+    render(
+      <PowerProfileHexagon
+        current={empty}
+        comparison={empty}
+        currentLabel="A"
+        comparisonLabel="B"
+        isLoading
+      />
+    );
+    expect(screen.getByText(/Loading power profile/i)).toBeInTheDocument();
+    expect(screen.queryByText(/not enough data/i)).not.toBeInTheDocument();
+  });
 });

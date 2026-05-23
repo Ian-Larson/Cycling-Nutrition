@@ -88,12 +88,15 @@ export function TrendMultiples({
   return (
     <Card>
       <CardHeader className="flex items-baseline justify-between gap-3">
-        <h2 className="section-kicker uppercase tracking-wider text-ink-500">
-          Trend
-        </h2>
-        <div className="text-xs text-ink-500">
-          {PERIOD_FULL_LABELS[period]}
+        <div>
+          <h2 className="section-kicker uppercase tracking-wider text-ink-500">
+            Fitness trend
+          </h2>
+          <p className="mt-1 text-sm text-ink-600">
+            W/kg, FTP, and weight over {PERIOD_FULL_LABELS[period].toLowerCase()}.
+          </p>
         </div>
+        <div className="text-xs text-ink-500">{PERIOD_FULL_LABELS[period]}</div>
       </CardHeader>
       <CardContent className="space-y-1.5">
         {allEmpty ? (
@@ -216,6 +219,12 @@ function SparkRow({ spec, points }: SparkRowProps) {
     .join(' ');
 
   const last = points[points.length - 1];
+  const first = points[0];
+  const delta = last.value - first.value;
+  const deltaLabel =
+    Math.abs(delta) < 0.005
+      ? '0'
+      : `${delta > 0 ? '+' : ''}${spec.format(delta)}`;
 
   const nearestIndexAtClientX = (clientX: number, target: SVGSVGElement) => {
     const rect = target.getBoundingClientRect();
@@ -357,7 +366,7 @@ function SparkRow({ spec, points }: SparkRowProps) {
                 cy={active.y}
                 r={3}
                 fill={spec.stroke}
-                stroke="white"
+                stroke="var(--surface-panel)"
                 strokeWidth={1.5}
               />
             </>
@@ -365,7 +374,7 @@ function SparkRow({ spec, points }: SparkRowProps) {
         </svg>
         {activeValue ? (
           <div
-            className="pointer-events-none absolute -top-1 right-1 rounded-md border border-[color:var(--border-soft)] bg-white px-2 py-0.5 text-[11px] tabular-nums shadow-[var(--shadow-soft)]"
+            className="pointer-events-none absolute -top-1 right-1 rounded-md border border-[color:var(--border-soft)] bg-[var(--surface-panel)] px-2 py-0.5 text-[11px] tabular-nums shadow-[var(--shadow-soft)]"
             aria-hidden
           >
             <span className="font-semibold text-ink-900">
@@ -383,8 +392,8 @@ function SparkRow({ spec, points }: SparkRowProps) {
       </div>
       <div className="min-w-[5rem] text-right text-sm tabular-nums">
         <div className="font-semibold text-ink-900">{spec.format(last.value)}</div>
-        <div className="text-[11px] uppercase tracking-wider text-ink-500">
-          {spec.unit}
+        <div className="text-[11px] text-ink-500">
+          {deltaLabel} {spec.unit}
         </div>
       </div>
     </div>

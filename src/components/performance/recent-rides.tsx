@@ -26,6 +26,16 @@ function formatDistance(meters: number | null): string {
   return `${(meters / 1000).toFixed(1)} km`;
 }
 
+function formatWatts(label: string, watts: number | null): string | null {
+  if (watts === null) return null;
+  return `${label} ${Math.round(watts)} W`;
+}
+
+function formatKj(kj: number | null): string | null {
+  if (kj === null) return null;
+  return `${Math.round(kj)} kJ`;
+}
+
 export function RecentRides({ activities }: RecentRidesProps) {
   const items = activities.slice(0, MAX_RIDES);
 
@@ -45,17 +55,32 @@ export function RecentRides({ activities }: RecentRidesProps) {
             href={`https://www.strava.com/activities/${a.stravaId}`}
             target="_blank"
             rel="noreferrer noopener"
-            className="grid grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 text-sm tabular-nums transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-200 md:px-4"
+            className="grid gap-2 px-3 py-3 text-sm tabular-nums transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-200 sm:grid-cols-[3.5rem_minmax(0,1fr)_auto] sm:items-center sm:gap-3 md:px-4"
           >
             <span className="text-xs uppercase tracking-wider text-ink-500">
               {formatDate(a.startedAt)}
             </span>
-            <span className="truncate text-ink-900">{a.name}</span>
-            <span className="flex items-center gap-3 text-xs text-ink-600">
-              <span>{formatDistance(a.distanceM)}</span>
-              <span aria-hidden className="text-ink-400">
-                ·
+            <span className="min-w-0">
+              <span className="block truncate font-medium text-ink-900">
+                {a.name}
               </span>
+              <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-600">
+                {[
+                  formatWatts('NP', a.npWatts),
+                  formatWatts('Avg', a.avgWatts),
+                  formatKj(a.kj),
+                ]
+                  .filter((value): value is string => Boolean(value))
+                  .map((value) => (
+                    <span key={value}>{value}</span>
+                  ))}
+                {!a.hasPower && (
+                  <span className="text-ink-500">No power</span>
+                )}
+              </span>
+            </span>
+            <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600 sm:justify-end">
+              <span>{formatDistance(a.distanceM)}</span>
               <span>{formatDuration(a.durationS)}</span>
             </span>
             <span className="sr-only">Opens in Strava in a new tab.</span>

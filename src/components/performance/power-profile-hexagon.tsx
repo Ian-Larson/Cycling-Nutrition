@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui';
+import { Alert, Card, CardContent, CardHeader } from '@/components/ui';
 import type { RadarPoint } from '@/hooks/use-performance-records';
 
 const SIZE = 360;
@@ -22,6 +22,8 @@ interface PowerProfileHexagonProps {
   comparison: RadarPoint[];
   currentLabel: string;
   comparisonLabel: string;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
 function axisAngle(index: number, total: number): number {
@@ -49,6 +51,8 @@ export function PowerProfileHexagon({
   comparison,
   currentLabel,
   comparisonLabel,
+  isLoading = false,
+  error = null,
 }: PowerProfileHexagonProps) {
   const [activeAxis, setActiveAxis] = useState<number | null>(null);
 
@@ -65,7 +69,19 @@ export function PowerProfileHexagon({
         <div className="text-xs text-ink-500">w/kg by duration</div>
       </CardHeader>
       <CardContent className="md:px-5 md:py-5">
-        {allEmpty ? (
+        {error ? (
+          <Alert variant="error" title="Power profile unavailable">
+            {error}
+          </Alert>
+        ) : isLoading ? (
+          <div className="py-8 text-center" aria-label="Loading power profile">
+            <div
+              className="mx-auto h-56 w-56 animate-pulse rounded-full border border-[color:var(--border-soft)] bg-shell-200/70"
+              aria-hidden
+            />
+            <p className="mt-4 text-sm text-ink-600">Loading power profile</p>
+          </div>
+        ) : allEmpty ? (
           <p className="py-10 text-center text-sm text-ink-600">
             Not enough data in either period yet.
           </p>
@@ -251,7 +267,7 @@ function ActiveAxisCallouts({
         width={128}
         height={48}
         rx={8}
-        fill="white"
+        fill="var(--surface-panel)"
         stroke="var(--color-ink-100)"
       />
       <text

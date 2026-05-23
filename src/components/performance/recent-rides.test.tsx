@@ -27,6 +27,13 @@ describe('RecentRides', () => {
     expect(screen.getByText(/1h\s*01m/)).toBeInTheDocument();
   });
 
+  it('surfaces useful power details for recent rides', () => {
+    render(<RecentRides activities={[sample]} />);
+    expect(screen.getByText(/NP\s*220\s*W/i)).toBeInTheDocument();
+    expect(screen.getByText(/Avg\s*200\s*W/i)).toBeInTheDocument();
+    expect(screen.getByText(/720\s*kJ/i)).toBeInTheDocument();
+  });
+
   it('shows a dash when distance is missing', () => {
     render(<RecentRides activities={[{ ...sample, distanceM: null }]} />);
     expect(screen.getByText('—')).toBeInTheDocument();

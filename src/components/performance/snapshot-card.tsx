@@ -1,9 +1,8 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, SpecRow } from '@/components/ui';
+import { Card, CardContent } from '@/components/ui';
 import {
   PERIOD_DAYS,
-  PERIOD_FULL_LABELS,
   PERIOD_SHORT_LABELS,
   type PeriodKey,
 } from '@/lib/performance/period';
@@ -13,7 +12,6 @@ import type {
   WeightHistoryEntry,
 } from '@/types/performance';
 
-const SAMPLE_POINTS = 32;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 interface SnapshotCardProps {
@@ -33,11 +31,6 @@ export function SnapshotCard({
   weightHistory,
   period,
 }: SnapshotCardProps) {
-  const sparkline = useMemo(
-    () => buildSparkline({ ftpHistory, weightHistory, period }),
-    [ftpHistory, weightHistory, period]
-  );
-
   const delta = useMemo(() => {
     if (currentWkg === undefined) return undefined;
     return computeDelta({ ftpHistory, weightHistory, currentWkg, period });
@@ -64,53 +57,105 @@ export function SnapshotCard({
   }
 
   const verdict = renderVerdict(delta, period);
+  const briefTitle = renderBriefTitle(delta);
+  const changeLabel = formatChange(delta);
 
   return (
     <Card>
-      <CardContent className="md:px-5 md:py-4">
-        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8">
+      <CardContent className="space-y-4 md:px-5 md:py-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-6">
           <div className="min-w-0">
-            <h2 className="section-kicker uppercase tracking-wider text-ink-500">
-              Snapshot
-            </h2>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-sans text-[2rem] font-bold tabular-nums leading-none tracking-tight text-ink-900 md:text-[2.25rem]">
-                {currentWkg.toFixed(2)}
-              </span>
-              <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
-                W/kg at FTP
-              </span>
-            </div>
-            <p className="mt-2 text-sm leading-5 text-ink-600">
+            <p className="section-kicker uppercase tracking-wider text-ink-500">
+              Fitness brief
+            </p>
+            <h2 className="section-title mt-1.5">{briefTitle}</h2>
+            <p className="mt-1.5 max-w-[62ch] text-sm leading-6 text-ink-600">
               {verdict}
             </p>
           </div>
+          <Link
+            to="/account#athlete"
+            className="inline-flex min-h-10 items-center self-start rounded-xl px-3 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+          >
+            Update profile
+          </Link>
+        </div>
 
-          <div className="flex flex-col items-stretch gap-3 md:items-end">
-            {sparkline && (
-              <Sparkline
-                points={sparkline.points}
-                trend={sparkline.trend}
-                ariaLabel={`W/kg sparkline for ${PERIOD_FULL_LABELS[period].toLowerCase()}`}
-              />
-            )}
-            <div className="grid grid-cols-2 gap-x-6 gap-y-0.5 md:min-w-[16rem]">
-              <SpecRow
-                label="FTP"
-                value={ftpWatts ? `${Math.round(ftpWatts)} W` : '—'}
-                muted={!ftpWatts}
-              />
-              <SpecRow
-                label="Weight"
-                value={weightKg ? `${weightKg.toFixed(1)} kg` : '—'}
-                muted={!weightKg}
-              />
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.25fr)] lg:items-stretch">
+          <div className="surface-note border-brand-200 bg-brand-50/45 px-4 py-3.5 md:px-5 md:py-4">
+            <p className="page-stat-label text-brand-700">Current fitness</p>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="font-sans text-[2.1rem] font-bold tabular-nums leading-none tracking-tight text-ink-900 md:text-[2.35rem]">
+                {currentWkg.toFixed(2)}
+              </span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-brand-700">
+                W/kg
+              </span>
             </div>
+            <p className="mt-2 text-xs leading-5 text-brand-900">
+              Based on current FTP and weight.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <BriefMetric
+              label="FTP"
+              value={ftpWatts ? `${Math.round(ftpWatts)} W` : '—'}
+              muted={!ftpWatts}
+            />
+            <BriefMetric
+              label="Weight"
+              value={weightKg ? `${weightKg.toFixed(1)} kg` : '—'}
+              muted={!weightKg}
+            />
+            <BriefMetric
+              label={`Vs ${PERIOD_SHORT_LABELS[period]}`}
+              value={changeLabel}
+              muted={delta === undefined}
+            />
+            <BriefMetric label="Window" value={PERIOD_SHORT_LABELS[period]} />
           </div>
         </div>
+
       </CardContent>
     </Card>
   );
+}
+
+function BriefMetric({
+  label,
+  value,
+  muted = false,
+}: {
+  label: string;
+  value: string;
+  muted?: boolean;
+}) {
+  return (
+    <div className="surface-note px-3 py-3">
+      <p className="page-stat-label">{label}</p>
+      <p
+        className={[
+          'page-stat-value mt-1',
+          muted ? 'text-ink-400' : 'text-ink-900',
+        ].join(' ')}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function renderBriefTitle(delta: number | undefined): string {
+  if (delta === undefined) return 'Ready once history builds';
+  if (delta >= 0.1) return 'Power is moving up';
+  if (delta <= -0.1) return 'Fitness is sliding';
+  return 'Fitness is steady';
+}
+
+function formatChange(delta: number | undefined): string {
+  if (delta === undefined) return 'Need history';
+  return `${delta >= 0 ? '+' : ''}${delta.toFixed(2)}`;
 }
 
 function renderVerdict(
@@ -166,89 +211,4 @@ function computeDelta({
   const past = computeWkgAtDate(ftpHistory, weightHistory, iso);
   if (past === undefined) return undefined;
   return currentWkg - past;
-}
-
-interface SparkData {
-  points: { x: number; y: number }[];
-  trend: 'up' | 'down' | 'flat';
-}
-
-function buildSparkline({
-  ftpHistory,
-  weightHistory,
-  period,
-}: Pick<SnapshotCardProps, 'ftpHistory' | 'weightHistory' | 'period'>):
-  | SparkData
-  | null {
-  const days = PERIOD_DAYS[period];
-  const now = Date.now();
-  const start = now - days * MS_PER_DAY;
-
-  const samples: number[] = [];
-  for (let i = 0; i <= SAMPLE_POINTS; i++) {
-    samples.push(start + ((now - start) * i) / SAMPLE_POINTS);
-  }
-  const values = samples
-    .map((ts) => {
-      const iso = new Date(ts).toISOString().slice(0, 10);
-      return computeWkgAtDate(ftpHistory, weightHistory, iso);
-    })
-    .filter((v): v is number => v !== undefined);
-
-  if (values.length < 2) return null;
-
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = Math.max(0.05, max - min);
-  const points = values.map((v, i) => ({
-    x: i / (values.length - 1),
-    y: 1 - (v - min) / span,
-  }));
-
-  const first = values[0];
-  const last = values[values.length - 1];
-  const trend: SparkData['trend'] =
-    Math.abs(last - first) < 0.05 ? 'flat' : last > first ? 'up' : 'down';
-
-  return { points, trend };
-}
-
-interface SparklineProps {
-  points: { x: number; y: number }[];
-  trend: 'up' | 'down' | 'flat';
-  ariaLabel: string;
-}
-
-function Sparkline({ points, trend, ariaLabel }: SparklineProps) {
-  const W = 160;
-  const H = 40;
-  const PAD = 2;
-  const path = points
-    .map((p, i) => {
-      const x = PAD + p.x * (W - PAD * 2);
-      const y = PAD + p.y * (H - PAD * 2);
-      return `${i === 0 ? 'M' : 'L'}${x.toFixed(2)} ${y.toFixed(2)}`;
-    })
-    .join(' ');
-
-  const stroke =
-    trend === 'down' ? 'var(--color-ink-500)' : 'var(--color-brand-500)';
-
-  return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      role="img"
-      aria-label={ariaLabel}
-      className="h-10 w-40 self-end"
-    >
-      <path
-        d={path}
-        fill="none"
-        stroke={stroke}
-        strokeWidth={1.75}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 }

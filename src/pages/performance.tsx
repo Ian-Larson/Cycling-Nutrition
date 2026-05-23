@@ -134,8 +134,13 @@ export function PerformancePage() {
   return (
     <div className="page-shell space-y-4 md:space-y-6">
       <PageIntro
-        title="Are you getting stronger?"
-        description="Your w/kg, power records, and profile compared across periods. Update FTP and weight from Account."
+        title="Performance"
+        description="Current fitness, power records, and recent rides in one quick check."
+        meta={
+          showDataExperience ? (
+            <PeriodControl value={period} onChange={setPeriod} />
+          ) : null
+        }
       />
 
       {!showDataExperience ? (
@@ -155,8 +160,6 @@ export function PerformancePage() {
             period={period}
           />
 
-          <PeriodControl value={period} onChange={setPeriod} sticky />
-
           <TrendMultiples
             ftpHistory={ftpHistory}
             weightHistory={weightHistory}
@@ -167,12 +170,18 @@ export function PerformancePage() {
 
           {showPrSections && (
             <>
-              <PrTiles tiles={records.tiles} />
+              <PrTiles
+                tiles={records.tiles}
+                isLoading={records.isLoading}
+                error={records.error}
+              />
               <PowerProfileHexagon
                 current={records.radar.current}
                 comparison={records.radar.comparison}
                 currentLabel={records.radar.currentLabel}
                 comparisonLabel={records.radar.comparisonLabel}
+                isLoading={records.isLoading}
+                error={records.error}
               />
               <RecentRides activities={activities} />
             </>

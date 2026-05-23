@@ -14,7 +14,7 @@ export function ConnectStravaCard({ onConnect }: ConnectStravaCardProps) {
               Power records
             </h2>
             <p className="mt-1 max-w-[52ch] text-sm leading-5 text-ink-600">
-              Connect Strava to import rides and surface 5-min, 20-min, and 1-hour
+              Connect Strava to import rides and surface 5-min, 20-min, and 1 h
               power records in this period.
             </p>
           </div>
