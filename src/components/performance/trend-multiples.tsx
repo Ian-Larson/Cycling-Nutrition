@@ -318,20 +318,20 @@ function FtpChart({
       </div>
       {active && (
         <div
-          className="pointer-events-none absolute top-3 z-[2] min-w-[7.25rem] -translate-x-1/2 rounded-lg border border-[color:var(--border-soft)] bg-[var(--surface-panel)] px-2.5 py-1.5 text-xs shadow-[var(--shadow-soft)]"
+          className="pointer-events-none absolute top-3 z-[2] w-[8.75rem] max-w-[calc(100%_-_1.5rem)] -translate-x-1/2 rounded-lg border border-[color:var(--border-soft)] bg-[var(--surface-panel)] px-2.5 py-1.5 text-xs shadow-[var(--shadow-soft)] left-[clamp(5.125rem,var(--ftp-tooltip-left),calc(100%_-_5.125rem))]"
           style={{
-            left: `${active.ratio * 100}%`,
-          }}
+            '--ftp-tooltip-left': `${active.ratio * 100}%`,
+          } as React.CSSProperties}
           aria-hidden
         >
-          <div className="flex items-baseline gap-2">
-            <div className="font-semibold text-ink-900 [font-variant-numeric:tabular-nums]">
+          <div className="flex items-baseline justify-between gap-2 whitespace-nowrap">
+            <div className="whitespace-nowrap font-semibold text-ink-900 [font-variant-numeric:tabular-nums]">
               {Math.round(active.value)} W
             </div>
             {active.change && (
               <div
                 className={[
-                  'text-[10px] font-semibold leading-none [font-variant-numeric:tabular-nums]',
+                  'whitespace-nowrap text-right text-[10px] font-semibold leading-none [font-variant-numeric:tabular-nums]',
                   active.change.tone === 'gain'
                     ? 'text-success-700'
                     : 'text-error-700',

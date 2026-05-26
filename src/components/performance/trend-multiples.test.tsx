@@ -74,6 +74,36 @@ describe('TrendMultiples', () => {
     expect(screen.getByText('-5 W (2.4%)')).toHaveClass('text-error-700');
   });
 
+  it('keeps the active point card metrics on one line near chart edges', () => {
+    render(
+      <TrendMultiples
+        ftpHistory={[
+          { id: 'ftp-1', recordedAt: '2026-03-01', ftpWatts: 200 },
+          { id: 'ftp-2', recordedAt: '2026-04-01', ftpWatts: 210 },
+          { id: 'ftp-3', recordedAt: '2026-05-01', ftpWatts: 236 },
+        ]}
+        ftpWatts={236}
+        period="90d"
+      />
+    );
+
+    fireEvent.keyDown(screen.getByRole('img', { name: /FTP history chart/i }), {
+      key: 'End',
+    });
+
+    const delta = screen.getByText('+26 W (12.4%)');
+    const metricRow = delta.parentElement;
+    const tooltip = metricRow?.parentElement;
+
+    expect(metricRow).toHaveClass('whitespace-nowrap');
+    expect(delta).toHaveClass('whitespace-nowrap');
+    expect(tooltip).toHaveClass('w-[8.75rem]');
+    expect(tooltip).toHaveClass(
+      'left-[clamp(5.125rem,var(--ftp-tooltip-left),calc(100%_-_5.125rem))]'
+    );
+    expect(tooltip?.style.getPropertyValue('--ftp-tooltip-left')).toMatch(/%$/);
+  });
+
   it('shows each dense FTP step change through the active point card', () => {
     render(
       <TrendMultiples
