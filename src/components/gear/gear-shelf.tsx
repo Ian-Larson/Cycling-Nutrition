@@ -475,12 +475,9 @@ export function GearShelf({
   if (totalInstances === 0) {
     return (
       <div className="space-y-3">
-        <div className="rounded-xl border border-dashed border-[color:var(--border-soft)] bg-shell-50 px-4 py-6 text-center">
+        <div className="border-y border-dashed border-[color:var(--border-soft)] px-4 py-4 text-center">
           <p className="text-sm leading-5 text-ink-700">
-            No parts on the shelf yet.
-          </p>
-          <p className="mt-1 text-xs leading-5 text-ink-500">
-            Track chains, tires, pads, cassettes, and more.
+            No parts yet.
           </p>
           <div className="mt-3 flex justify-center">
             <Button variant="primary" size="sm" onClick={onAddPart}>
@@ -572,13 +569,13 @@ export function GearShelf({
       {/* ── SPARES ─────────────────────────────────────────────────────── */}
       {sparesAll.length === 0 ? (
         <p className="text-sm leading-5 text-ink-600">
-          Nothing on the shelf right now.
+          No spares.
           {totalsByStatus.removed + totalsByStatus.retired > 0
-            ? ' Open history below to see what has come and gone.'
+            ? ' History has removed parts.'
             : ''}
         </p>
       ) : sparesGroups.length === 0 ? (
-        <div className="rounded-xl border border-[color:var(--border-soft)] bg-shell-50 px-4 py-4 text-center">
+        <div className="border-y border-[color:var(--border-soft)] px-4 py-4 text-center">
           <p className="text-sm leading-5 text-ink-600">
             No spares match your filters.
           </p>
@@ -593,7 +590,7 @@ export function GearShelf({
           ) : null}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {sparesGroups.map((group) => (
             <section key={group.category} className="space-y-2">
               <div className="flex items-baseline justify-between gap-3">
@@ -605,6 +602,7 @@ export function GearShelf({
                 </p>
               </div>
               <DividedRowList
+                variant="plain"
                 items={group.instances}
                 getKey={(instance) => instance.id}
                 renderItem={(instance) => (
@@ -667,24 +665,23 @@ export function GearShelf({
                   No history matches your filters.
                 </p>
               ) : (
-                <div className="rounded-xl bg-shell-50 px-1 py-1">
-                  <DividedRowList
-                    items={historyRows}
-                    getKey={(instance) => instance.id}
-                    renderItem={(instance) => (
-                      <ShelfRow
-                        instance={instance}
-                        catalogItem={catalogById.get(instance.catalogItemId)}
-                        installRecords={installRecords}
-                        bikes={bikes}
-                        pulsed={pulsed?.id === instance.id}
-                        demoted
-                        onEdit={() => onEdit(instance.id)}
-                        onDelete={() => setPendingDelete(instance)}
-                      />
-                    )}
-                  />
-                </div>
+                <DividedRowList
+                  variant="plain"
+                  items={historyRows}
+                  getKey={(instance) => instance.id}
+                  renderItem={(instance) => (
+                    <ShelfRow
+                      instance={instance}
+                      catalogItem={catalogById.get(instance.catalogItemId)}
+                      installRecords={installRecords}
+                      bikes={bikes}
+                      pulsed={pulsed?.id === instance.id}
+                      demoted
+                      onEdit={() => onEdit(instance.id)}
+                      onDelete={() => setPendingDelete(instance)}
+                    />
+                  )}
+                />
               )}
             </div>
           ) : null}

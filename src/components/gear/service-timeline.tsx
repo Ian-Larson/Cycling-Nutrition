@@ -166,13 +166,13 @@ export function ServiceTimeline({
   if (comingUpEmpty && recentEmpty) {
     return (
       <p className="text-sm leading-5 text-ink-600">
-        No service yet. Log your first one from the parts list.
+        No service yet.
       </p>
     );
   }
 
   return (
-    <div className="space-y-5 md:space-y-6">
+    <div className="space-y-4 md:space-y-5">
       <section aria-labelledby="service-coming-up" className="space-y-3">
         <h3
           id="service-coming-up"
@@ -182,10 +182,10 @@ export function ServiceTimeline({
         </h3>
         {comingUpEmpty ? (
           <p className="text-sm leading-5 text-ink-600">
-            Nothing scheduled. Log service when you&rsquo;re back from a ride.
+            Nothing scheduled.
           </p>
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="divide-y divide-[color:var(--border-soft)] border-y border-[color:var(--border-soft)]">
             {dueItems.map((item) => (
               <li key={item.id}>
                 <GearDueRow
@@ -193,6 +193,7 @@ export function ServiceTimeline({
                   bikes={bikes}
                   showBikeName={showBikeName}
                   onLogService={onLogService}
+                  variant="plain"
                 />
               </li>
             ))}
@@ -215,7 +216,7 @@ export function ServiceTimeline({
 
         {recentEmpty ? (
           <p className="text-sm leading-5 text-ink-600">
-            Your first logged service shows up here.
+            No recent service.
           </p>
         ) : showAll ? (
           <GearHistoryTable
@@ -229,7 +230,7 @@ export function ServiceTimeline({
         ) : (
           <ul
             className={clsx(
-              'surface-note overflow-hidden',
+              'overflow-hidden border-y border-[color:var(--border-soft)]',
               'divide-y divide-[color:var(--border-soft)]'
             )}
           >

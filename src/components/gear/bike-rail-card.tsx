@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Badge, Card, CardContent, SpecRow } from '@/components/ui';
+import { Badge, SpecRow } from '@/components/ui';
 import { EditBikeWeightDialog } from './edit-bike-weight-dialog';
 import { EditBikeNameDialog } from './edit-bike-name-dialog';
 import { BikeSwitcher } from './bike-switcher';
@@ -65,7 +65,7 @@ function AllBikesSummary({ bikes, perBikeUrgency, onSelectBike }: AllBikesSummar
   if (bikes.length === 0) {
     return (
       <p className="text-sm leading-5 text-ink-600">
-        No bikes yet. Connect Strava or add one manually.{' '}
+        No bikes connected.{' '}
         <Link
           to="/account#strava"
           className="font-medium text-brand-700 underline-offset-2 hover:underline"
@@ -165,8 +165,11 @@ export function BikeRailCard({
 
   return (
     <>
-      <Card className="overflow-visible">
-        <CardContent className="space-y-3 px-4 py-3.5 md:px-5 md:py-4">
+      <section
+        aria-label="Bike details"
+        className="overflow-visible rounded-2xl border border-[color:var(--border-soft)] bg-[var(--surface-panel)]"
+      >
+        <div className="space-y-3 px-3.5 py-3 md:px-4 md:py-3.5">
           <div className="flex items-start justify-between gap-2">
             <BikeSwitcher
               bikes={bikes}
@@ -250,8 +253,8 @@ export function BikeRailCard({
               onSelectBike={onSelectBike}
             />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
       {selectedBike ? (
         <>
           <EditBikeWeightDialog

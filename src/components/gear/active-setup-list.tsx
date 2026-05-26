@@ -139,6 +139,7 @@ export function ActiveSetupList({
 }: ActiveSetupListProps) {
   return (
     <DividedRowList
+      variant="plain"
       items={rows}
       getKey={(row) => row.slotKey}
       renderItem={(row) =>

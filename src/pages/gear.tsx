@@ -46,10 +46,10 @@ function describeActiveSetup(
   selectedBikeIdForView: string | null,
   installedCount: number
 ): string {
-  if (selectedBikeIdForView === null) return 'Pick a bike to see installed parts';
+  if (selectedBikeIdForView === null) return 'Choose bike';
   if (selectedBike === null) return 'Choose a bike';
-  if (installedCount === 0) return 'No parts installed yet';
-  return `${installedCount} ${installedCount === 1 ? 'part' : 'parts'} installed`;
+  if (installedCount === 0) return 'No parts';
+  return `${installedCount} ${installedCount === 1 ? 'part' : 'parts'}`;
 }
 
 function describeService(
@@ -58,14 +58,14 @@ function describeService(
   hasAnyHistory: boolean
 ): string {
   if (!status.hasAttention) {
-    if (!hasAnyHistory) return 'No history yet';
-    return 'All clear';
+    if (!hasAnyHistory) return 'No service';
+    return 'Clear';
   }
 
   if (selectedBikeId === null) {
     const total =
       status.garageWideCounts.overdue + status.garageWideCounts.soon;
-    return `${total} due across your garage`;
+    return `${total} due`;
   }
 
   const thisBikeTotal =
@@ -76,14 +76,130 @@ function describeService(
 
   const elsewhereSuffix =
     elsewhereOverdue > 0
-      ? `${elsewhereOverdue} overdue elsewhere`
-      : `${elsewhereSoon} due soon elsewhere`;
+      ? `${elsewhereOverdue} elsewhere`
+      : `${elsewhereSoon} elsewhere`;
 
   if (thisBikeTotal === 0) return elsewhereSuffix;
   if (elsewhereTotal === 0) {
-    return `${thisBikeTotal} due on this bike`;
+    return `${thisBikeTotal} due`;
   }
-  return `${thisBikeTotal} due on this bike, ${elsewhereSuffix}`;
+  return `${thisBikeTotal} due, ${elsewhereSuffix}`;
+}
+
+function formatActionMileage(miles: number | null): string | null {
+  if (miles === null || !Number.isFinite(miles)) return null;
+  return `${Math.round(miles).toLocaleString()} mi`;
+}
+
+function WrenchIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden className="h-4 w-4">
+      <path
+        d="m12.5 4.5 3 3-8.75 8.75H3.75v-3L12.5 4.5Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m10.75 6.25 3 3"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden className="h-4 w-4">
+      <path
+        d="M10 4.5v11M4.5 10h11"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+interface GarageActionsProps {
+  bikes: Bike[];
+  selectedBike: Bike | null;
+  selectedBikeIdForView: string | null;
+  activeSummary: string;
+  serviceSummary: string;
+  onLogService: () => void;
+  onAddPart: () => void;
+}
+
+function GarageActions({
+  bikes,
+  selectedBike,
+  selectedBikeIdForView,
+  activeSummary,
+  serviceSummary,
+  onLogService,
+  onAddPart,
+}: GarageActionsProps) {
+  const hasBikes = bikes.length > 0;
+  let targetLabel = selectedBike?.name ?? 'Choose a bike';
+  if (selectedBikeIdForView === null) {
+    targetLabel = 'All bikes';
+  }
+  const odometer = selectedBike
+    ? formatActionMileage(selectedBike.cachedOdometerMi)
+    : null;
+  const summaryPieces = [activeSummary, serviceSummary, odometer].filter(
+    (piece): piece is string => Boolean(piece)
+  );
+
+  return (
+    <section
+      aria-label="Garage actions"
+      className="pb-1 md:pb-0"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {hasBikes ? (
+          <div className="min-w-0">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-5">
+              <span className="font-semibold text-ink-900">{targetLabel}</span>
+              {summaryPieces.length > 0 ? (
+                <span className="min-w-0 truncate text-ink-600">
+                  {summaryPieces.join(' · ')}
+                </span>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+        <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0">
+          {hasBikes ? (
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={onLogService}
+              className="w-full sm:w-auto"
+            >
+              <WrenchIcon />
+              Log service
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={onAddPart}
+            className="w-full sm:w-auto"
+          >
+            <PlusIcon />
+            Add part
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 interface AllBikesActiveStackProps {
@@ -101,18 +217,14 @@ function AllBikesActiveStack({
 }: AllBikesActiveStackProps) {
   if (bikes.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-5 md:py-6">
-          <p className="text-sm leading-5 text-ink-600">
-            Add a bike to start tracking gear and service.
-          </p>
-        </CardContent>
-      </Card>
+      <p className="text-sm leading-5 text-ink-600">
+        Add a bike to track parts.
+      </p>
     );
   }
 
   return (
-    <ul className="flex flex-col gap-3">
+    <ul className="divide-y divide-[color:var(--border-soft)] border-y border-[color:var(--border-soft)]">
       {bikes.map((bike) => {
         const installedCount = installRecords.filter(
           (record) => record.bikeId === bike.id && isInstallActive(record)
@@ -130,7 +242,7 @@ function AllBikesActiveStack({
               type="button"
               onClick={() => onSelectBike(bike.id)}
               aria-label={`View active setup for ${bike.name}`}
-              className="surface-note group flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:px-4"
+              className="group flex w-full items-center justify-between gap-3 py-3 text-left transition-colors hover:bg-shell-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:py-3.5"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold leading-5 text-ink-900">
@@ -304,11 +416,14 @@ export function GearPage() {
   const hasAnyHistory =
     gearServiceEvents.length > 0 || gearInstallRecords.length > 0;
 
-  const activeSummary = describeActiveSetup(
-    selectedBike,
-    selectedBikeIdForView,
-    activeInstalledCount
-  );
+  const activeSummary =
+    bikes.length === 0
+      ? 'No bikes'
+      : describeActiveSetup(
+          selectedBike,
+          selectedBikeIdForView,
+          activeInstalledCount
+        );
   const serviceSummary = describeService(
     garageStatus,
     selectedBikeIdForView,
@@ -316,13 +431,13 @@ export function GearPage() {
   );
   const shelfSummary = (() => {
     if (shelfSparesCount === 0 && shelfHistoryCount === 0) {
-      return 'Track spares, retired parts, and what’s come off the bike.';
+      return 'No shelf parts';
     }
     const sparesPiece =
       shelfSparesCount === 0
-        ? 'Nothing on the shelf'
+        ? 'No spares'
         : `${shelfSparesCount} ${shelfSparesCount === 1 ? 'spare' : 'spares'}`;
-    return `${sparesPiece} · across your garage`;
+    return sparesPiece;
   })();
 
   // Mirror fresh Strava bikes into the store whenever they arrive.
@@ -422,7 +537,7 @@ export function GearPage() {
     <div className="page-shell space-y-4 md:space-y-6">
       <PageIntro
         title="Garage"
-        description="Installed parts, service schedule, shelf."
+        divided={false}
         meta={
           metaLabel ? (
             <a
@@ -444,6 +559,18 @@ export function GearPage() {
             </a>
           ) : null
         }
+      />
+
+      <GarageActions
+        bikes={bikes}
+        selectedBike={selectedBike}
+        selectedBikeIdForView={selectedBikeIdForView}
+        activeSummary={activeSummary}
+        serviceSummary={serviceSummary}
+        onLogService={() =>
+          handleQueueService(selectedBike ? { bikeId: selectedBike.id } : {})
+        }
+        onAddPart={() => setAddPartOpen(true)}
       />
 
       <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] lg:items-start lg:gap-5 lg:space-y-0 xl:gap-6">

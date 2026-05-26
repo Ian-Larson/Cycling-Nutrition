@@ -15,6 +15,7 @@ interface GearDueRowProps {
   bikes: Bike[];
   showBikeName?: boolean;
   onLogService: (item: GearDueItem) => void;
+  variant?: 'card' | 'plain';
 }
 
 function formatMi(value: number | null, intervalMi: number | null): string {
@@ -100,61 +101,69 @@ export function GearDueRow({
   bikes,
   showBikeName = true,
   onLogService,
+  variant = 'card',
 }: GearDueRowProps) {
+  const content = (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0 flex-1 space-y-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <p className="min-w-0 max-w-full truncate text-sm font-semibold leading-6 text-ink-900 md:text-base">
+            {item.label}
+          </p>
+          <span
+            className={clsx(
+              'inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold',
+              urgencyClass(item.urgency)
+            )}
+          >
+            <UrgencyIcon urgency={item.urgency} />
+            <span aria-hidden>{urgencyLabel(item.urgency)}</span>
+            <span className="sr-only">
+              Service status: {urgencyLabel(item.urgency)}
+            </span>
+          </span>
+        </div>
+        {showBikeName ? (
+          <p className="truncate text-sm leading-5 text-ink-600">
+            {resolveBikeName(item, bikes)}
+          </p>
+        ) : null}
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm leading-5 text-ink-700">
+          <span>{formatMi(item.remainingMi, item.intervalMi)}</span>
+          <span>{formatDays(item.remainingDays, item.intervalDays)}</span>
+        </div>
+        <GearLifeBar
+          remainingMi={item.remainingMi}
+          remainingDays={item.remainingDays}
+          intervalMi={item.intervalMi}
+          intervalDays={item.intervalDays}
+          nextDueMileageMi={item.event.nextDueMileageMi}
+          nextDueDateIso={item.event.nextDueDateIso}
+          lastServiceMileageMi={item.event.mileageMi}
+          lastServiceDateIso={item.event.dateIso}
+        />
+      </div>
+
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        aria-label={`Log service for ${item.label}`}
+        onClick={() => onLogService(item)}
+        className="w-full sm:w-20"
+      >
+        Log
+      </Button>
+    </div>
+  );
+
+  if (variant === 'plain') {
+    return <div className="py-3 md:py-3.5">{content}</div>;
+  }
+
   return (
     <Card>
-      <CardContent className="py-3.5 md:py-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0 flex-1 space-y-2">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <p className="min-w-0 max-w-full truncate text-base font-semibold leading-6 text-ink-900">
-                {item.label}
-              </p>
-              <span
-                className={clsx(
-                  'inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold',
-                  urgencyClass(item.urgency)
-                )}
-              >
-                <UrgencyIcon urgency={item.urgency} />
-                <span aria-hidden>{urgencyLabel(item.urgency)}</span>
-                <span className="sr-only">
-                  Service status: {urgencyLabel(item.urgency)}
-                </span>
-              </span>
-            </div>
-            {showBikeName ? (
-              <p className="truncate text-sm leading-5 text-ink-600">
-                {resolveBikeName(item, bikes)}
-              </p>
-            ) : null}
-            <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm leading-5 text-ink-700">
-              <span>{formatMi(item.remainingMi, item.intervalMi)}</span>
-              <span>{formatDays(item.remainingDays, item.intervalDays)}</span>
-            </div>
-            <GearLifeBar
-              remainingMi={item.remainingMi}
-              remainingDays={item.remainingDays}
-              intervalMi={item.intervalMi}
-              intervalDays={item.intervalDays}
-              nextDueMileageMi={item.event.nextDueMileageMi}
-              nextDueDateIso={item.event.nextDueDateIso}
-              lastServiceMileageMi={item.event.mileageMi}
-              lastServiceDateIso={item.event.dateIso}
-            />
-          </div>
-
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => onLogService(item)}
-            className="sm:w-[9.5rem]"
-          >
-            Log service
-          </Button>
-        </div>
-      </CardContent>
+      <CardContent className="py-3.5 md:py-4">{content}</CardContent>
     </Card>
   );
 }
