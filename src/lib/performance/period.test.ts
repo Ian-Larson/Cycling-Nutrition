@@ -42,9 +42,23 @@ describe('resolvePeriodComparison', () => {
     );
   });
 
+  it('ytd starts on January 1 with a prior year-to-date comparison', () => {
+    const { current, comparison } = resolvePeriodComparison('ytd', NOW);
+    expect(current.fromIso).toBe('2026-01-01T00:00:00.000Z');
+    expect(current.toIso).toBe(NOW.toISOString());
+    expect(comparison.fromIso).toBe('2025-01-01T00:00:00.000Z');
+    expect(comparison.toIso).toBe('2025-05-04T12:00:00.000Z');
+  });
+
   it('labels reflect the selected period', () => {
     const { current, comparison } = resolvePeriodComparison('12mo', NOW);
     expect(current.label).toBe('Last 1 year');
     expect(comparison.label).toBe('Prior 1 year');
+  });
+
+  it('labels year to date clearly', () => {
+    const { current, comparison } = resolvePeriodComparison('ytd', NOW);
+    expect(current.label).toBe('Year to date');
+    expect(comparison.label).toBe('Prior YTD');
   });
 });

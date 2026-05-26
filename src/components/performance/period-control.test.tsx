@@ -8,6 +8,7 @@ describe('PeriodControl', () => {
     expect(screen.queryByRole('radio', { name: 'Last 30d' })).not.toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Last 90d' })).toHaveTextContent('90d');
     expect(screen.getByRole('radio', { name: 'Last 6 months' })).toHaveTextContent('6 months');
+    expect(screen.getByRole('radio', { name: 'Year to date' })).toHaveTextContent('YTD');
     expect(screen.getByRole('radio', { name: 'Last 1 year' })).toHaveTextContent('1 year');
   });
 
@@ -20,7 +21,7 @@ describe('PeriodControl', () => {
   it('emits onChange with the next key', () => {
     const onChange = vi.fn();
     render(<PeriodControl value="90d" onChange={onChange} />);
-    fireEvent.click(screen.getByRole('radio', { name: 'Last 1 year' }));
-    expect(onChange).toHaveBeenCalledWith('12mo');
+    fireEvent.click(screen.getByRole('radio', { name: 'Year to date' }));
+    expect(onChange).toHaveBeenCalledWith('ytd');
   });
 });

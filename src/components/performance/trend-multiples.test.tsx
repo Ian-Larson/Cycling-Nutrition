@@ -51,6 +51,23 @@ describe('TrendMultiples', () => {
     expect(screen.queryByText('229 W')).not.toBeInTheDocument();
   });
 
+  it('starts the FTP chart at January 1 for year to date', () => {
+    render(
+      <TrendMultiples
+        ftpHistory={[
+          { id: 'ftp-1', recordedAt: '2025-12-15', ftpWatts: 205 },
+          { id: 'ftp-2', recordedAt: '2026-03-18', ftpWatts: 224 },
+          { id: 'ftp-3', recordedAt: '2026-05-13', ftpWatts: 236 },
+        ]}
+        ftpWatts={236}
+        period="ytd"
+      />
+    );
+
+    expect(screen.getByText('Jan 1')).toBeInTheDocument();
+    expect(screen.getByText('May 26')).toBeInTheDocument();
+  });
+
   it('keeps logged FTP step changes in the active point card', () => {
     render(
       <TrendMultiples

@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui';
-import { PERIOD_DAYS, type PeriodKey } from '@/lib/performance/period';
+import { resolvePeriodComparison, type PeriodKey } from '@/lib/performance/period';
 import type { FtpHistoryEntry } from '@/types/performance';
-
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const CHART_W = 760;
 const CHART_H = 260;
@@ -385,8 +383,7 @@ function buildFtpSeries({
 }): FtpSeries {
   const now = new Date();
   const todayIso = now.toISOString().slice(0, 10);
-  const start = new Date(now.getTime() - PERIOD_DAYS[period] * MS_PER_DAY);
-  const startIso = start.toISOString().slice(0, 10);
+  const startIso = resolvePeriodComparison(period, now).current.fromIso.slice(0, 10);
   const entries = normalizeFtpEntries(ftpHistory, ftpWatts, todayIso);
   const prior = closestPriorPoint(entries, startIso);
   const visible = entries.filter(
