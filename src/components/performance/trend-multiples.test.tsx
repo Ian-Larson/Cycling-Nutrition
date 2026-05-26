@@ -67,4 +67,29 @@ describe('TrendMultiples', () => {
     expect(screen.getByText('+10 W (5.0%)')).toHaveClass('text-success-700');
     expect(screen.getByText('-5 W (2.4%)')).toHaveClass('text-error-700');
   });
+
+  it('limits step labels when the window has dense FTP changes', () => {
+    render(
+      <TrendMultiples
+        ftpHistory={[
+          { id: 'ftp-1', recordedAt: '2025-06-01', ftpWatts: 200 },
+          { id: 'ftp-2', recordedAt: '2025-07-01', ftpWatts: 201 },
+          { id: 'ftp-3', recordedAt: '2025-08-01', ftpWatts: 203 },
+          { id: 'ftp-4', recordedAt: '2025-09-01', ftpWatts: 206 },
+          { id: 'ftp-5', recordedAt: '2025-10-01', ftpWatts: 210 },
+          { id: 'ftp-6', recordedAt: '2025-11-01', ftpWatts: 209 },
+          { id: 'ftp-7', recordedAt: '2025-12-01', ftpWatts: 212 },
+          { id: 'ftp-8', recordedAt: '2026-01-01', ftpWatts: 214 },
+          { id: 'ftp-9', recordedAt: '2026-02-01', ftpWatts: 215 },
+          { id: 'ftp-10', recordedAt: '2026-03-01', ftpWatts: 218 },
+          { id: 'ftp-11', recordedAt: '2026-04-01', ftpWatts: 221 },
+          { id: 'ftp-12', recordedAt: '2026-05-01', ftpWatts: 224 },
+        ]}
+        ftpWatts={224}
+        period="12mo"
+      />
+    );
+
+    expect(screen.getAllByText(/[+-]\d+ W \(\d+\.\d%\)/)).toHaveLength(6);
+  });
 });

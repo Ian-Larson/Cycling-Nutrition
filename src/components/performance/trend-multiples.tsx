@@ -14,6 +14,8 @@ const PLOT_TOP = CHART_PAD.top;
 const PLOT_BOTTOM = CHART_H - CHART_PAD.bottom;
 const PLOT_W = PLOT_RIGHT - PLOT_LEFT;
 const PLOT_H = PLOT_BOTTOM - PLOT_TOP;
+const MIN_STEP_LABEL_SPACING = 72;
+const MAX_STEP_LABELS = 6;
 
 interface FtpPoint {
   iso: string;
@@ -377,7 +379,32 @@ function buildStepChangeAnnotations(
       yRatio: ((point.y + previous.y) / 2) / CHART_H,
     });
   }
-  return annotations;
+  return thinStepChangeAnnotations(annotations);
+}
+
+function thinStepChangeAnnotations(
+  annotations: readonly StepChangeAnnotation[]
+): StepChangeAnnotation[] {
+  const spaced: StepChangeAnnotation[] = [];
+  for (const annotation of annotations) {
+    const previous = spaced[spaced.length - 1];
+    if (
+      previous &&
+      (annotation.xRatio - previous.xRatio) * CHART_W < MIN_STEP_LABEL_SPACING
+    ) {
+      continue;
+    }
+    spaced.push(annotation);
+  }
+
+  if (spaced.length <= MAX_STEP_LABELS) {
+    return spaced;
+  }
+
+  const stride = Math.ceil(spaced.length / MAX_STEP_LABELS);
+  return spaced
+    .filter((_, index) => index % stride === 0)
+    .slice(0, MAX_STEP_LABELS);
 }
 
 function TrendStat({

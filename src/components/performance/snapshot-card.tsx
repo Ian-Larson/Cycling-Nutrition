@@ -24,6 +24,7 @@ export function SnapshotCard({
   const [date, setDate] = useState(today);
   const [watts, setWatts] = useState('');
   const [error, setError] = useState<string | undefined>();
+  const [deletedEntry, setDeletedEntry] = useState<FtpHistoryEntry | null>(null);
 
   const sortedHistory = useMemo(
     () => [...ftpHistory].sort((a, b) => (a.recordedAt < b.recordedAt ? 1 : -1)),
@@ -43,6 +44,21 @@ export function SnapshotCard({
     onRecordFtp({ recordedAt: date, ftpWatts: nextWatts });
     setWatts('');
     setError(undefined);
+    setDeletedEntry(null);
+  };
+
+  const handleRemove = (entry: FtpHistoryEntry) => {
+    setDeletedEntry(entry);
+    onRemoveFtp(entry.id);
+  };
+
+  const handleUndoDelete = () => {
+    if (!deletedEntry) return;
+    onRecordFtp({
+      recordedAt: deletedEntry.recordedAt,
+      ftpWatts: Math.round(deletedEntry.ftpWatts),
+    });
+    setDeletedEntry(null);
   };
 
   const currentFtpLabel = ftpWatts ? `${Math.round(ftpWatts)} W` : 'Not set';
@@ -62,13 +78,13 @@ export function SnapshotCard({
               {ftpWatts ? `${Math.round(ftpWatts)} W` : '—'}
             </span>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-4 border-y border-[color:var(--border-soft)] py-3">
             <Metric label="Power to weight" value={wkgLabel} muted={currentWkg === undefined} />
             <Metric label="Last logged" value={latestDateLabel} muted={!latestEntry} />
           </div>
         </div>
 
-        <form className="surface-note space-y-3 px-3 py-3" onSubmit={handleSubmit}>
+        <form className="space-y-3 border-b border-[color:var(--border-soft)] pb-5" onSubmit={handleSubmit}>
           <div>
             <h2 className="section-title">Log FTP</h2>
           </div>
@@ -123,7 +139,7 @@ export function SnapshotCard({
                     size="sm"
                     variant="ghost"
                     aria-label={`Delete FTP ${Math.round(entry.ftpWatts)} W from ${formatDate(entry.recordedAt)}`}
-                    onClick={() => onRemoveFtp(entry.id)}
+                    onClick={() => handleRemove(entry)}
                     title="Delete FTP entry"
                     className="text-ink-400 hover:bg-error-100 hover:text-error-700"
                   >
@@ -132,6 +148,22 @@ export function SnapshotCard({
                 </li>
               ))}
             </ol>
+          )}
+          {deletedEntry && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-shell-200 px-3 py-2 text-sm text-ink-700"
+            >
+              <span>FTP entry deleted.</span>
+              <button
+                type="button"
+                onClick={handleUndoDelete}
+                className="min-h-9 rounded-lg px-2.5 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+              >
+                Undo delete
+              </button>
+            </div>
           )}
         </div>
 
@@ -177,7 +209,7 @@ function Metric({
   muted?: boolean;
 }) {
   return (
-    <div className="surface-note px-3 py-2.5">
+    <div className="min-w-0">
       <p className="page-stat-label">{label}</p>
       <p
         className={[

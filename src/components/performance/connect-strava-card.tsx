@@ -1,4 +1,4 @@
-import { Button, Card, CardContent } from '@/components/ui';
+import { Button } from '@/components/ui';
 
 interface ConnectStravaCardProps {
   onConnect: () => void;
@@ -6,23 +6,31 @@ interface ConnectStravaCardProps {
 
 export function ConnectStravaCard({ onConnect }: ConnectStravaCardProps) {
   return (
-    <Card>
-      <CardContent className="md:px-5 md:py-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <div className="min-w-0">
-            <h2 className="section-kicker uppercase tracking-wider text-ink-500">
-              Power records
-            </h2>
-            <p className="mt-1 max-w-[52ch] text-sm leading-5 text-ink-600">
-              Connect Strava to import rides and surface 5-min, 20-min, and 1 h
-              power records in this period.
-            </p>
-          </div>
-          <Button variant="primary" size="sm" onClick={onConnect}>
-            Connect Strava
-          </Button>
+    <section
+      aria-labelledby="power-records-prompt-title"
+      className="border-t border-[color:var(--border-soft)] pt-4"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+        <div className="min-w-0">
+          <h2
+            id="power-records-prompt-title"
+            className="section-kicker uppercase tracking-wider text-ink-500"
+          >
+            Power records
+          </h2>
+          <p className="mt-1 max-w-[42ch] text-sm leading-5 text-ink-600">
+            Connect Strava to add ride-based records.
+          </p>
         </div>
-      </CardContent>
-    </Card>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onConnect}
+          className="w-full sm:w-auto"
+        >
+          Connect Strava
+        </Button>
+      </div>
+    </section>
   );
 }
