@@ -12,15 +12,15 @@ export const PERIOD_DAYS: Record<PeriodKey, number> = {
 export const PERIOD_SHORT_LABELS: Record<PeriodKey, string> = {
   '30d': '30d',
   '90d': '90d',
-  '6mo': '6mo',
-  '12mo': '12mo',
+  '6mo': '6 months',
+  '12mo': '1 year',
 };
 
 export const PERIOD_FULL_LABELS: Record<PeriodKey, string> = {
   '30d': 'Last 30d',
   '90d': 'Last 90d',
   '6mo': 'Last 6 months',
-  '12mo': 'Last 12 months',
+  '12mo': 'Last 1 year',
 };
 
 export interface PeriodRange {

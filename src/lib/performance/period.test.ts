@@ -43,8 +43,8 @@ describe('resolvePeriodComparison', () => {
   });
 
   it('labels reflect the selected period', () => {
-    const { current, comparison } = resolvePeriodComparison('90d', NOW);
-    expect(current.label).toBe('Last 90d');
-    expect(comparison.label).toBe('Prior 90d');
+    const { current, comparison } = resolvePeriodComparison('12mo', NOW);
+    expect(current.label).toBe('Last 1 year');
+    expect(comparison.label).toBe('Prior 1 year');
   });
 });

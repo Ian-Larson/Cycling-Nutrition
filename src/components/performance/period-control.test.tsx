@@ -3,24 +3,24 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { PeriodControl } from './period-control';
 
 describe('PeriodControl', () => {
-  it('renders all four period options', () => {
+  it('renders the FTP tracking window options', () => {
     render(<PeriodControl value="90d" onChange={() => {}} />);
-    expect(screen.getByRole('radio', { name: 'Last 30d' })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'Last 90d' })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'Last 6 months' })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'Last 12 months' })).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Last 30d' })).not.toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Last 90d' })).toHaveTextContent('90d');
+    expect(screen.getByRole('radio', { name: 'Last 6 months' })).toHaveTextContent('6 months');
+    expect(screen.getByRole('radio', { name: 'Last 1 year' })).toHaveTextContent('1 year');
   });
 
   it('marks the active option with aria-checked', () => {
-    render(<PeriodControl value="6mo" onChange={() => {}} />);
-    const active = screen.getByRole('radio', { name: 'Last 6 months' });
+    render(<PeriodControl value="12mo" onChange={() => {}} />);
+    const active = screen.getByRole('radio', { name: 'Last 1 year' });
     expect(active).toHaveAttribute('aria-checked', 'true');
   });
 
   it('emits onChange with the next key', () => {
     const onChange = vi.fn();
     render(<PeriodControl value="90d" onChange={onChange} />);
-    fireEvent.click(screen.getByRole('radio', { name: 'Last 30d' }));
-    expect(onChange).toHaveBeenCalledWith('30d');
+    fireEvent.click(screen.getByRole('radio', { name: 'Last 1 year' }));
+    expect(onChange).toHaveBeenCalledWith('12mo');
   });
 });

@@ -5,7 +5,7 @@ import {
   type PeriodKey,
 } from '@/lib/performance/period';
 
-const ORDER: readonly PeriodKey[] = ['30d', '90d', '6mo', '12mo'];
+const ORDER: readonly PeriodKey[] = ['90d', '6mo', '12mo'];
 
 const OPTIONS = ORDER.map((key) => ({
   value: key,
