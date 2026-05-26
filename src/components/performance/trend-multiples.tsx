@@ -1,10 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui';
-import {
-  PERIOD_DAYS,
-  PERIOD_FULL_LABELS,
-  type PeriodKey,
-} from '@/lib/performance/period';
+import { PERIOD_DAYS, type PeriodKey } from '@/lib/performance/period';
 import type { FtpHistoryEntry } from '@/types/performance';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -22,6 +18,7 @@ const PLOT_H = PLOT_BOTTOM - PLOT_TOP;
 interface FtpPoint {
   iso: string;
   value: number;
+  kind: 'logged' | 'carry';
 }
 
 interface FtpSeries {
@@ -58,6 +55,11 @@ export function TrendMultiples({
   const first = series.points[0];
   const delta =
     latest && first && series.points.length > 1 ? latest.value - first.value : undefined;
+  const visibleEntryCount = countLoggedEntries(
+    ftpHistory,
+    series.startIso,
+    series.endIso
+  );
 
   return (
     <Card>
@@ -66,9 +68,6 @@ export function TrendMultiples({
           <h2 className="section-kicker uppercase tracking-wider text-ink-500">
             FTP over time
           </h2>
-          <p className="mt-1 text-sm text-ink-600">
-            Logged threshold changes over {PERIOD_FULL_LABELS[period].toLowerCase()}.
-          </p>
         </div>
         <div className="text-left md:text-right">
           <div className="text-xs font-semibold uppercase tracking-wider text-ink-500">
@@ -88,17 +87,13 @@ export function TrendMultiples({
           <FtpChart points={series.points} startIso={series.startIso} endIso={series.endIso} />
         )}
 
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-2 sm:grid-cols-2">
           <TrendStat
             label="Change"
             value={delta === undefined ? 'Need history' : `${delta >= 0 ? '+' : ''}${delta} W`}
             muted={delta === undefined}
           />
-          <TrendStat label="Entries" value={String(ftpHistory.length)} />
-          <TrendStat
-            label="Window"
-            value={PERIOD_FULL_LABELS[period]}
-          />
+          <TrendStat label="Entries" value={String(visibleEntryCount)} />
         </div>
       </CardContent>
     </Card>
@@ -147,6 +142,10 @@ function FtpChart({
 
   const firstX = coords[0]?.x ?? PLOT_LEFT;
   const lastX = coords[coords.length - 1]?.x ?? PLOT_RIGHT;
+  const firstY = coords[0]?.y ?? PLOT_BOTTOM;
+  const current = coords[coords.length - 1];
+  const loggedCoords = coords.filter((point) => point.kind === 'logged');
+  const areaPath = `${path} V${PLOT_BOTTOM} H${firstX.toFixed(2)} V${firstY.toFixed(2)} Z`;
 
   const activeFromSvgX = (svgX: number): ActivePoint => {
     const x = clamp(svgX, firstX, lastX);
@@ -198,7 +197,7 @@ function FtpChart({
   };
 
   return (
-    <div className="relative min-h-[16rem] overflow-hidden rounded-xl border border-[color:var(--border-soft)] bg-shell-50">
+    <div className="relative min-h-[16rem] overflow-hidden rounded-xl border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,var(--surface-panel)_0%,var(--color-shell-50)_100%)]">
       <div className="pointer-events-none absolute left-3 top-3 z-[1] text-[11px] text-ink-500 [font-variant-numeric:tabular-nums]">
         {Math.round(yMax)} W
       </div>
@@ -220,6 +219,11 @@ function FtpChart({
         onKeyDown={handleKey}
         onBlur={() => setActive(null)}
       >
+        <path
+          d={areaPath}
+          fill="var(--color-brand-50)"
+          opacity={0.58}
+        />
         {[0, 0.5, 1].map((ratio) => {
           const y = PLOT_TOP + ratio * PLOT_H;
           return (
@@ -238,13 +242,23 @@ function FtpChart({
         <path
           d={path}
           fill="none"
+          stroke="var(--color-brand-200)"
+          strokeWidth={7}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={0.52}
+          vectorEffect="non-scaling-stroke"
+        />
+        <path
+          d={path}
+          fill="none"
           stroke="var(--color-brand-500)"
           strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
         />
-        {coords.map((point) => (
+        {loggedCoords.map((point) => (
           <circle
             key={`${point.iso}-${point.value}`}
             cx={point.x}
@@ -256,6 +270,17 @@ function FtpChart({
             vectorEffect="non-scaling-stroke"
           />
         ))}
+        {current && (
+          <circle
+            cx={current.x}
+            cy={current.y}
+            r={5}
+            fill="var(--color-brand-500)"
+            stroke="var(--surface-panel)"
+            strokeWidth={2.5}
+            vectorEffect="non-scaling-stroke"
+          />
+        )}
         {active && (
           <>
             <line
@@ -348,9 +373,14 @@ function buildFtpSeries({
   );
 
   const points: FtpPoint[] = [];
-  if (prior) points.push({ iso: startIso, value: prior.value });
+  if (prior) points.push({ iso: startIso, value: prior.value, kind: 'carry' });
   for (const entry of visible) {
-    if (points.some((point) => point.iso === entry.iso)) continue;
+    const existing = points.find((point) => point.iso === entry.iso);
+    if (existing) {
+      existing.value = entry.value;
+      existing.kind = 'logged';
+      continue;
+    }
     points.push(entry);
   }
 
@@ -360,7 +390,7 @@ function buildFtpSeries({
 
   const last = points[points.length - 1];
   if (last.iso < todayIso) {
-    points.push({ iso: todayIso, value: last.value });
+    points.push({ iso: todayIso, value: last.value, kind: 'carry' });
   }
 
   return { points, startIso, endIso: todayIso };
@@ -388,7 +418,7 @@ function normalizeFtpEntries(
     byDate.set(todayIso, Math.round(ftpWatts));
   }
   return [...byDate.entries()]
-    .map(([iso, value]) => ({ iso, value }))
+    .map(([iso, value]) => ({ iso, value, kind: 'logged' as const }))
     .sort((a, b) => (a.iso < b.iso ? -1 : 1));
 }
 
@@ -425,6 +455,24 @@ function latestFtpEntry(
     }
   }
   return latest;
+}
+
+function countLoggedEntries(
+  entries: readonly FtpHistoryEntry[],
+  startIso: string,
+  endIso: string
+): number {
+  return entries.filter(
+    (entry) => {
+      const recordedAt = entry.recordedAt.slice(0, 10);
+      return (
+        recordedAt >= startIso &&
+        recordedAt <= endIso &&
+        Number.isFinite(entry.ftpWatts) &&
+        entry.ftpWatts > 0
+      );
+    }
+  ).length;
 }
 
 function valueAtIso(points: readonly FtpPoint[], iso: string): number {

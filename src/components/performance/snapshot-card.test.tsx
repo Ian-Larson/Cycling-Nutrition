@@ -13,7 +13,6 @@ describe('SnapshotCard', () => {
           ftpWatts={280}
           weightKg={70}
           ftpHistory={[]}
-          period="90d"
           onRecordFtp={() => {}}
           onRemoveFtp={() => {}}
         />
@@ -36,7 +35,6 @@ describe('SnapshotCard', () => {
           ftpWatts={280}
           weightKg={70}
           ftpHistory={[]}
-          period="90d"
           onRecordFtp={onRecordFtp}
           onRemoveFtp={() => {}}
         />
@@ -69,7 +67,6 @@ describe('SnapshotCard', () => {
           ftpHistory={[
             { id: 'ftp-1', recordedAt: '2026-05-13', ftpWatts: 236 },
           ]}
-          period="90d"
           onRecordFtp={() => {}}
           onRemoveFtp={onRemoveFtp}
         />
@@ -83,5 +80,25 @@ describe('SnapshotCard', () => {
     );
 
     expect(onRemoveFtp).toHaveBeenCalledWith('ftp-1');
+  });
+
+  it('does not repeat the chart window around recent entries', () => {
+    render(
+      <MemoryRouter>
+        <SnapshotCard
+          currentWkg={3.6}
+          ftpWatts={236}
+          weightKg={65.5}
+          ftpHistory={[
+            { id: 'ftp-1', recordedAt: '2026-05-13', ftpWatts: 236 },
+          ]}
+          onRecordFtp={() => {}}
+          onRemoveFtp={() => {}}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByText('90d')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Last 90d/i)).not.toBeInTheDocument();
   });
 });

@@ -1,10 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Card, CardContent, Input } from '@/components/ui';
-import {
-  PERIOD_SHORT_LABELS,
-  type PeriodKey,
-} from '@/lib/performance/period';
+import { Button, Card, CardContent, IconButton, Input } from '@/components/ui';
 import type { FtpHistoryEntry } from '@/types/performance';
 
 interface SnapshotCardProps {
@@ -12,7 +8,6 @@ interface SnapshotCardProps {
   ftpWatts: number | undefined;
   weightKg: number | undefined;
   ftpHistory: readonly FtpHistoryEntry[];
-  period: PeriodKey;
   onRecordFtp: (entry: Omit<FtpHistoryEntry, 'id'>) => void;
   onRemoveFtp: (id: string) => void;
 }
@@ -22,7 +17,6 @@ export function SnapshotCard({
   ftpWatts,
   weightKg,
   ftpHistory,
-  period,
   onRecordFtp,
   onRemoveFtp,
 }: SnapshotCardProps) {
@@ -77,9 +71,6 @@ export function SnapshotCard({
         <form className="surface-note space-y-3 px-3 py-3" onSubmit={handleSubmit}>
           <div>
             <h2 className="section-title">Log FTP</h2>
-            <p className="mt-1 text-sm leading-5 text-ink-600">
-              Save a test result here; the newest entry becomes your current FTP.
-            </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
             <Input
@@ -110,10 +101,7 @@ export function SnapshotCard({
 
         <div>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="section-title">Recent entries</h2>
-            <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
-              {PERIOD_SHORT_LABELS[period]}
-            </span>
+            <h2 className="section-title">History</h2>
           </div>
           {sortedHistory.length === 0 ? (
             <p className="mt-2 text-sm text-ink-600">
@@ -130,14 +118,17 @@ export function SnapshotCard({
                   <span className="font-semibold text-ink-900 [font-variant-numeric:tabular-nums]">
                     {Math.round(entry.ftpWatts)} W
                   </span>
-                  <button
+                  <IconButton
                     type="button"
+                    size="sm"
+                    variant="ghost"
                     aria-label={`Delete FTP ${Math.round(entry.ftpWatts)} W from ${formatDate(entry.recordedAt)}`}
                     onClick={() => onRemoveFtp(entry.id)}
-                    className="rounded-md px-2 py-1 text-xs font-medium text-ink-500 transition-colors hover:bg-error-50 hover:text-error-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-error-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+                    title="Delete FTP entry"
+                    className="text-ink-400 hover:bg-error-100 hover:text-error-700"
                   >
-                    Delete
-                  </button>
+                    <TrashIcon />
+                  </IconButton>
                 </li>
               ))}
             </ol>
@@ -154,6 +145,25 @@ export function SnapshotCard({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 20 20"
+      className="h-4 w-4"
+      fill="none"
+    >
+      <path
+        d="M7 4.75h6M8.25 4.75l.42-1.25h2.66l.42 1.25M5.75 7h8.5l-.46 8.25H6.21L5.75 7Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

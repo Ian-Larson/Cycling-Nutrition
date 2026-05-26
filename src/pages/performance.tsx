@@ -136,7 +136,6 @@ export function PerformancePage() {
     <div className="page-shell space-y-4 md:space-y-6">
       <PageIntro
         title="FTP tracker"
-        description="Log threshold changes and keep the power line visible over time."
         meta={<PeriodControl value={period} onChange={setPeriod} />}
       />
 
@@ -151,7 +150,6 @@ export function PerformancePage() {
           ftpWatts={currentFtpWatts}
           weightKg={profile.weightKg}
           ftpHistory={ftpHistory}
-          period={period}
           onRecordFtp={recordFtpEntry}
           onRemoveFtp={removeFtpEntry}
         />

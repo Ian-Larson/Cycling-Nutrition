@@ -29,6 +29,8 @@ describe('TrendMultiples', () => {
     expect(
       screen.queryByText(/W\/kg, FTP, and weight/i)
     ).not.toBeInTheDocument();
+    expect(screen.queryByText('Window')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Logged threshold changes/i)).not.toBeInTheDocument();
   });
 
   it('uses the latest FTP history entry instead of a stale profile FTP', () => {
