@@ -14,8 +14,6 @@ const PLOT_TOP = CHART_PAD.top;
 const PLOT_BOTTOM = CHART_H - CHART_PAD.bottom;
 const PLOT_W = PLOT_RIGHT - PLOT_LEFT;
 const PLOT_H = PLOT_BOTTOM - PLOT_TOP;
-const MIN_STEP_LABEL_SPACING = 72;
-const MAX_STEP_LABELS = 6;
 
 interface FtpPoint {
   iso: string;
@@ -35,14 +33,12 @@ interface ActivePoint {
   ratio: number;
   iso: string;
   value: number;
+  change?: StepChangeDetail;
 }
 
-interface StepChangeAnnotation {
-  id: string;
+interface StepChangeDetail {
   label: string;
   tone: 'gain' | 'loss';
-  xRatio: number;
-  yRatio: number;
 }
 
 interface TrendMultiplesProps {
@@ -156,7 +152,6 @@ function FtpChart({
   const current = coords[coords.length - 1];
   const loggedCoords = coords.filter((point) => point.kind === 'logged');
   const areaPath = `${path} V${PLOT_BOTTOM} H${firstX.toFixed(2)} V${firstY.toFixed(2)} Z`;
-  const changeAnnotations = buildStepChangeAnnotations(coords);
 
   const activeFromSvgX = (svgX: number): ActivePoint => {
     const x = clamp(svgX, firstX, lastX);
@@ -170,6 +165,7 @@ function FtpChart({
       ratio: x / CHART_W,
       iso,
       value,
+      change: stepChangeForIso(points, iso),
     };
   };
 
@@ -316,25 +312,6 @@ function FtpChart({
           </>
         )}
       </svg>
-      {changeAnnotations.map((annotation) => (
-        <div
-          key={annotation.id}
-          aria-hidden="true"
-          className={[
-            'pointer-events-none absolute z-[1] -translate-x-1/2 -translate-y-1/2 rounded-full border bg-[var(--surface-panel)] px-1.5 py-0.5',
-            'text-[10px] font-semibold leading-none shadow-[0_1px_5px_-3px_rgb(34_43_51_/_0.35)] [font-variant-numeric:tabular-nums] md:text-[11px]',
-            annotation.tone === 'gain'
-              ? 'border-success-100 text-success-700'
-              : 'border-error-100 text-error-700',
-          ].join(' ')}
-          style={{
-            left: `${annotation.xRatio * 100}%`,
-            top: `${annotation.yRatio * 100}%`,
-          }}
-        >
-          {annotation.label}
-        </div>
-      ))}
       <div className="pointer-events-none absolute bottom-3 left-[3.6rem] right-4 flex justify-between text-[11px] text-ink-500">
         <span>{formatShortDate(startIso)}</span>
         <span>{formatShortDate(endIso)}</span>
@@ -347,8 +324,22 @@ function FtpChart({
           }}
           aria-hidden
         >
-          <div className="font-semibold text-ink-900 [font-variant-numeric:tabular-nums]">
-            {Math.round(active.value)} W
+          <div className="flex items-baseline gap-2">
+            <div className="font-semibold text-ink-900 [font-variant-numeric:tabular-nums]">
+              {Math.round(active.value)} W
+            </div>
+            {active.change && (
+              <div
+                className={[
+                  'text-[10px] font-semibold leading-none [font-variant-numeric:tabular-nums]',
+                  active.change.tone === 'gain'
+                    ? 'text-success-700'
+                    : 'text-error-700',
+                ].join(' ')}
+              >
+                {active.change.label}
+              </div>
+            )}
           </div>
           <div className="mt-0.5 text-[11px] text-ink-500">
             {formatShortDate(active.iso)}
@@ -357,54 +348,6 @@ function FtpChart({
       )}
     </div>
   );
-}
-
-function buildStepChangeAnnotations(
-  coords: readonly (FtpPoint & { x: number; y: number })[]
-): StepChangeAnnotation[] {
-  const annotations: StepChangeAnnotation[] = [];
-  for (let index = 1; index < coords.length; index++) {
-    const point = coords[index];
-    if (point.kind !== 'logged') continue;
-
-    const previous = coords[index - 1];
-    const delta = point.value - previous.value;
-    if (delta === 0 || previous.value <= 0) continue;
-
-    annotations.push({
-      id: `${point.iso}-${point.value}-${previous.value}`,
-      label: `${delta > 0 ? '+' : ''}${delta} W (${Math.abs((delta / previous.value) * 100).toFixed(1)}%)`,
-      tone: delta > 0 ? 'gain' : 'loss',
-      xRatio: point.x / CHART_W,
-      yRatio: ((point.y + previous.y) / 2) / CHART_H,
-    });
-  }
-  return thinStepChangeAnnotations(annotations);
-}
-
-function thinStepChangeAnnotations(
-  annotations: readonly StepChangeAnnotation[]
-): StepChangeAnnotation[] {
-  const spaced: StepChangeAnnotation[] = [];
-  for (const annotation of annotations) {
-    const previous = spaced[spaced.length - 1];
-    if (
-      previous &&
-      (annotation.xRatio - previous.xRatio) * CHART_W < MIN_STEP_LABEL_SPACING
-    ) {
-      continue;
-    }
-    spaced.push(annotation);
-  }
-
-  if (spaced.length <= MAX_STEP_LABELS) {
-    return spaced;
-  }
-
-  const stride = Math.ceil(spaced.length / MAX_STEP_LABELS);
-  return spaced
-    .filter((_, index) => index % stride === 0)
-    .slice(0, MAX_STEP_LABELS);
 }
 
 function TrendStat({
@@ -556,6 +499,30 @@ function countLoggedEntries(
 function valueAtIso(points: readonly FtpPoint[], iso: string): number {
   const prior = closestPriorPoint(points, iso);
   return prior?.value ?? points[0].value;
+}
+
+function stepChangeForIso(
+  points: readonly FtpPoint[],
+  iso: string
+): StepChangeDetail | undefined {
+  let activeLoggedIndex = -1;
+  for (let index = 0; index < points.length; index++) {
+    const point = points[index];
+    if (point.iso > iso) break;
+    if (point.kind === 'logged') activeLoggedIndex = index;
+  }
+
+  if (activeLoggedIndex <= 0) return undefined;
+
+  const point = points[activeLoggedIndex];
+  const previous = points[activeLoggedIndex - 1];
+  const delta = point.value - previous.value;
+  if (delta === 0 || previous.value <= 0) return undefined;
+
+  return {
+    label: `${delta > 0 ? '+' : ''}${delta} W (${Math.abs((delta / previous.value) * 100).toFixed(1)}%)`,
+    tone: delta > 0 ? 'gain' : 'loss',
+  };
 }
 
 function clientXToSvgX(clientX: number, svg: SVGSVGElement): number {

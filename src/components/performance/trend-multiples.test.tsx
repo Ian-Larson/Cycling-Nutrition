@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TrendMultiples } from './trend-multiples';
 
@@ -51,7 +51,7 @@ describe('TrendMultiples', () => {
     expect(screen.queryByText('229 W')).not.toBeInTheDocument();
   });
 
-  it('labels logged FTP step changes with watts and percent', () => {
+  it('keeps logged FTP step changes in the active point card', () => {
     render(
       <TrendMultiples
         ftpHistory={[
@@ -64,11 +64,17 @@ describe('TrendMultiples', () => {
       />
     );
 
-    expect(screen.getByText('+10 W (5.0%)')).toHaveClass('text-success-700');
+    expect(screen.queryByText('+10 W (5.0%)')).not.toBeInTheDocument();
+    expect(screen.queryByText('-5 W (2.4%)')).not.toBeInTheDocument();
+
+    fireEvent.keyDown(screen.getByRole('img', { name: /FTP history chart/i }), {
+      key: 'End',
+    });
+
     expect(screen.getByText('-5 W (2.4%)')).toHaveClass('text-error-700');
   });
 
-  it('limits step labels when the window has dense FTP changes', () => {
+  it('shows each dense FTP step change through the active point card', () => {
     render(
       <TrendMultiples
         ftpHistory={[
@@ -90,6 +96,17 @@ describe('TrendMultiples', () => {
       />
     );
 
-    expect(screen.getAllByText(/[+-]\d+ W \(\d+\.\d%\)/)).toHaveLength(6);
+    const chart = screen.getByRole('img', { name: /FTP history chart/i });
+
+    expect(screen.queryByText('+1 W (0.5%)')).not.toBeInTheDocument();
+
+    fireEvent.keyDown(chart, { key: 'Home' });
+    fireEvent.keyDown(chart, { key: 'ArrowRight' });
+
+    expect(screen.getByText('+1 W (0.5%)')).toHaveClass('text-success-700');
+
+    fireEvent.keyDown(chart, { key: 'ArrowRight' });
+
+    expect(screen.getByText('+2 W (1.0%)')).toHaveClass('text-success-700');
   });
 });
