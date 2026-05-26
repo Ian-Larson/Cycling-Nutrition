@@ -35,6 +35,14 @@ interface ActivePoint {
   value: number;
 }
 
+interface StepChangeAnnotation {
+  id: string;
+  label: string;
+  tone: 'gain' | 'loss';
+  xRatio: number;
+  yRatio: number;
+}
+
 interface TrendMultiplesProps {
   ftpHistory: readonly FtpHistoryEntry[];
   ftpWatts: number | undefined;
@@ -146,6 +154,7 @@ function FtpChart({
   const current = coords[coords.length - 1];
   const loggedCoords = coords.filter((point) => point.kind === 'logged');
   const areaPath = `${path} V${PLOT_BOTTOM} H${firstX.toFixed(2)} V${firstY.toFixed(2)} Z`;
+  const changeAnnotations = buildStepChangeAnnotations(coords);
 
   const activeFromSvgX = (svgX: number): ActivePoint => {
     const x = clamp(svgX, firstX, lastX);
@@ -305,6 +314,25 @@ function FtpChart({
           </>
         )}
       </svg>
+      {changeAnnotations.map((annotation) => (
+        <div
+          key={annotation.id}
+          aria-hidden="true"
+          className={[
+            'pointer-events-none absolute z-[1] -translate-x-1/2 -translate-y-1/2 rounded-full border bg-[var(--surface-panel)] px-1.5 py-0.5',
+            'text-[10px] font-semibold leading-none shadow-[0_1px_5px_-3px_rgb(34_43_51_/_0.35)] [font-variant-numeric:tabular-nums] md:text-[11px]',
+            annotation.tone === 'gain'
+              ? 'border-success-100 text-success-700'
+              : 'border-error-100 text-error-700',
+          ].join(' ')}
+          style={{
+            left: `${annotation.xRatio * 100}%`,
+            top: `${annotation.yRatio * 100}%`,
+          }}
+        >
+          {annotation.label}
+        </div>
+      ))}
       <div className="pointer-events-none absolute bottom-3 left-[3.6rem] right-4 flex justify-between text-[11px] text-ink-500">
         <span>{formatShortDate(startIso)}</span>
         <span>{formatShortDate(endIso)}</span>
@@ -327,6 +355,29 @@ function FtpChart({
       )}
     </div>
   );
+}
+
+function buildStepChangeAnnotations(
+  coords: readonly (FtpPoint & { x: number; y: number })[]
+): StepChangeAnnotation[] {
+  const annotations: StepChangeAnnotation[] = [];
+  for (let index = 1; index < coords.length; index++) {
+    const point = coords[index];
+    if (point.kind !== 'logged') continue;
+
+    const previous = coords[index - 1];
+    const delta = point.value - previous.value;
+    if (delta === 0 || previous.value <= 0) continue;
+
+    annotations.push({
+      id: `${point.iso}-${point.value}-${previous.value}`,
+      label: `${delta > 0 ? '+' : ''}${delta} W (${Math.abs((delta / previous.value) * 100).toFixed(1)}%)`,
+      tone: delta > 0 ? 'gain' : 'loss',
+      xRatio: point.x / CHART_W,
+      yRatio: ((point.y + previous.y) / 2) / CHART_H,
+    });
+  }
+  return annotations;
 }
 
 function TrendStat({
