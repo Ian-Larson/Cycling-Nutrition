@@ -85,6 +85,47 @@ describe('during-ride timeline', () => {
       true,
     );
   });
+
+  it('names solid sources in ride cues when the pack list has product names', () => {
+    const during: DuringRidePrescription = {
+      carbsGPerHour: 60,
+      totalCarbsGrams: 120,
+      hydrationMlPerHour: 700,
+      totalHydrationMl: 1400,
+      sodiumMgPerHour: 400,
+      sodiumMgPerLiterTargetInBottles: 571,
+      bottleConcentrationGPerMl: 0.086,
+      usesMultiTransportableCarbs: false,
+      strategy: 'steady',
+    };
+
+    const items = buildDuringTimeline(
+      during,
+      {
+        bottles: [],
+        solids: [
+          {
+            productId: 'gel',
+            productName: 'GU Energy Gel',
+            quantity: 1,
+            carbsTotal: 22,
+            timingIntervalMinutes: 60,
+          },
+          {
+            productId: 'chew',
+            productName: 'PF 30 Chew',
+            quantity: 1,
+            carbsTotal: 30,
+            timingIntervalMinutes: 60,
+          },
+        ],
+      },
+      120,
+    );
+
+    expect(items.some((item) => item.action === 'Eat GU Energy Gel')).toBe(true);
+    expect(items.some((item) => item.action === 'Eat PF 30 Chew')).toBe(true);
+  });
 });
 
 describe('post-ride timeline', () => {

@@ -11,6 +11,70 @@ export interface SolidAllocationResult {
 /** Maximum units of any single product to allocate. */
 const MAX_UNITS_PER_PRODUCT = 10;
 
+interface SolidCandidate {
+  product: Product;
+  carbsPerUnit: number;
+}
+
+function getAvailableSolidCandidates(products: Product[]): SolidCandidate[] {
+  return products
+    .filter((p) => p.type !== 'drink_mix' && p.isAvailable)
+    .map((product) => ({
+      product,
+      carbsPerUnit: product.nutrition.carbsGrams,
+    }))
+    .filter((candidate) => candidate.carbsPerUnit > 0);
+}
+
+function chooseSeedCandidateIndexes(
+  candidates: SolidCandidate[],
+  targetCarbs: number,
+): number[] {
+  if (targetCarbs <= 0) return [];
+
+  if (candidates.length <= 12) {
+    let bestIndexes: number[] = [];
+    let bestCarbs = 0;
+    const subsetCount = 1 << candidates.length;
+
+    for (let mask = 1; mask < subsetCount; mask++) {
+      const indexes: number[] = [];
+      let carbs = 0;
+
+      for (let index = 0; index < candidates.length; index++) {
+        if ((mask & (1 << index)) === 0) continue;
+        indexes.push(index);
+        carbs += candidates[index].carbsPerUnit;
+      }
+
+      if (carbs > targetCarbs) continue;
+      if (
+        indexes.length > bestIndexes.length ||
+        (indexes.length === bestIndexes.length && carbs > bestCarbs)
+      ) {
+        bestIndexes = indexes;
+        bestCarbs = carbs;
+      }
+    }
+
+    return bestIndexes;
+  }
+
+  const chosen: number[] = [];
+  let remaining = targetCarbs;
+  const sortedIndexes = candidates
+    .map((candidate, index) => ({ index, carbsPerUnit: candidate.carbsPerUnit }))
+    .sort((a, b) => a.carbsPerUnit - b.carbsPerUnit);
+
+  for (const candidate of sortedIndexes) {
+    if (candidate.carbsPerUnit > remaining) continue;
+    chosen.push(candidate.index);
+    remaining -= candidate.carbsPerUnit;
+  }
+
+  return chosen;
+}
+
 /**
  * Build solid allocations directly from explicit per-product quantities,
  * bypassing the auto-fill greedy allocator. Used when the rider has
@@ -44,6 +108,7 @@ export function buildSolidAllocationsFromOverrides(
 
     allocations.push({
       productId: product.id,
+      productName: product.name,
       quantity: qty,
       carbsTotal,
       sodiumMgTotal: sodiumMgTotal > 0 ? sodiumMgTotal : undefined,
@@ -64,9 +129,9 @@ export function buildSolidAllocationsFromOverrides(
 }
 
 /**
- * Fill the carb gap between drink mix and total target using solid products.
- * Distributes greedily, highest-carb products first, and computes timing
- * intervals for each product.
+ * Fill the carb gap between drink mix and total target using selected solids.
+ * Seeds the pack with as many different selected sources as the gap can
+ * support, then tops up practical units without exceeding the target.
  */
 export function allocateSolids(
   products: Product[],
@@ -84,31 +149,50 @@ export function allocateSolids(
     };
   }
 
-  // Filter to available solids only (exclude drink mixes)
-  const solids = products.filter(
-    (p) => p.type !== 'drink_mix' && p.isAvailable,
-  );
-
-  // Sort by carbs descending so highest-carb products fill the most per unit
-  const sorted = [...solids].sort(
-    (a, b) => b.nutrition.carbsGrams - a.nutrition.carbsGrams,
-  );
+  const candidates = getAvailableSolidCandidates(products);
+  const quantityByProductId = new Map<string, number>();
 
   let remaining = carbsRemainingGrams;
   let totalCarbsFromSolids = 0;
   let totalCaffeineMgFromSolids = 0;
   const allocations: SolidAllocation[] = [];
 
-  for (const product of sorted) {
-    if (remaining <= 0) break;
-
-    const carbsPerUnit = product.nutrition.carbsGrams;
-    if (carbsPerUnit <= 0) continue;
-
-    const quantity = Math.min(
-      Math.floor(remaining / carbsPerUnit),
-      MAX_UNITS_PER_PRODUCT,
+  const addUnit = (candidate: SolidCandidate) => {
+    quantityByProductId.set(
+      candidate.product.id,
+      (quantityByProductId.get(candidate.product.id) ?? 0) + 1,
     );
+    remaining -= candidate.carbsPerUnit;
+  };
+
+  for (const index of chooseSeedCandidateIndexes(candidates, remaining)) {
+    addUnit(candidates[index]);
+  }
+
+  while (remaining > 0) {
+    const next = [...candidates]
+      .filter((candidate) => {
+        const quantity = quantityByProductId.get(candidate.product.id) ?? 0;
+        return (
+          quantity < MAX_UNITS_PER_PRODUCT &&
+          candidate.carbsPerUnit <= remaining
+        );
+      })
+      .sort((a, b) => {
+        const quantityA = quantityByProductId.get(a.product.id) ?? 0;
+        const quantityB = quantityByProductId.get(b.product.id) ?? 0;
+        return quantityA - quantityB || b.carbsPerUnit - a.carbsPerUnit;
+      })[0];
+
+    if (!next) break;
+    addUnit(next);
+  }
+
+  for (const candidate of candidates) {
+    const product = candidate.product;
+    const carbsPerUnit = candidate.carbsPerUnit;
+    const quantity = quantityByProductId.get(product.id) ?? 0;
+
     if (quantity <= 0) continue;
 
     const carbsTotal = quantity * carbsPerUnit;
@@ -116,10 +200,14 @@ export function allocateSolids(
     const sodiumMgTotal = (product.nutrition.sodiumMg ?? 0) * quantity;
 
     // Evenly space consumption across the ride duration
-    const timingIntervalMinutes = Math.round(durationMinutes / (quantity + 1));
+    const timingIntervalMinutes = Math.max(
+      1,
+      Math.round(durationMinutes / (quantity + 1)),
+    );
 
     allocations.push({
       productId: product.id,
+      productName: product.name,
       quantity,
       carbsTotal,
       sodiumMgTotal: sodiumMgTotal > 0 ? sodiumMgTotal : undefined,
@@ -127,7 +215,6 @@ export function allocateSolids(
       timingIntervalMinutes,
     });
 
-    remaining -= carbsTotal;
     totalCarbsFromSolids += carbsTotal;
     totalCaffeineMgFromSolids += caffeineMgTotal;
   }

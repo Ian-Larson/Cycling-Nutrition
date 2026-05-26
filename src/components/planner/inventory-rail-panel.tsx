@@ -143,10 +143,11 @@ export function InventoryRailPanel({
               ? filters.map(({ value, label, count }) => (
                   <Chip
                     key={value}
-                    size="sm"
+                    size="md"
                     tone="subtle"
                     selected={filter === value}
                     onClick={() => setFilter(value)}
+                    className="md:min-h-7 md:px-2.5 md:py-1 md:text-xs"
                   >
                     {label}
                     <span className="ml-1 text-[0.66rem] text-ink-500 tabular-nums">
@@ -158,7 +159,7 @@ export function InventoryRailPanel({
             <button
               type="button"
               onClick={() => setMode({ kind: 'add' })}
-              className="ml-auto inline-flex items-center gap-1 rounded-full border border-brand-300 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+              className="ml-auto inline-flex min-h-11 items-center gap-1 rounded-full border border-brand-300 bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:min-h-7 md:px-2.5 md:py-1 md:text-xs"
               aria-label="Add fuel"
             >
               <svg

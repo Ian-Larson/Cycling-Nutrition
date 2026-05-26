@@ -50,6 +50,27 @@ describe('PlannerPage weight gate', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('supports submitting the quick weight form from the keyboard', () => {
+    useStore.setState((state) => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        athleteProfile: { ...originalProfile, weightKg: undefined },
+      },
+    }));
+
+    renderPlanner();
+
+    fireEvent.change(screen.getByLabelText(/Weight, kg/i), {
+      target: { value: '68' },
+    });
+    fireEvent.submit(
+      screen.getByRole('form', { name: /Set rider weight/i }),
+    );
+
+    expect(useStore.getState().settings.athleteProfile.weightKg).toBe(68);
+  });
+
   it('does not render the gate when weightKg is set', () => {
     useStore.setState((state) => ({
       ...state,
@@ -63,5 +84,20 @@ describe('PlannerPage weight gate', () => {
     expect(
       screen.queryByRole('heading', { name: /Set your weight to plan/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it('does not announce draft saved before the rider changes the planner', () => {
+    useStore.setState((state) => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        athleteProfile: { ...originalProfile, weightKg: 70 },
+      },
+      plannerDraft: null,
+    }));
+
+    renderPlanner();
+
+    expect(screen.queryByText(/Draft saved/i)).not.toBeInTheDocument();
   });
 });

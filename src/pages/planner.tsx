@@ -5,7 +5,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
   Input,
   SegmentedControl,
   Tab,
@@ -257,7 +256,8 @@ export function PlannerPage() {
   >(initialDraft?.ride ? getRideFormSnapshotFromRide(initialDraft.ride) : undefined);
   const [rideFormInstanceKey, setRideFormInstanceKey] = useState(0);
 
-  const draftInitializedRef = useRef(false);
+  const previousDraftSignatureRef = useRef<string | null>(null);
+  const planStepRef = useRef<HTMLDivElement | null>(null);
   const [draftSavedFlash, setDraftSavedFlash] = useState(false);
 
   const markPlanStale = useCallback(() => {
@@ -278,17 +278,23 @@ export function PlannerPage() {
   );
 
   useEffect(() => {
-    setPlannerDraft({
+    const nextDraft = {
       ride: persistedRide,
       selectedBottleCounts: bottlePool,
       selectedDrinkMixId,
       selectedSolidIds,
       title: planTitle || undefined,
-    });
-    if (!draftInitializedRef.current) {
-      draftInitializedRef.current = true;
+    };
+    const nextSignature = JSON.stringify(nextDraft);
+
+    setPlannerDraft(nextDraft);
+    if (previousDraftSignatureRef.current === null) {
+      previousDraftSignatureRef.current = nextSignature;
       return;
     }
+    if (previousDraftSignatureRef.current === nextSignature) return;
+
+    previousDraftSignatureRef.current = nextSignature;
     const showTimer = setTimeout(() => setDraftSavedFlash(true), 0);
     const hideTimer = setTimeout(() => setDraftSavedFlash(false), 1600);
     return () => {
@@ -303,6 +309,18 @@ export function PlannerPage() {
     planTitle,
     setPlannerDraft,
   ]);
+
+  const scrollPlanIntoView = useCallback(() => {
+    window.requestAnimationFrame(() => {
+      const prefersReducedMotion =
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      planStepRef.current?.scrollIntoView({
+        block: 'start',
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      });
+    });
+  }, []);
 
   const handleBottleCountChange = (size: BottleSize, count: number) => {
     markPlanStale();
@@ -410,6 +428,7 @@ export function PlannerPage() {
     setActiveStep(3);
     setResultTab('pack');
     setToastMessage(null);
+    scrollPlanIntoView();
   };
 
   const handleSolidQuantityChange = (productId: string, quantity: number) => {
@@ -536,6 +555,8 @@ export function PlannerPage() {
   const setupComplete = canCalculate;
   const rideComplete = Boolean(persistedRide) && rideFormCanCalculate;
   const canOpenPlan = canOpenStep(3);
+  const showDebugCopy =
+    import.meta.env.DEV && searchParams.get('debug') === '1';
 
   return (
     <>
@@ -549,12 +570,8 @@ export function PlannerPage() {
           }
           meta={
             <div aria-live="polite" className="text-xs text-ink-500">
-              {activeStep !== 3 && (
-                <span
-                  className={`inline-flex items-center gap-1 transition-opacity duration-300 ${
-                    draftSavedFlash ? 'opacity-100' : 'opacity-0'
-                  }`}
-                >
+              {activeStep !== 3 && draftSavedFlash && (
+                <span className="inline-flex items-center gap-1 transition-opacity duration-300">
                   <svg
                     viewBox="0 0 16 16"
                     fill="none"
@@ -590,44 +607,50 @@ export function PlannerPage() {
                       then keep building the ride plan.
                     </p>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem] sm:items-end">
-                    <Input
-                      id="planner-quick-weight"
-                      label={`Weight, ${quickWeightUnit === 'imperial' ? 'lb' : 'kg'}`}
-                      type="number"
-                      min="1"
-                      inputMode="decimal"
-                      value={quickWeightInput}
-                      onChange={(event) => {
-                        setQuickWeightInput(event.target.value);
-                        setQuickWeightError(undefined);
-                      }}
-                      placeholder={quickWeightUnit === 'imperial' ? '160' : '72'}
-                      error={quickWeightError}
-                    />
-                    <SegmentedControl
-                      size="sm"
-                      label="Weight unit"
-                      options={[
-                        { value: 'metric', label: 'kg' },
-                        { value: 'imperial', label: 'lb' },
-                      ]}
-                      value={quickWeightUnit}
-                      onChange={handleQuickWeightUnitChange}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <Button type="button" onClick={handleQuickWeightSubmit}>
-                      Use this weight
-                    </Button>
-                    <Link
-                      to="/account#athlete"
-                      className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:min-h-10"
-                    >
-                      Edit full profile
-                    </Link>
-                  </div>
+                  <form
+                    aria-label="Set rider weight"
+                    className="space-y-4"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      handleQuickWeightSubmit();
+                    }}
+                  >
+                    <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem] sm:items-end">
+                      <Input
+                        id="planner-quick-weight"
+                        label={`Weight, ${quickWeightUnit === 'imperial' ? 'lb' : 'kg'}`}
+                        type="number"
+                        min="1"
+                        inputMode="decimal"
+                        value={quickWeightInput}
+                        onChange={(event) => {
+                          setQuickWeightInput(event.target.value);
+                          setQuickWeightError(undefined);
+                        }}
+                        placeholder={quickWeightUnit === 'imperial' ? '160' : '72'}
+                        error={quickWeightError}
+                      />
+                      <SegmentedControl
+                        label="Weight unit"
+                        options={[
+                          { value: 'metric', label: 'kg' },
+                          { value: 'imperial', label: 'lb' },
+                        ]}
+                        value={quickWeightUnit}
+                        onChange={handleQuickWeightUnitChange}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <Button type="submit">Use this weight</Button>
+                      <Link
+                        to="/account#athlete"
+                        className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:min-h-10"
+                      >
+                        Edit full profile
+                      </Link>
+                    </div>
+                  </form>
                 </CardContent>
               </Card>
             ) : (
@@ -700,23 +723,24 @@ export function PlannerPage() {
                 </section>
               </PlanningStepPanel>
 
-              <PlanningStepPanel
-                step={3}
-                title="Plan"
-                summary={
-                  prescription
-                    ? planIsStale
-                      ? 'Review old result or rebuild'
-                      : 'Plan ready'
-                    : 'Build from ride data'
-                }
-                active={activeStep === 3}
-                complete={Boolean(prescription) && !planIsStale}
-                stale={planIsStale}
-                disabled={!canOpenPlan}
-                disabledReason="Enter valid ride data first."
-                onToggle={() => handleStepSelect(3)}
-              >
+              <div ref={planStepRef} className="scroll-mt-20 md:scroll-mt-24">
+                <PlanningStepPanel
+                  step={3}
+                  title="Plan"
+                  summary={
+                    prescription
+                      ? planIsStale
+                        ? 'Review old result or rebuild'
+                        : 'Plan ready'
+                      : 'Build from ride data'
+                  }
+                  active={activeStep === 3}
+                  complete={Boolean(prescription) && !planIsStale}
+                  stale={planIsStale}
+                  disabled={!canOpenPlan}
+                  disabledReason="Enter valid ride data first."
+                  onToggle={() => handleStepSelect(3)}
+                >
                 {planIsStale ? (
                   <Alert variant="warning" className="mb-4">
                     This result uses previous inputs. Rebuild to use the current
@@ -726,23 +750,20 @@ export function PlannerPage() {
 
                 {prescription ? (
                   <div className="space-y-4">
-                    <Card className="overflow-hidden">
-                      <CardContent className="space-y-3">
-                        <Tabs
-                          value={resultTab}
-                          onChange={(value) => setResultTab(value as ResultTab)}
-                        >
-                          <TabList
-                            label="Fuel plan view"
-                            className="grid w-full grid-cols-3 gap-1.5 md:gap-2"
-                          >
-                            <Tab value="pack">Bring</Tab>
-                            <Tab value="guide">Ride cues</Tab>
-                            <Tab value="metrics">Numbers</Tab>
-                          </TabList>
-                        </Tabs>
-                      </CardContent>
-                    </Card>
+                    <Tabs
+                      value={resultTab}
+                      onChange={(value) => setResultTab(value as ResultTab)}
+                      className="rounded-full border border-[color:var(--border-soft)] bg-white p-1"
+                    >
+                      <TabList
+                        label="Fuel plan view"
+                        className="grid w-full grid-cols-3 gap-1.5 md:gap-2"
+                      >
+                        <Tab value="pack">Bring</Tab>
+                        <Tab value="guide">Ride cues</Tab>
+                        <Tab value="metrics">Targets</Tab>
+                      </TabList>
+                    </Tabs>
 
                     <FuelResultV3
                       section={resultTab}
@@ -752,47 +773,44 @@ export function PlannerPage() {
                       onSolidQuantityChange={handleSolidQuantityChange}
                     />
 
-                    <Card className="overflow-hidden">
-                      <CardHeader className="bg-[var(--surface-soft)]">
-                        <div className="space-y-1">
-                          <h3 className="section-title">Save for later</h3>
-                          <p className="text-sm leading-5 text-ink-600">
-                            Optional. The prep list above is ready now.
-                          </p>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3 md:space-y-4">
-                        <Input
-                          id="plan-title"
-                          label="Plan name"
-                          value={planTitle}
-                          onChange={(event) => setPlanTitle(event.target.value)}
-                          placeholder="Optional"
-                        />
+                    <section className="space-y-3 border-t border-[color:var(--border-soft)] pt-4">
+                      <div className="space-y-1">
+                        <h3 className="section-title">Save for later</h3>
+                        <p className="text-sm leading-5 text-ink-600">
+                          Optional. The prep list above is ready now.
+                        </p>
+                      </div>
 
-                        <div className="grid gap-2 sm:flex sm:flex-wrap">
-                          <Button
-                            type="button"
-                            className="w-full sm:w-auto"
-                            onClick={
-                              planIsStale ? handleBuildPlanRequest : handleSavePlan
-                            }
-                          >
-                            {planIsStale ? 'Rebuild plan' : 'Save plan'}
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            className="w-full sm:w-auto"
-                            onClick={handleResetPlan}
-                          >
-                            Start over
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                      <Input
+                        id="plan-title"
+                        label="Plan name"
+                        value={planTitle}
+                        onChange={(event) => setPlanTitle(event.target.value)}
+                        placeholder="Optional"
+                      />
 
-                    {import.meta.env.DEV && (
+                      <div className="grid gap-2 sm:flex sm:flex-wrap">
+                        <Button
+                          type="button"
+                          className="w-full sm:w-auto"
+                          onClick={
+                            planIsStale ? handleBuildPlanRequest : handleSavePlan
+                          }
+                        >
+                          {planIsStale ? 'Rebuild plan' : 'Save plan'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          className="w-full sm:w-auto"
+                          onClick={handleResetPlan}
+                        >
+                          Start over
+                        </Button>
+                      </div>
+                    </section>
+
+                    {showDebugCopy && (
                       <DebugCopyButton
                         prescription={prescription}
                         products={products}
@@ -819,7 +837,8 @@ export function PlannerPage() {
                     </CardContent>
                   </Card>
                 )}
-              </PlanningStepPanel>
+                </PlanningStepPanel>
+              </div>
             </>
             )
           }

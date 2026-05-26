@@ -24,6 +24,28 @@ const drinkMix: Product = {
   updatedAt: 0,
 };
 
+const gel: Product = {
+  id: 'gel',
+  name: 'Test gel',
+  type: 'gel',
+  isAvailable: true,
+  nutrition: { carbsGrams: 22, calories: 100 },
+  serving: {},
+  createdAt: 0,
+  updatedAt: 0,
+};
+
+const chew: Product = {
+  id: 'chew',
+  name: 'Test chew',
+  type: 'chews',
+  isAvailable: true,
+  nutrition: { carbsGrams: 30, calories: 120 },
+  serving: {},
+  createdAt: 0,
+  updatedAt: 0,
+};
+
 describe('useFuelPrescription', () => {
   beforeEach(() => {
     useStore.setState((state) => ({
@@ -95,5 +117,27 @@ describe('useFuelPrescription', () => {
     });
     expect(out).not.toBeNull();
     expect(out!.packList?.fluidShortfallMl).toBeGreaterThan(0);
+  });
+
+  it('keeps multiple selected solid sources in the generated pack list', () => {
+    const longRide: RideCharacteristics = {
+      ...ride,
+      durationMinutes: 120,
+      carbTargetGramsPerHour: 90,
+    };
+
+    const { result } = renderHook(() => useFuelPrescription());
+    const out = result.current.build({
+      ride: longRide,
+      bottles: [{ capacityMl: 750 }],
+      drinkMix,
+      solids: [gel, chew],
+    });
+
+    expect(out).not.toBeNull();
+    expect(out!.packList?.solids.map((solid) => solid.productId)).toEqual([
+      'gel',
+      'chew',
+    ]);
   });
 });

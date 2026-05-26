@@ -50,19 +50,21 @@ export function buildDuringTimeline(
     [];
   if (packList && packList.solids.length > 0) {
     let solidIndex = 0;
+    const totalSolidItems = packList.solids.reduce(
+      (sum, s) => sum + s.quantity,
+      0,
+    );
     for (const solid of packList.solids) {
       for (let q = 0; q < solid.quantity; q++) {
         // Distribute solids evenly across the ride
-        const totalSolidItems = packList.solids.reduce(
-          (sum, s) => sum + s.quantity,
-          0,
-        );
         const solidInterval = durationMinutes / (totalSolidItems + 1);
         const offset = Math.round(solidInterval * (solidIndex + 1));
         solidEvents.push({
           offset: Math.min(offset, durationMinutes - 1),
           carbsGrams: solid.carbsTotal / solid.quantity,
-          label: `Eat solid #${solidIndex + 1}`,
+          label: solid.productName
+            ? `Eat ${solid.productName}`
+            : `Eat solid #${solidIndex + 1}`,
         });
         solidIndex++;
       }

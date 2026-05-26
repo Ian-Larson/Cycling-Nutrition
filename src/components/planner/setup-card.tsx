@@ -76,7 +76,7 @@ function BottleSizeCounter({
   return (
     <div
       className={clsx(
-        'flex flex-col items-center gap-2 rounded-xl border px-3 py-3 transition-colors',
+        'flex items-center justify-between gap-3 rounded-xl border px-3 py-3 transition-colors sm:flex-col sm:justify-start sm:gap-2',
         count > 0
           ? 'border-brand-300 bg-brand-50/60'
           : 'border-[color:var(--border-soft)] bg-white'
@@ -88,18 +88,18 @@ function BottleSizeCounter({
           type="button"
           disabled={count <= 0}
           onClick={() => onChange(count - 1)}
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-white text-ink-700 transition-colors hover:bg-shell-100 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-11 w-11 items-center justify-center rounded-xl border border-[color:var(--border-soft)] bg-white text-ink-700 transition-colors hover:bg-shell-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 disabled:cursor-not-allowed disabled:opacity-40 md:h-8 md:w-8 md:rounded-lg"
           aria-label={`Remove one ${size}ml bottle`}
         >
           −
         </button>
-        <span className="w-4 text-center font-semibold tabular-nums text-ink-900">
+        <span className="w-7 text-center font-semibold tabular-nums text-ink-900 md:w-4">
           {count}
         </span>
         <button
           type="button"
           onClick={() => onChange(count + 1)}
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-white text-ink-700 transition-colors hover:bg-shell-100"
+          className="flex h-11 w-11 items-center justify-center rounded-xl border border-[color:var(--border-soft)] bg-white text-ink-700 transition-colors hover:bg-shell-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:h-8 md:w-8 md:rounded-lg"
           aria-label={`Add one ${size}ml bottle`}
         >
           +
@@ -165,7 +165,7 @@ export function SetupCard({
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent className="border-t border-[color:var(--border-soft)] px-4 py-4 md:px-5">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid gap-2 sm:grid-cols-3">
               {BOTTLE_SIZES.map((size) => (
                 <BottleSizeCounter
                   key={size}

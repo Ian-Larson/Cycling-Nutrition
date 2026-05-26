@@ -548,7 +548,7 @@ export function RideForm({
                   />
                 </div>
                 <p className="text-sm leading-6 text-ink-600">
-                  Use moving time. Tab between hours and minutes.
+                  Use moving time.
                 </p>
               </div>
               <PresetButtons
@@ -592,7 +592,7 @@ export function RideForm({
                 </div>
                 <div>
                   <p className="mt-1 text-sm leading-6 text-ink-600">
-                    Set your intake target.
+                    Pick the intake target you can tolerate.
                   </p>
                 </div>
               </div>
@@ -766,7 +766,7 @@ export function RideForm({
               <Alert variant="warning">
                 Add FTP in{' '}
                 <Link className="font-medium underline" to="/account?return=planner-step2">
-                  Athlete
+                  Account
                 </Link>{' '}
                 to use auto mode.
               </Alert>

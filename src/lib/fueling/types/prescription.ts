@@ -92,6 +92,7 @@ export interface BottleAllocation {
 
 export interface SolidAllocation {
   productId: string;
+  productName?: string;
   quantity: number;
   carbsTotal: number;
   sodiumMgTotal?: number;

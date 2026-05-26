@@ -39,7 +39,7 @@ describe('planner summaries', () => {
   it('formats durations for minutes and hours', () => {
     expect(formatDuration(45)).toBe('45m');
     expect(formatDuration(135)).toBe('2h 15m');
-    expect(formatDuration(120)).toBe('2h 0m');
+    expect(formatDuration(120)).toBe('2h');
   });
 
   it('summarizes a valid setup', () => {
@@ -68,6 +68,9 @@ describe('planner summaries', () => {
 
   it('suggests a saved plan title from ride details', () => {
     expect(getPlanTitleSuggestion(ride)).toBe('2h 15m Tempo - 80g/h');
+    expect(
+      getPlanTitleSuggestion({ ...ride, durationMinutes: 120 }),
+    ).toBe('2h Tempo - 80g/h');
   });
 
   it('recognizes generated titles so stale auto-names can update', () => {

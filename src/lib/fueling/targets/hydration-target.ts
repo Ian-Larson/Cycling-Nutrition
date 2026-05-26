@@ -68,7 +68,7 @@ export function hydrationTarget(context: FuelingContext): HydrationTargetResult 
     warnings.push({
       code: 'hyponatremia-risk',
       severity: 'warn',
-      message: 'Fluid intake exceeds predicted sweat rate — risk of hyponatremia',
+      message: 'Fluid intake exceeds predicted sweat rate, risk of hyponatremia',
       details: {
         intakeMlPerHour: Math.round(mlPerHour),
         sweatMlPerHour: Math.round(sweatMlPerHour),

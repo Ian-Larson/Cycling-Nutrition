@@ -16,6 +16,13 @@ const bar: Product = {
   createdAt: 0, updatedAt: 0,
 };
 
+const chews: Product = {
+  id: 'chew1', name: 'PF 30 Chew', type: 'chews', isAvailable: true,
+  nutrition: { carbsGrams: 30, calories: 120 },
+  serving: { servingSizeGrams: 36 },
+  createdAt: 0, updatedAt: 0,
+};
+
 describe('allocateSolids', () => {
   it('fills carb gap with available solids', () => {
     // 100g gap: bar (40g) x2 = 80g, then gel (22g) x0 (20g remaining < 22g)
@@ -28,6 +35,20 @@ describe('allocateSolids', () => {
   it('tracks caffeine from solids', () => {
     const result = allocateSolids([gel], 44, 120);
     expect(result.totalCaffeineMgFromSolids).toBeGreaterThan(0);
+  });
+
+  it('spreads a practical solid gap across multiple selected sources', () => {
+    const result = allocateSolids([gel, chews], 60, 120);
+
+    expect(result.allocations.map((allocation) => allocation.productId)).toEqual([
+      'g1',
+      'chew1',
+    ]);
+    expect(result.allocations.map((allocation) => allocation.quantity)).toEqual([
+      1,
+      1,
+    ]);
+    expect(result.totalCarbsFromSolids).toBe(52);
   });
 
   it('returns empty when no gap', () => {

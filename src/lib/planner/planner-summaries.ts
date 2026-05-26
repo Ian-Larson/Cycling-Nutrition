@@ -6,7 +6,7 @@ import type { Product, RideCharacteristics } from '@/types';
 export function formatDuration(mins: number): string {
   const h = Math.floor(mins / 60);
   const m = mins % 60;
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
 }
 
 export function formatDateTime(timestamp: number): string {
