@@ -518,6 +518,26 @@ describe('FTP history actions', () => {
     useStore.getState().removeFtpEntry(id);
     expect(useStore.getState().ftpHistory).toHaveLength(0);
   });
+
+  it('recordFtpEntry appends history and promotes the newest FTP to the profile', () => {
+    useStore.setState({
+      settings: {
+        ...useStore.getState().settings,
+        athleteProfile: {
+          ...useStore.getState().settings.athleteProfile,
+          ftpWatts: 250,
+        },
+      },
+    });
+
+    useStore.getState().recordFtpEntry({
+      recordedAt: '2026-05-26',
+      ftpWatts: 285,
+    });
+
+    expect(useStore.getState().ftpHistory).toHaveLength(1);
+    expect(useStore.getState().settings.athleteProfile.ftpWatts).toBe(285);
+  });
 });
 
 describe('Weight history actions', () => {

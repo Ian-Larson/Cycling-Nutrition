@@ -6,7 +6,6 @@ import { TrendMultiples } from '@/components/performance/trend-multiples';
 import { PrTiles } from '@/components/performance/pr-tiles';
 import { PowerProfileHexagon } from '@/components/performance/power-profile-hexagon';
 import { RecentRides } from '@/components/performance/recent-rides';
-import { SetupCard } from '@/components/performance/setup-card';
 import { ConnectStravaCard } from '@/components/performance/connect-strava-card';
 import { DataStatusFooter } from '@/components/performance/data-status-footer';
 import { computeCurrentWkg } from '@/lib/performance/wkg';
@@ -27,8 +26,8 @@ export function PerformancePage() {
   const [period, setPeriod] = useState<PeriodKey>('90d');
 
   const ftpHistory = useStore((s) => s.ftpHistory);
-  const weightHistory = useStore((s) => s.weightHistory);
   const profile = useStore((s) => s.settings.athleteProfile);
+  const recordFtpEntry = useStore((s) => s.recordFtpEntry);
   const bikes = useStore((s) => s.bikes);
 
   const { stravaConnection, connectStrava } = useAuth();
@@ -42,7 +41,6 @@ export function PerformancePage() {
   const hasFitness =
     profile.ftpWatts !== undefined && profile.weightKg !== undefined;
   const hasAnyActivity = activities.length > 0;
-  const showDataExperience = hasFitness || isStravaConnected;
 
   const applyBikeLinks = useCallback(async () => {
     const supabase = getSupabaseClient();
@@ -134,74 +132,51 @@ export function PerformancePage() {
   return (
     <div className="page-shell space-y-4 md:space-y-6">
       <PageIntro
-        title="Performance"
-        description="Current fitness, power records, and recent rides in one quick check."
-        meta={
-          showDataExperience ? (
-            <PeriodControl value={period} onChange={setPeriod} />
-          ) : null
-        }
+        title="FTP tracker"
+        description="Log threshold changes and keep the power line visible over time."
+        meta={<PeriodControl value={period} onChange={setPeriod} />}
       />
 
-      {!showDataExperience ? (
-        <SetupCard
-          hasFitness={hasFitness}
-          isStravaConnected={isStravaConnected}
-          onConnectStrava={connectStrava}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(20rem,0.82fr)] xl:items-start">
+        <TrendMultiples
+          ftpHistory={ftpHistory}
+          ftpWatts={profile.ftpWatts}
+          period={period}
         />
-      ) : (
+        <SnapshotCard
+          currentWkg={currentWkg}
+          ftpWatts={profile.ftpWatts}
+          weightKg={profile.weightKg}
+          ftpHistory={ftpHistory}
+          period={period}
+          onRecordFtp={recordFtpEntry}
+        />
+      </div>
+
+      {showPrSections && (
         <>
-          <SnapshotCard
-            currentWkg={currentWkg}
-            ftpWatts={profile.ftpWatts}
-            weightKg={profile.weightKg}
-            ftpHistory={ftpHistory}
-            weightHistory={weightHistory}
-            period={period}
+          <PrTiles
+            tiles={records.tiles}
+            isLoading={records.isLoading}
+            error={records.error}
           />
-
-          <TrendMultiples
-            ftpHistory={ftpHistory}
-            weightHistory={weightHistory}
-            ftpWatts={profile.ftpWatts}
-            weightKg={profile.weightKg}
-            period={period}
+          <PowerProfileHexagon
+            current={records.radar.current}
+            comparison={records.radar.comparison}
+            currentLabel={records.radar.currentLabel}
+            comparisonLabel={records.radar.comparisonLabel}
+            isLoading={records.isLoading}
+            error={records.error}
           />
-
-          {showPrSections && (
-            <>
-              <PrTiles
-                tiles={records.tiles}
-                isLoading={records.isLoading}
-                error={records.error}
-              />
-              <PowerProfileHexagon
-                current={records.radar.current}
-                comparison={records.radar.comparison}
-                currentLabel={records.radar.currentLabel}
-                comparisonLabel={records.radar.comparisonLabel}
-                isLoading={records.isLoading}
-                error={records.error}
-              />
-              <RecentRides activities={activities} />
-            </>
-          )}
-
-          {hasFitness && !isStravaConnected && (
-            <ConnectStravaCard onConnect={connectStrava} />
-          )}
-
-          {!hasFitness && (
-            <SetupCard
-              hasFitness={hasFitness}
-              isStravaConnected={isStravaConnected}
-              onConnectStrava={connectStrava}
-            />
-          )}
-
-          {footer}
+          <RecentRides activities={activities} />
         </>
       )}
+
+      {!isStravaConnected && (
+        <ConnectStravaCard onConnect={connectStrava} />
+      )}
+
+      {footer}
     </div>
   );
 }

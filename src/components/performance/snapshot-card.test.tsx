@@ -1,10 +1,11 @@
 import { render, screen } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { SnapshotCard } from './snapshot-card';
 
 describe('SnapshotCard', () => {
-  it('presents the current fitness brief with the key editable inputs', () => {
+  it('presents current FTP without the old fitness brief', () => {
     render(
       <MemoryRouter>
         <SnapshotCard
@@ -12,18 +13,45 @@ describe('SnapshotCard', () => {
           ftpWatts={280}
           weightKg={70}
           ftpHistory={[]}
-          weightHistory={[]}
           period="90d"
+          onRecordFtp={() => {}}
         />
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/Fitness brief/i)).toBeInTheDocument();
-    expect(screen.getByText('4.00')).toBeInTheDocument();
+    expect(screen.queryByText(/Fitness brief/i)).not.toBeInTheDocument();
+    expect(screen.getByText('Current FTP')).toBeInTheDocument();
     expect(screen.getByText(/280 W/i)).toBeInTheDocument();
-    expect(screen.getByText(/70\.0 kg/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: /Update profile/i })
-    ).toHaveAttribute('href', '/account#athlete');
+    expect(screen.getByText(/4\.00 w\/kg/i)).toBeInTheDocument();
+  });
+
+  it('records FTP directly from the performance page', () => {
+    const onRecordFtp = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <SnapshotCard
+          currentWkg={4}
+          ftpWatts={280}
+          weightKg={70}
+          ftpHistory={[]}
+          period="90d"
+          onRecordFtp={onRecordFtp}
+        />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByLabelText(/FTP date/i), {
+      target: { value: '2026-05-26' },
+    });
+    fireEvent.change(screen.getByLabelText(/FTP watts/i), {
+      target: { value: '292' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Save FTP/i }));
+
+    expect(onRecordFtp).toHaveBeenCalledWith({
+      recordedAt: '2026-05-26',
+      ftpWatts: 292,
+    });
   });
 });

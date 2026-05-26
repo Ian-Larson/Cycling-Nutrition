@@ -244,6 +244,7 @@ export interface AppState {
   updateAthleteProfile: (updates: Partial<AthleteProfile>) => void;
 
   addFtpEntry: (entry: Omit<FtpHistoryEntry, 'id'>) => void;
+  recordFtpEntry: (entry: Omit<FtpHistoryEntry, 'id'>) => void;
   editFtpEntry: (id: string, updates: Partial<Omit<FtpHistoryEntry, 'id'>>) => void;
   removeFtpEntry: (id: string) => void;
 
@@ -276,6 +277,18 @@ function normalizeNonNegativeNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0
     ? value
     : undefined;
+}
+
+function getLatestFtpEntry(
+  entries: readonly FtpHistoryEntry[]
+): FtpHistoryEntry | undefined {
+  let latest: FtpHistoryEntry | undefined;
+  for (const entry of entries) {
+    if (!latest || entry.recordedAt >= latest.recordedAt) {
+      latest = entry;
+    }
+  }
+  return latest;
 }
 
 function normalizeOptionalText(value: unknown): string | undefined {
@@ -1414,6 +1427,20 @@ export const useStore = create<AppState>()(
             ...entry,
             id: nanoid(),
           });
+        }),
+
+      recordFtpEntry: (entry) =>
+        set((state) => {
+          const next = {
+            ...entry,
+            id: nanoid(),
+          };
+          state.ftpHistory.push(next);
+
+          const latest = getLatestFtpEntry(state.ftpHistory);
+          if (latest?.id === next.id) {
+            state.settings.athleteProfile.ftpWatts = next.ftpWatts;
+          }
         }),
 
       editFtpEntry: (id, updates) =>
