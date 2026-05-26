@@ -49,9 +49,10 @@ export function TrendMultiples({
   ftpWatts,
   period,
 }: TrendMultiplesProps) {
+  const currentFtpWatts = getCurrentFtpWatts(ftpHistory, ftpWatts);
   const series = useMemo(
-    () => buildFtpSeries({ ftpHistory, ftpWatts, period }),
-    [ftpHistory, ftpWatts, period]
+    () => buildFtpSeries({ ftpHistory, ftpWatts: currentFtpWatts, period }),
+    [ftpHistory, currentFtpWatts, period]
   );
   const latest = series.points[series.points.length - 1];
   const first = series.points[0];
@@ -74,7 +75,7 @@ export function TrendMultiples({
             Current
           </div>
           <div className="mt-0.5 text-lg font-bold text-ink-900 [font-variant-numeric:tabular-nums]">
-            {ftpWatts ? `${Math.round(ftpWatts)} W` : '—'}
+            {currentFtpWatts ? `${Math.round(currentFtpWatts)} W` : '—'}
           </div>
         </div>
       </CardHeader>
@@ -377,7 +378,13 @@ function normalizeFtpEntries(
     }
     byDate.set(entry.recordedAt.slice(0, 10), Math.round(entry.ftpWatts));
   }
-  if (typeof ftpWatts === 'number' && Number.isFinite(ftpWatts) && ftpWatts > 0) {
+
+  if (
+    byDate.size === 0 &&
+    typeof ftpWatts === 'number' &&
+    Number.isFinite(ftpWatts) &&
+    ftpWatts > 0
+  ) {
     byDate.set(todayIso, Math.round(ftpWatts));
   }
   return [...byDate.entries()]
@@ -395,6 +402,29 @@ function closestPriorPoint(
     if (!winner || point.iso >= winner.iso) winner = point;
   }
   return winner;
+}
+
+function getCurrentFtpWatts(
+  ftpHistory: readonly FtpHistoryEntry[],
+  fallbackFtpWatts: number | undefined
+): number | undefined {
+  const latest = latestFtpEntry(ftpHistory);
+  return latest?.ftpWatts ?? fallbackFtpWatts;
+}
+
+function latestFtpEntry(
+  entries: readonly FtpHistoryEntry[]
+): FtpHistoryEntry | undefined {
+  let latest: FtpHistoryEntry | undefined;
+  for (const entry of entries) {
+    if (!entry.recordedAt || !Number.isFinite(entry.ftpWatts) || entry.ftpWatts <= 0) {
+      continue;
+    }
+    if (!latest || entry.recordedAt >= latest.recordedAt) {
+      latest = entry;
+    }
+  }
+  return latest;
 }
 
 function valueAtIso(points: readonly FtpPoint[], iso: string): number {

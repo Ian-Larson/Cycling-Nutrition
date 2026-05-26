@@ -291,6 +291,14 @@ function getLatestFtpEntry(
   return latest;
 }
 
+function syncCurrentFtpFromHistory(state: {
+  ftpHistory: FtpHistoryEntry[];
+  settings: Settings;
+}) {
+  const latest = getLatestFtpEntry(state.ftpHistory);
+  state.settings.athleteProfile.ftpWatts = latest?.ftpWatts;
+}
+
 function normalizeOptionalText(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
   const trimmed = value.trim();
@@ -1427,6 +1435,7 @@ export const useStore = create<AppState>()(
             ...entry,
             id: nanoid(),
           });
+          syncCurrentFtpFromHistory(state);
         }),
 
       recordFtpEntry: (entry) =>
@@ -1436,11 +1445,7 @@ export const useStore = create<AppState>()(
             id: nanoid(),
           };
           state.ftpHistory.push(next);
-
-          const latest = getLatestFtpEntry(state.ftpHistory);
-          if (latest?.id === next.id) {
-            state.settings.athleteProfile.ftpWatts = next.ftpWatts;
-          }
+          syncCurrentFtpFromHistory(state);
         }),
 
       editFtpEntry: (id, updates) =>
@@ -1452,12 +1457,14 @@ export const useStore = create<AppState>()(
               ...updates,
               id: state.ftpHistory[index].id,
             };
+            syncCurrentFtpFromHistory(state);
           }
         }),
 
       removeFtpEntry: (id) =>
         set((state) => {
           state.ftpHistory = state.ftpHistory.filter((e) => e.id !== id);
+          syncCurrentFtpFromHistory(state);
         }),
 
       addWeightEntry: (entry) =>

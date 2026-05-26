@@ -14,6 +14,7 @@ interface SnapshotCardProps {
   ftpHistory: readonly FtpHistoryEntry[];
   period: PeriodKey;
   onRecordFtp: (entry: Omit<FtpHistoryEntry, 'id'>) => void;
+  onRemoveFtp: (id: string) => void;
 }
 
 export function SnapshotCard({
@@ -23,6 +24,7 @@ export function SnapshotCard({
   ftpHistory,
   period,
   onRecordFtp,
+  onRemoveFtp,
 }: SnapshotCardProps) {
   const today = new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState(today);
@@ -122,12 +124,20 @@ export function SnapshotCard({
               {sortedHistory.slice(0, 5).map((entry) => (
                 <li
                   key={entry.id}
-                  className="flex items-center justify-between gap-3 py-2 text-sm"
+                  className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 py-2 text-sm"
                 >
                   <span className="text-ink-600">{formatDate(entry.recordedAt)}</span>
                   <span className="font-semibold text-ink-900 [font-variant-numeric:tabular-nums]">
                     {Math.round(entry.ftpWatts)} W
                   </span>
+                  <button
+                    type="button"
+                    aria-label={`Delete FTP ${Math.round(entry.ftpWatts)} W from ${formatDate(entry.recordedAt)}`}
+                    onClick={() => onRemoveFtp(entry.id)}
+                    className="rounded-md px-2 py-1 text-xs font-medium text-ink-500 transition-colors hover:bg-error-50 hover:text-error-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-error-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100"
+                  >
+                    Delete
+                  </button>
                 </li>
               ))}
             </ol>

@@ -1,8 +1,17 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TrendMultiples } from './trend-multiples';
 
 describe('TrendMultiples', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-26T12:00:00Z'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('focuses the trend card on FTP history', () => {
     render(
       <TrendMultiples
@@ -20,5 +29,23 @@ describe('TrendMultiples', () => {
     expect(
       screen.queryByText(/W\/kg, FTP, and weight/i)
     ).not.toBeInTheDocument();
+  });
+
+  it('uses the latest FTP history entry instead of a stale profile FTP', () => {
+    render(
+      <TrendMultiples
+        ftpHistory={[
+          { id: 'ftp-1', recordedAt: '2026-02-18', ftpWatts: 206 },
+          { id: 'ftp-2', recordedAt: '2026-03-18', ftpWatts: 224 },
+          { id: 'ftp-3', recordedAt: '2026-04-15', ftpWatts: 229 },
+          { id: 'ftp-4', recordedAt: '2026-05-13', ftpWatts: 236 },
+        ]}
+        ftpWatts={229}
+        period="90d"
+      />
+    );
+
+    expect(screen.getByText('236 W')).toBeInTheDocument();
+    expect(screen.queryByText('229 W')).not.toBeInTheDocument();
   });
 });

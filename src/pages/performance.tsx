@@ -28,6 +28,7 @@ export function PerformancePage() {
   const ftpHistory = useStore((s) => s.ftpHistory);
   const profile = useStore((s) => s.settings.athleteProfile);
   const recordFtpEntry = useStore((s) => s.recordFtpEntry);
+  const removeFtpEntry = useStore((s) => s.removeFtpEntry);
   const bikes = useStore((s) => s.bikes);
 
   const { stravaConnection, connectStrava } = useAuth();
@@ -38,8 +39,10 @@ export function PerformancePage() {
   const hasActivityScope =
     stravaConnection?.scopes?.includes('activity:read') ?? false;
   const isStravaConnected = Boolean(stravaConnection);
+  const currentFtpWatts =
+    getLatestFtpEntry(ftpHistory)?.ftpWatts ?? profile.ftpWatts;
   const hasFitness =
-    profile.ftpWatts !== undefined && profile.weightKg !== undefined;
+    currentFtpWatts !== undefined && profile.weightKg !== undefined;
   const hasAnyActivity = activities.length > 0;
 
   const applyBikeLinks = useCallback(async () => {
@@ -92,7 +95,7 @@ export function PerformancePage() {
     });
   }, [hasActivityScope, sync.lastSyncedAt, handleSync]);
 
-  const currentWkg = computeCurrentWkg(profile.ftpWatts, profile.weightKg);
+  const currentWkg = computeCurrentWkg(currentFtpWatts, profile.weightKg);
 
   const showPrSections = hasFitness && isStravaConnected && hasAnyActivity;
 
@@ -140,16 +143,17 @@ export function PerformancePage() {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(20rem,0.82fr)] xl:items-start">
         <TrendMultiples
           ftpHistory={ftpHistory}
-          ftpWatts={profile.ftpWatts}
+          ftpWatts={currentFtpWatts}
           period={period}
         />
         <SnapshotCard
           currentWkg={currentWkg}
-          ftpWatts={profile.ftpWatts}
+          ftpWatts={currentFtpWatts}
           weightKg={profile.weightKg}
           ftpHistory={ftpHistory}
           period={period}
           onRecordFtp={recordFtpEntry}
+          onRemoveFtp={removeFtpEntry}
         />
       </div>
 
@@ -179,4 +183,19 @@ export function PerformancePage() {
       {footer}
     </div>
   );
+}
+
+function getLatestFtpEntry(
+  entries: readonly { recordedAt: string; ftpWatts: number }[]
+) {
+  let latest: { recordedAt: string; ftpWatts: number } | undefined;
+  for (const entry of entries) {
+    if (!entry.recordedAt || !Number.isFinite(entry.ftpWatts) || entry.ftpWatts <= 0) {
+      continue;
+    }
+    if (!latest || entry.recordedAt >= latest.recordedAt) {
+      latest = entry;
+    }
+  }
+  return latest;
 }

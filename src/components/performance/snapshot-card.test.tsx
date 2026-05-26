@@ -15,6 +15,7 @@ describe('SnapshotCard', () => {
           ftpHistory={[]}
           period="90d"
           onRecordFtp={() => {}}
+          onRemoveFtp={() => {}}
         />
       </MemoryRouter>
     );
@@ -37,6 +38,7 @@ describe('SnapshotCard', () => {
           ftpHistory={[]}
           period="90d"
           onRecordFtp={onRecordFtp}
+          onRemoveFtp={() => {}}
         />
       </MemoryRouter>
     );
@@ -53,5 +55,33 @@ describe('SnapshotCard', () => {
       recordedAt: '2026-05-26',
       ftpWatts: 292,
     });
+  });
+
+  it('lets the rider delete an FTP entry from recent history', () => {
+    const onRemoveFtp = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <SnapshotCard
+          currentWkg={3.6}
+          ftpWatts={236}
+          weightKg={65.5}
+          ftpHistory={[
+            { id: 'ftp-1', recordedAt: '2026-05-13', ftpWatts: 236 },
+          ]}
+          period="90d"
+          onRecordFtp={() => {}}
+          onRemoveFtp={onRemoveFtp}
+        />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /delete ftp 236 w from may 13, 2026/i,
+      })
+    );
+
+    expect(onRemoveFtp).toHaveBeenCalledWith('ftp-1');
   });
 });

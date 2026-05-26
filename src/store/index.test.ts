@@ -519,6 +519,18 @@ describe('FTP history actions', () => {
     expect(useStore.getState().ftpHistory).toHaveLength(0);
   });
 
+  it('removeFtpEntry promotes the next newest FTP after deleting current', () => {
+    useStore.getState().addFtpEntry({ recordedAt: '2026-04-15', ftpWatts: 229 });
+    useStore.getState().addFtpEntry({ recordedAt: '2026-05-13', ftpWatts: 236 });
+    const latestId = useStore.getState().ftpHistory.find(
+      (entry) => entry.ftpWatts === 236
+    )!.id;
+
+    useStore.getState().removeFtpEntry(latestId);
+
+    expect(useStore.getState().settings.athleteProfile.ftpWatts).toBe(229);
+  });
+
   it('recordFtpEntry appends history and promotes the newest FTP to the profile', () => {
     useStore.setState({
       settings: {
