@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { FuelResultV3 } from './fuel-result-v3';
 import type { FuelingPrescription } from '@/lib/fueling/types';
@@ -189,6 +189,109 @@ describe('FuelResultV3', () => {
       screen.getByRole('spinbutton', { name: /PF 30 Chew value/i }),
     ).toHaveAttribute('aria-valuenow', '0');
     expect(onSolidQuantityChange).toHaveBeenCalledWith('chew', 1);
+  });
+
+  it('copies the compact plan text to the clipboard', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    const copyPrescription: FuelingPrescription = {
+      ...prescription,
+      packList: {
+        bottles: [
+          {
+            capacityMl: 950,
+            productId: 'mix',
+            mixGrams: 80,
+            mixScoops: 2,
+            carbsTotal: 80,
+            isWaterOnly: false,
+          },
+          {
+            capacityMl: 750,
+            productId: 'mix',
+            mixGrams: 60,
+            mixScoops: 1.5,
+            carbsTotal: 60,
+            isWaterOnly: false,
+          },
+        ],
+        solids: [
+          {
+            productId: 'chew',
+            productName: 'PF Chews',
+            quantity: 4,
+            carbsTotal: 120,
+            timingIntervalMinutes: 30,
+          },
+        ],
+        fluidShortfallMl: 0,
+      },
+    };
+
+    render(
+      <FuelResultV3
+        section="pack"
+        prescription={copyPrescription}
+        products={[mix, pfChew]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /copy plan text/i }));
+
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith(
+        [
+          'Target: 75g/carbs per hour',
+          'Bottle 1: 950 (2 scoops)',
+          'Bottle 2: 750 (1.5 scoops)',
+          'PF Chews x 4',
+        ].join('\n'),
+      );
+    });
+  });
+
+  it('falls back when direct clipboard permission is denied', async () => {
+    const writeText = vi.fn().mockRejectedValue(new DOMException(
+      'Write permission denied.',
+      'NotAllowedError',
+    ));
+    const fallbackCopies: string[] = [];
+    const execCommand = vi.fn(() => {
+      fallbackCopies.push((document.activeElement as HTMLTextAreaElement).value);
+      return true;
+    });
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    Object.defineProperty(document, 'execCommand', {
+      configurable: true,
+      value: execCommand,
+    });
+
+    render(
+      <FuelResultV3
+        section="pack"
+        prescription={prescription}
+        products={[mix]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /copy plan text/i }));
+
+    await waitFor(() => {
+      expect(execCommand).toHaveBeenCalledWith('copy');
+    });
+    expect(fallbackCopies).toEqual([
+      [
+        'Target: 75g/carbs per hour',
+        'Bottle 1: 750 (2 scoops)',
+        'Bottle 2: 750 (2 scoops)',
+      ].join('\n'),
+    ]);
   });
 
   it('keeps the plan focused on bring, during cues, and ride targets', () => {

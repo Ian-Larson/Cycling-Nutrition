@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Alert, Badge, SpecRow, Stepper } from '@/components/ui';
 import { formatTime } from '@/lib/format/time';
 import {
@@ -34,6 +35,140 @@ function getDisplayedWarnings(warnings: Warning[]): Warning[] {
   return warnings.filter(
     (warning) =>
       warning.severity !== 'info' && !HIDDEN_WARNING_CODES.has(warning.code)
+  );
+}
+
+function formatCompactNumber(value: number): string {
+  return Number(value.toFixed(2)).toString();
+}
+
+function formatBottleFill(
+  bottle: NonNullable<FuelingPrescription['packList']>['bottles'][number]
+): string {
+  if (bottle.isWaterOnly) return 'water';
+
+  if (bottle.mixScoops !== undefined) {
+    const scoops = formatCompactNumber(bottle.mixScoops);
+    return `${scoops} ${bottle.mixScoops === 1 ? 'scoop' : 'scoops'}`;
+  }
+
+  return `${Math.round(bottle.mixGrams)}g mix`;
+}
+
+function buildPlanClipboardText(
+  prescription: FuelingPrescription,
+  products: Product[]
+): string {
+  const { packList } = prescription;
+  const lines = [
+    `Target: ${Math.round(prescription.during.carbsGPerHour)}g/carbs per hour`,
+  ];
+
+  packList?.bottles.forEach((bottle, index) => {
+    lines.push(
+      `Bottle ${index + 1}: ${Math.round(bottle.capacityMl)} (${formatBottleFill(
+        bottle
+      )})`
+    );
+  });
+
+  packList?.solids
+    .filter((solid) => solid.quantity > 0)
+    .forEach((solid) => {
+      const product = products.find((p) => p.id === solid.productId);
+      lines.push(
+        `${solid.productName ?? product?.name ?? 'Solid'} x ${solid.quantity}`
+      );
+    });
+
+  return lines.join('\n');
+}
+
+function fallbackCopyText(text: string): boolean {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.top = '0';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
+  try {
+    return document.execCommand('copy');
+  } finally {
+    textarea.remove();
+  }
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Some browser shells deny direct clipboard writes even from click handlers.
+  }
+
+  return fallbackCopyText(text);
+}
+
+function CopyPlanButton({
+  prescription,
+  products,
+}: {
+  prescription: FuelingPrescription;
+  products: Product[];
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    const didCopy = await copyText(buildPlanClipboardText(prescription, products));
+    if (!didCopy) return;
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <button
+      type="button"
+      aria-label={copied ? 'Plan text copied' : 'Copy plan text'}
+      title={copied ? 'Copied' : 'Copy plan text'}
+      onClick={handleCopy}
+      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-white text-ink-600 transition-[background-color,color,border-color] duration-150 ease-out hover:border-brand-200 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:h-8 md:w-8"
+    >
+      {copied ? (
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden className="h-3.5 w-3.5">
+          <path
+            d="M5.25 10.5 8.25 13.5 14.75 6.75"
+            stroke="currentColor"
+            strokeWidth="1.9"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden className="h-3.5 w-3.5">
+          <rect
+            x="7"
+            y="5"
+            width="8"
+            height="10"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+          <path
+            d="M5 12.75V4.5A1.5 1.5 0 0 1 6.5 3H12"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+        </svg>
+      )}
+    </button>
   );
 }
 
@@ -216,9 +351,12 @@ function BringList({
             </p>
           ) : null}
         </div>
-        <Badge variant="brand" size="sm">
-          Pack first
-        </Badge>
+        <div className="flex shrink-0 items-center gap-2">
+          <CopyPlanButton prescription={prescription} products={products} />
+          <Badge variant="brand" size="sm">
+            Pack first
+          </Badge>
+        </div>
       </div>
 
       {shortfall > 0 ? <FluidShortfallNote shortfallMl={shortfall} /> : null}
