@@ -158,6 +158,10 @@ describe('FuelResultV3', () => {
     expect(
       screen.getByRole('heading', { name: /Prep and bring/i }),
     ).toBeInTheDocument();
+    expect(screen.queryByText('Pack first')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /copy plan text/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/2 bottles/i)).toBeInTheDocument();
     expect(screen.getAllByText(/2 scoops/i)).toHaveLength(2);
   });

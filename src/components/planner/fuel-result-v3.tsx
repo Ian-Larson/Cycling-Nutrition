@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Badge, SpecRow, Stepper } from '@/components/ui';
+import { Alert, SpecRow, Stepper } from '@/components/ui';
 import { formatTime } from '@/lib/format/time';
 import {
   formatCarbsGrams,
@@ -351,12 +351,7 @@ function BringList({
             </p>
           ) : null}
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <CopyPlanButton prescription={prescription} products={products} />
-          <Badge variant="brand" size="sm">
-            Pack first
-          </Badge>
-        </div>
+        <CopyPlanButton prescription={prescription} products={products} />
       </div>
 
       {shortfall > 0 ? <FluidShortfallNote shortfallMl={shortfall} /> : null}
