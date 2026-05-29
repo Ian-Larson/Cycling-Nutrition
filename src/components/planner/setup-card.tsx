@@ -156,11 +156,11 @@ export function SetupCard({
         >
           <CollapsibleTrigger className="px-4 py-3.5 md:px-5 md:py-4">
             <div className="min-w-0">
-              <p className="section-title text-base">Available bottles</p>
+              <p className="section-title text-base">Bottles</p>
               <p className="mt-1 text-sm leading-5 text-brand-800">
                 {selectedCount === 0
                   ? 'Add bottles'
-                  : `${selectedCount} in pool`}
+                  : `${selectedCount} total`}
               </p>
             </div>
           </CollapsibleTrigger>
@@ -185,7 +185,7 @@ export function SetupCard({
         >
           <CollapsibleTrigger className="px-4 py-3.5 md:px-5 md:py-4">
             <div className="min-w-0">
-              <p className="section-title text-base">Fuel selections</p>
+              <p className="section-title text-base">Fuel</p>
               <p className="mt-1 truncate text-sm leading-5 text-brand-800">
                 {getFuelSummary(selectedDrinkMix, selectedSolidIds.length)}
               </p>
@@ -201,7 +201,7 @@ export function SetupCard({
               </div>
               {drinkMixes.length === 0 ? (
                 <p className="text-sm leading-6 text-ink-600">
-                  No drink mixes saved. Add one from the Fuel inventory panel.
+                  Add a drink mix in Fuel inventory.
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -232,7 +232,7 @@ export function SetupCard({
               </div>
               {solidProducts.length === 0 ? (
                 <p className="text-sm leading-6 text-ink-600">
-                  No solid fuel saved. Add one from the Fuel inventory panel.
+                  Add solids in Fuel inventory.
                 </p>
               ) : (
                 <div className="space-y-2">

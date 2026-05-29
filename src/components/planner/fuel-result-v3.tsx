@@ -215,7 +215,7 @@ function WarningsList({ warnings }: { warnings: Warning[] }) {
   return (
     <section aria-labelledby="fuel-warnings-title" className="space-y-2">
       <h3 id="fuel-warnings-title" className="section-title">
-        Heads up
+        Warnings
       </h3>
       <div className="space-y-2">
         {warnings.map((w, i) => {
@@ -279,7 +279,6 @@ function WarningsList({ warnings }: { warnings: Warning[] }) {
               </span>
               <div className="min-w-0">
                 <p className="text-sm leading-6">{w.message}</p>
-                <p className="text-[0.7rem] leading-5 opacity-70">{w.code}</p>
               </div>
             </div>
           );
@@ -293,10 +292,9 @@ function FluidShortfallNote({ shortfallMl }: { shortfallMl: number }) {
   return (
     <Alert
       variant="warning"
-      title={`Plan a refill stop for ~${shortfallMl.toLocaleString()} ml extra fluid`}
+      title={`Refill: ~${shortfallMl.toLocaleString()} ml short`}
     >
-      Your bottles can't carry the full hydration target. Add a refill stop, carry
-      extra, or dial down the fluid plan.
+      Add a refill, carry extra, or lower fluid.
     </Alert>
   );
 }
@@ -340,7 +338,7 @@ function BringList({
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[color:var(--border-soft)] pb-4">
         <div className="min-w-0">
           <h3 id="prep-and-bring-title" className="section-title">
-            Prep and bring
+            Pack
           </h3>
           <p className="mt-1 text-sm leading-5 text-ink-700 tabular-nums">
             {prepSummary}
@@ -395,11 +393,6 @@ function BringList({
           <div className="grid gap-2 py-3 md:grid-cols-[7rem_minmax(0,1fr)] md:gap-4">
             <div className="md:pt-2">
               <p className="section-kicker text-[0.68rem]">Solids</p>
-              {editableSolids ? (
-                <p className="mt-1 text-[0.7rem] leading-5 text-ink-500">
-                  +/− adjusts the plan
-                </p>
-              ) : null}
             </div>
 
             {editableSolids ? (
@@ -425,7 +418,7 @@ function BringList({
                         </p>
                         <p className="text-xs leading-5 text-ink-500 tabular-nums">
                           {product.nutrition.carbsGrams}g carbs each
-                          {isEmpty ? ' • not in plan' : ''}
+                          {isEmpty ? ' • 0 planned' : ''}
                         </p>
                       </div>
                       <Stepper
@@ -497,11 +490,8 @@ function RideNumbers({ prescription }: { prescription: FuelingPrescription }) {
     <section aria-labelledby="ride-numbers-title" className="space-y-4">
       <div className="border-b border-[color:var(--border-soft)] pb-3">
         <h3 id="ride-numbers-title" className="section-title">
-          Ride targets
+          Targets
         </h3>
-        <p className="mt-1 text-sm leading-5 text-ink-600">
-          Strategy: <span className="capitalize">{during.strategy.replace(/-/g, ' ')}</span>
-        </p>
       </div>
 
       <div className="grid gap-x-6 gap-y-3 sm:grid-cols-3">
@@ -541,7 +531,7 @@ function RideNumbers({ prescription }: { prescription: FuelingPrescription }) {
 
       {during.usesMultiTransportableCarbs && (
         <p className="text-xs leading-5 text-ink-600">
-          Glucose:fructose mix recommended above 60 g/h.
+          Use glucose/fructose above 60 g/h.
         </p>
       )}
     </section>
@@ -558,14 +548,11 @@ function ThirtyMinuteCue({ prescription }: { prescription: FuelingPrescription }
         id="thirty-minute-cue-title"
         className="section-kicker text-[0.68rem] text-brand-700"
       >
-        On the bike
+        Ride cue
       </p>
       <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <p className="font-sans text-lg font-semibold leading-tight tabular-nums">
           {formatEveryThirtyMinutesCue(prescription.during.carbsGPerHour)}
-        </p>
-        <p className="text-sm leading-5 text-brand-800">
-          Keep it steady; adjust by feel.
         </p>
       </div>
     </section>
@@ -585,9 +572,6 @@ function PlanDetails({
         <CollapsibleTrigger className="px-4 py-3 md:px-4 md:py-3">
           <span className="min-w-0">
             <span className="section-title block text-base">Details</span>
-            <span className="mt-0.5 block text-sm leading-5 text-ink-600">
-              Targets, sodium, mix strength, and warnings
-            </span>
           </span>
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-5 border-t border-[color:var(--border-soft)] px-4 py-4">

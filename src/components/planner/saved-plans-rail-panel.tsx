@@ -38,7 +38,7 @@ export function SavedPlansRailPanel({
     >
       {sortedPlans.length === 0 ? (
         <p className="rounded-xl border border-[color:var(--border-soft)] bg-shell-50 px-3 py-3 text-sm leading-5 text-ink-600">
-          Saved plans will appear here after you build and save one.
+          Saved plans appear here.
         </p>
       ) : (
         <div className="space-y-2.5">

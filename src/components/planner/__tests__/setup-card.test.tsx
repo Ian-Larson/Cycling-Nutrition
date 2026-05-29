@@ -26,9 +26,9 @@ describe('SetupCard bottle pool', () => {
       onSolidChange: vi.fn(),
     });
 
-    // The "Available bottles" section collapses when a bottle is already
-    // selected. Open it so the counter buttons are in the DOM.
-    fireEvent.click(screen.getByRole('button', { name: /Available bottles/i }));
+    // The "Bottles" section collapses when a bottle is already selected.
+    // Open it so the counter buttons are in the DOM.
+    fireEvent.click(screen.getByRole('button', { name: /Bottles/i }));
 
     const addButton = screen.getByRole('button', {
       name: /Add one 950ml bottle/i,

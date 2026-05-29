@@ -133,7 +133,7 @@ describe('PlannerPage one-sheet flow', () => {
     renderPlanner();
 
     expect(
-      screen.getByText(/Plan uses 65 g\/h after your gut target cap/i)
+      screen.getByText(/Capped at 65 g\/h by gut target/i)
     ).toBeInTheDocument();
   });
 });

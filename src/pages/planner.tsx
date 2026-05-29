@@ -559,7 +559,7 @@ export function PlannerPage() {
       weightKg,
     });
     setQuickWeightError(undefined);
-    setToastMessage('Weight saved. Plan updated.');
+    setToastMessage('Weight saved.');
   };
 
   const dismissToast = useCallback(() => setToastMessage(null), []);
@@ -600,7 +600,7 @@ export function PlannerPage() {
       <div className="page-shell space-y-5 md:space-y-6">
         <PageIntro
           title="Fuel plan"
-          description="Enter duration and projected IF. The plan updates as you adjust."
+          description="Duration, IF, bottles, fuel."
           meta={
             <div aria-live="polite" className="text-xs text-ink-500">
               {draftSavedFlash && (
@@ -635,10 +635,10 @@ export function PlannerPage() {
                     <CardContent className="space-y-4 py-5 md:py-6">
                       <div className="space-y-2">
                         <h2 className="text-lg font-semibold text-ink-900">
-                          Set your weight to plan
+                          Rider weight
                         </h2>
                         <p className="max-w-prose text-sm leading-6 text-ink-600">
-                          One number sizes carbs, fluid, and sodium.
+                          Needed for targets.
                         </p>
                       </div>
                       <form
@@ -676,7 +676,7 @@ export function PlannerPage() {
                           />
                         </div>
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                          <Button type="submit">Use this weight</Button>
+                          <Button type="submit">Save weight</Button>
                           <Link
                             to="/account#athlete"
                             className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:min-h-10"
@@ -740,7 +740,7 @@ export function PlannerPage() {
                     <div className="flex min-h-5 items-center gap-2 text-xs text-ink-500">
                       {carbTargetIsCustom ? (
                         <>
-                          <span>Custom target</span>
+                          <span>Custom</span>
                           <button
                             type="button"
                             className="font-medium text-brand-700 underline-offset-2 hover:underline"
@@ -755,12 +755,12 @@ export function PlannerPage() {
                           </button>
                         </>
                       ) : (
-                        <span>Suggested from ride and preference</span>
+                        <span>Suggested</span>
                       )}
                     </div>
                     {targetWasCapped && effectivePlanTarget !== undefined ? (
                       <p className="text-xs leading-5 text-warning-700">
-                        Plan uses {effectivePlanTarget} g/h after your gut target cap.
+                        Capped at {effectivePlanTarget} g/h by gut target.
                       </p>
                     ) : null}
                   </div>
@@ -809,15 +809,12 @@ export function PlannerPage() {
 
                     <section className="space-y-3 border-t border-[color:var(--border-soft)] pt-4">
                       <div className="space-y-1">
-                        <h3 className="section-title">Save for later</h3>
-                        <p className="text-sm leading-5 text-ink-600">
-                          Optional. The prep list above is ready now.
-                        </p>
+                        <h3 className="section-title">Save</h3>
                       </div>
 
                       <Input
                         id="plan-title"
-                        label="Plan name"
+                        label="Name"
                         value={planTitle}
                         onChange={(event) => setPlanTitle(event.target.value)}
                         placeholder={
@@ -857,7 +854,7 @@ export function PlannerPage() {
                     )}
                   </div>
                 ) : (
-                  <Alert variant="info" title="Plan needs a few inputs">
+                  <Alert variant="info" title="Missing inputs">
                     <ul className="list-disc space-y-1 pl-5">
                       {missingRequirements.map((requirement) => (
                         <li key={requirement}>{requirement}</li>

@@ -156,7 +156,7 @@ describe('FuelResultV3', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: /Prep and bring/i }),
+      screen.getByRole('heading', { name: /Pack/i }),
     ).toBeInTheDocument();
     expect(screen.queryByText('Pack first')).not.toBeInTheDocument();
     expect(
@@ -308,7 +308,7 @@ describe('FuelResultV3', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: /Prep and bring/i }),
+      screen.getByRole('heading', { name: /Pack/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/Every 30 min: 38 g carbs/i),

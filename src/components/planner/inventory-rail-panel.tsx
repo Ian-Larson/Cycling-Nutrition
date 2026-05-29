@@ -181,7 +181,7 @@ export function InventoryRailPanel({
 
           {products.length === 0 ? (
             <p className="text-sm leading-5 text-ink-600">
-              Start with whatever's on the bench.
+              Add the fuel you have.
             </p>
           ) : visibleProducts.length === 0 ? (
             <p className="text-sm leading-5 text-ink-600">

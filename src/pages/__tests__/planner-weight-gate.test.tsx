@@ -36,17 +36,17 @@ describe('PlannerPage weight gate', () => {
 
     renderPlanner();
     expect(
-      screen.getByRole('heading', { name: /Set your weight to plan/i }),
+      screen.getByRole('heading', { name: /Rider weight/i }),
     ).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(/Weight, kg/i), {
       target: { value: '70' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /Use this weight/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Save weight/i }));
 
     expect(useStore.getState().settings.athleteProfile.weightKg).toBe(70);
     expect(
-      screen.queryByRole('heading', { name: /Set your weight to plan/i }),
+      screen.queryByRole('heading', { name: /Rider weight/i }),
     ).not.toBeInTheDocument();
   });
 
@@ -82,7 +82,7 @@ describe('PlannerPage weight gate', () => {
 
     renderPlanner();
     expect(
-      screen.queryByRole('heading', { name: /Set your weight to plan/i }),
+      screen.queryByRole('heading', { name: /Rider weight/i }),
     ).not.toBeInTheDocument();
   });
 
