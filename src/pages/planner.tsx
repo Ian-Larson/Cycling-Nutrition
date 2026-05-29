@@ -570,11 +570,20 @@ export function PlannerPage() {
     carbTargetIsCustom || recommendedCarbTarget === undefined
       ? carbTargetInput
       : String(recommendedCarbTarget);
+  const requestedCarbTarget = Number(carbTargetDisplayValue);
+  const effectivePlanTarget =
+    prescription !== null ? Math.round(prescription.during.carbsGPerHour) : undefined;
+  const targetWasCapped =
+    effectivePlanTarget !== undefined &&
+    Number.isFinite(requestedCarbTarget) &&
+    Math.round(requestedCarbTarget) !== effectivePlanTarget;
   const rideSummary = [
     `${durationMinutes} min`,
     Number.isFinite(intensityFactor) ? `${intensityFactor.toFixed(2)} IF` : 'IF',
-    recommendedCarbTarget !== undefined
-      ? `${carbTargetDisplayValue} g/h`
+    effectivePlanTarget !== undefined
+      ? `${effectivePlanTarget} g/h plan`
+      : recommendedCarbTarget !== undefined
+        ? `${carbTargetDisplayValue} g/h`
       : 'target',
   ].join(' · ');
   const carrySummary = [
@@ -582,6 +591,9 @@ export function PlannerPage() {
     selectedDrinkMix?.name ?? 'No mix',
     `${effectiveSelectedSolidIds.length} solids`,
   ].join(' · ');
+  const planSummary = prescription
+    ? `${Math.round(prescription.during.carbsGPerHour / 2)} g carbs / 30 min`
+    : undefined;
 
   return (
     <>
@@ -746,6 +758,11 @@ export function PlannerPage() {
                         <span>Suggested from ride and preference</span>
                       )}
                     </div>
+                    {targetWasCapped && effectivePlanTarget !== undefined ? (
+                      <p className="text-xs leading-5 text-warning-700">
+                        Plan uses {effectivePlanTarget} g/h after your gut target cap.
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 
@@ -779,7 +796,7 @@ export function PlannerPage() {
                 />
               </PlannerSection>
 
-              <PlannerSection title="Plan">
+              <PlannerSection title="Plan" summary={planSummary}>
                 {prescription ? (
                   <div className="space-y-5">
                     <FuelResultV3

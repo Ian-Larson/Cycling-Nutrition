@@ -97,4 +97,43 @@ describe('PlannerPage one-sheet flow', () => {
     expect(screen.getByText(/Add at least one bottle/i)).toBeInTheDocument();
     expect(screen.queryByText(/Every 30 min:/i)).not.toBeInTheDocument();
   });
+
+  it('surfaces when the effective plan target is capped', () => {
+    const { mix, solids } = getDefaultSetup();
+    const ride = buildOneSheetRide({
+      durationMinutes: 120,
+      intensityFactor: 0.8,
+      heatFactor: 'moderate',
+      ftpWatts: 250,
+      heavySweater: false,
+      gutTrainingTargetGph: 65,
+      carbTargetOverrideGramsPerHour: 90,
+      refuelStops: 0,
+    });
+
+    useStore.setState((state) => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        athleteProfile: {
+          ...DEFAULT_SETTINGS.athleteProfile,
+          weightKg: 70,
+          ftpWatts: 250,
+          gutTrainingTargetGph: 65,
+        },
+      },
+      plannerDraft: {
+        ride,
+        selectedBottleCounts: { 550: 0, 750: 2, 950: 0 },
+        selectedDrinkMixId: mix.id,
+        selectedSolidIds: solids,
+      },
+    }));
+
+    renderPlanner();
+
+    expect(
+      screen.getByText(/Plan uses 65 g\/h after your gut target cap/i)
+    ).toBeInTheDocument();
+  });
 });
