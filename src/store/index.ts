@@ -38,6 +38,7 @@ import {
   normalizeGearPartInstances,
   normalizeGearServiceEvents,
 } from '@/lib/gear/normalizers';
+import { normalizeSolidOverrides } from '@/lib/planner/one-sheet';
 
 export type TemperatureUnit = 'celsius' | 'fahrenheit';
 
@@ -66,6 +67,7 @@ export interface PlannerDraft {
   selectedBottleCounts?: BottleInventory;
   selectedDrinkMixId?: string | null;
   selectedSolidIds?: string[];
+  solidOverrides?: Record<string, number>;
   includeUnavailableProducts?: boolean;
   title?: string;
 }
@@ -521,6 +523,9 @@ export function normalizePlannerDraft(value: unknown): PlannerDraft | null {
     selectedSolidIds: Array.isArray(draft.selectedSolidIds)
       ? draft.selectedSolidIds.filter((id): id is string => typeof id === 'string')
       : [],
+    solidOverrides: normalizeSolidOverrides(
+      (draft as { solidOverrides?: unknown }).solidOverrides
+    ),
     includeUnavailableProducts: Boolean(draft.includeUnavailableProducts),
     title: typeof draft.title === 'string' ? draft.title : undefined,
   };

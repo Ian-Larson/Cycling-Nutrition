@@ -298,7 +298,7 @@ describe('FuelResultV3', () => {
     ]);
   });
 
-  it('keeps the plan focused on bring, during cues, and ride targets', () => {
+  it('keeps the plan focused on bring, a simple 30-minute cue, and details', () => {
     render(
       <FuelResultV3
         section="all"
@@ -311,15 +311,13 @@ describe('FuelResultV3', () => {
       screen.getByRole('heading', { name: /Prep and bring/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: /Ride cues/i }),
+      screen.getByText(/Every 30 min: 38 g carbs/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: /Ride targets/i }),
+      screen.getByRole('button', { name: /Details/i }),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(/Sip bottle 1/)).toHaveLength(2);
-    expect(
-      screen.getByText(/Fluid intake exceeds predicted sweat rate/i),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Ride cues/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Sip bottle 1/i)).not.toBeInTheDocument();
 
     expect(
       screen.queryByRole('heading', { name: /Pre-ride/i }),

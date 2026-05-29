@@ -12,6 +12,7 @@ export function buildPlannerDraftFromSavedPlan(
     selectedSolidIds: plan.selectedSolidIds.filter((id) =>
       products.some((p) => p.id === id),
     ),
+    solidOverrides: plan.solidOverrides,
     title: plan.title,
   };
 }

@@ -7,9 +7,7 @@ import {
   CardContent,
   Input,
   SegmentedControl,
-  Tab,
-  TabList,
-  Tabs,
+  Select,
   Toast,
 } from '@/components/ui';
 import { PageIntro } from '@/components/layout/page-intro';
@@ -18,8 +16,6 @@ import { FuelResultV3 } from '@/components/planner/fuel-result-v3';
 import { InventoryRailPanel } from '@/components/planner/inventory-rail-panel';
 import { NutritionRail } from '@/components/planner/nutrition-rail';
 import { NutritionWorkspaceLayout } from '@/components/planner/nutrition-workspace-layout';
-import { PlanningStepPanel } from '@/components/planner/planning-step-panel';
-import { RideForm, type RideFormSnapshot } from '@/components/planner/ride-form';
 import { SavedPlansRailPanel } from '@/components/planner/saved-plans-rail-panel';
 import { SetupCard } from '@/components/planner/setup-card';
 import { useFuelPrescription } from '@/hooks/use-fuel-prescription';
@@ -29,23 +25,36 @@ import {
   poundsToKilograms,
   type AnthropometricsUnit,
 } from '@/lib/athlete/anthropometrics';
-import type { FuelingPrescription } from '@/lib/fueling';
 import { buildPlannerDraftFromSavedPlan } from '@/lib/planner/saved-plan-draft';
 import {
-  formatRideSummary,
-  formatSetupSummary,
-  getPlanTitleSuggestion,
-  isGeneratedPlanTitle,
-  isRideSnapshotEquivalentToRide,
-} from '@/lib/planner/planner-summaries';
-import { useStore } from '@/store';
+  buildOneSheetRide,
+  getMissingPlanRequirements,
+  normalizeSolidOverrides,
+} from '@/lib/planner/one-sheet';
+import { getPlanTitleSuggestion } from '@/lib/planner/planner-summaries';
+import { useStore, type PlannerDraft } from '@/store';
 import { BOTTLE_SIZES, totalBottleCount } from '@/types/bottle';
 import type { BottleInventory, BottleSize } from '@/types/bottle';
-import type { FuelPlan, Product, RideCharacteristics } from '@/types';
-import type { PlannerDraft } from '@/store';
+import type { FuelPlan, HeatFactor, Product, RideCharacteristics } from '@/types';
 
-type PlannerStep = 1 | 2 | 3;
-type ResultTab = 'pack' | 'guide' | 'metrics';
+const DEFAULT_DURATION_MINUTES = 120;
+const DEFAULT_INTENSITY_FACTOR = 0.8;
+const DEFAULT_HEAT_FACTOR: HeatFactor = 'moderate';
+
+const HEAT_LABELS = {
+  celsius: {
+    cool: 'Cool (< 15 C)',
+    moderate: 'Moderate (15-25 C)',
+    warm: 'Warm (25-32 C)',
+    hot: 'Hot (> 32 C)',
+  },
+  fahrenheit: {
+    cool: 'Cool (< 60 F)',
+    moderate: 'Moderate (60-77 F)',
+    warm: 'Warm (77-90 F)',
+    hot: 'Hot (> 90 F)',
+  },
+} as const;
 
 function getQuickWeightDraft(
   weightKg: number | undefined,
@@ -71,12 +80,6 @@ function convertQuickWeightDraft(
         ? kilogramsToPounds(parsed)
         : parsed;
   return formatNumberInputValue(next, 1);
-}
-
-function parseInitialStep(stepParam: string | null): PlannerStep {
-  if (stepParam === '2') return 2;
-  if (stepParam === '3') return 3;
-  return 1;
 }
 
 function isPlannerDraftShape(value: unknown): value is PlannerDraft {
@@ -114,35 +117,6 @@ function isPlannerDraftShape(value: unknown): value is PlannerDraft {
   return true;
 }
 
-function getRideFormSnapshotFromRide(
-  ride: RideCharacteristics
-): Partial<RideFormSnapshot> {
-  return {
-    planningMode: ride.planningMode ?? 'manual',
-    durationMinutes: ride.durationMinutes,
-    intensity: ride.intensity,
-    heatFactor: ride.heatFactor,
-    carbTarget: ride.carbTargetGramsPerHour,
-    refuelStops: ride.refuelStops ?? 0,
-    autoInputPair: ride.autoMetrics?.inputPair ?? 'duration_if',
-    autoDurationInput:
-      ride.autoMetrics?.userProvidedDurationMinutes !== undefined
-        ? String(Math.round(ride.autoMetrics.userProvidedDurationMinutes))
-        : String(ride.durationMinutes),
-    autoIfInput:
-      ride.autoMetrics?.userProvidedIntensityFactor !== undefined
-        ? String(ride.autoMetrics.userProvidedIntensityFactor)
-        : String(ride.autoMetrics?.intensityFactor ?? 0.8),
-    autoTssInput:
-      ride.autoMetrics?.userProvidedTss !== undefined
-        ? String(Math.round(ride.autoMetrics.userProvidedTss))
-        : String(Math.round(ride.autoMetrics?.tss ?? 120)),
-    autoCarbOverrideInput: ride.autoMetrics?.carbOverrideApplied
-      ? String(ride.carbTargetGramsPerHour)
-      : '',
-  };
-}
-
 function initBottlePool(draft: PlannerDraft | null): BottleInventory {
   if (draft?.selectedBottleCounts) {
     return BOTTLE_SIZES.reduce(
@@ -150,7 +124,7 @@ function initBottlePool(draft: PlannerDraft | null): BottleInventory {
         acc[size] = Math.max(0, draft.selectedBottleCounts![size] ?? 0);
         return acc;
       },
-      { 550: 0, 750: 0, 950: 0 } as BottleInventory,
+      { 550: 0, 750: 0, 950: 0 } as BottleInventory
     );
   }
   return { 550: 0, 750: 0, 950: 0 };
@@ -186,39 +160,97 @@ function getDefaultSelectedSolidIds(
     .map((product) => product.id);
 }
 
+function getInitialIntensityFactor(draft: PlannerDraft | null): string {
+  const value =
+    draft?.ride?.autoMetrics?.userProvidedIntensityFactor ??
+    draft?.ride?.autoMetrics?.intensityFactor ??
+    DEFAULT_INTENSITY_FACTOR;
+  return String(value);
+}
+
+function getInitialCarbTarget(draft: PlannerDraft | null): string {
+  return String(draft?.ride?.carbTargetGramsPerHour ?? '');
+}
+
+function PlannerSection({
+  title,
+  summary,
+  children,
+}: {
+  title: string;
+  summary?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-4 border-b border-[color:var(--border-soft)] px-4 py-5 last:border-b-0 md:px-5 md:py-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h2 className="section-title text-lg">{title}</h2>
+        {summary ? (
+          <p className="text-sm leading-5 text-ink-600 tabular-nums">
+            {summary}
+          </p>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function parseNumber(value: string): number {
+  return Number(value);
+}
+
 export function PlannerPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const products = useStore((s) => s.products);
   const fuelPlans = useStore((s) => s.fuelPlans);
   const athleteProfile = useStore((s) => s.settings.athleteProfile);
+  const temperatureUnit = useStore((s) => s.settings.temperatureUnit);
   const saveFuelPlan = useStore((s) => s.saveFuelPlan);
   const deleteFuelPlan = useStore((s) => s.deleteFuelPlan);
   const setPlannerDraft = useStore((s) => s.setPlannerDraft);
   const updateAthleteProfile = useStore((s) => s.updateAthleteProfile);
   const updateProduct = useStore((s) => s.updateProduct);
+  const fuelEngine = useFuelPrescription();
+
   const [initialDraft] = useState<PlannerDraft | null>(() => {
     const current = useStore.getState().plannerDraft;
     return isPlannerDraftShape(current) ? current : null;
   });
-  const [isReusedDraft] = useState(() => searchParams.get('reuse') === '1');
 
-  const [activeStep, setActiveStep] = useState<PlannerStep>(() => {
-    if (isReusedDraft) return 1;
-    return initialDraft?.ride ? 2 : parseInitialStep(searchParams.get('step'));
-  });
-  const [planIsStale, setPlanIsStale] = useState(false);
-  const [resultTab, setResultTab] = useState<ResultTab>('pack');
-  const [prescription, setPrescription] = useState<FuelingPrescription | null>(
-    null
+  const [durationMinutes, setDurationMinutes] = useState(
+    initialDraft?.ride?.durationMinutes ?? DEFAULT_DURATION_MINUTES
   );
-  const fuelEngine = useFuelPrescription();
+  const [intensityFactorInput, setIntensityFactorInput] = useState(
+    getInitialIntensityFactor(initialDraft)
+  );
+  const [heatFactor, setHeatFactor] = useState<HeatFactor>(
+    initialDraft?.ride?.heatFactor ?? DEFAULT_HEAT_FACTOR
+  );
+  const [carbTargetInput, setCarbTargetInput] = useState(
+    getInitialCarbTarget(initialDraft)
+  );
+  const [carbTargetIsCustom, setCarbTargetIsCustom] = useState(
+    Boolean(initialDraft?.ride?.autoMetrics?.carbOverrideApplied)
+  );
+  const [refuelStops, setRefuelStops] = useState(
+    initialDraft?.ride?.refuelStops ?? 0
+  );
+  const [bottlePool, setBottlePool] = useState<BottleInventory>(() =>
+    initBottlePool(initialDraft)
+  );
+  const [selectedDrinkMixId, setSelectedDrinkMixId] = useState<string | null>(
+    getDefaultSelectedDrinkMixId(products, initialDraft)
+  );
+  const [selectedSolidIds, setSelectedSolidIds] = useState<string[]>(
+    getDefaultSelectedSolidIds(products, initialDraft)
+  );
+  const [solidOverrides, setSolidOverrides] = useState<
+    Record<string, number> | undefined
+  >(() => normalizeSolidOverrides(initialDraft?.solidOverrides));
   const [planTitle, setPlanTitle] = useState(initialDraft?.title ?? '');
-  const [rideFormSnapshot, setRideFormSnapshot] = useState<RideFormSnapshot>();
-  const [rideFormCanCalculate, setRideFormCanCalculate] = useState(false);
-  const [rideFormSubmitTrigger, setRideFormSubmitTrigger] = useState(0);
-  const [toastMessage, setToastMessage] = useState<string | null>(
-    isReusedDraft ? 'Plan loaded. Review setup, then continue.' : null
-  );
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [draftSavedFlash, setDraftSavedFlash] = useState(false);
   const [quickWeightUnit, setQuickWeightUnit] = useState<AnthropometricsUnit>(
     athleteProfile.anthropometricsUnit ?? 'metric'
   );
@@ -229,113 +261,7 @@ export function PlannerPage() {
     )
   );
   const [quickWeightError, setQuickWeightError] = useState<string | undefined>();
-
-  useEffect(() => {
-    if (!isReusedDraft) return;
-    if (!searchParams.has('reuse')) return;
-    const next = new URLSearchParams(searchParams);
-    next.delete('reuse');
-    setSearchParams(next, { replace: true });
-  }, [isReusedDraft, searchParams, setSearchParams]);
-
-  const [bottlePool, setBottlePool] = useState<BottleInventory>(() =>
-    initBottlePool(initialDraft)
-  );
-  const [selectedDrinkMixId, setSelectedDrinkMixId] = useState<string | null>(
-    getDefaultSelectedDrinkMixId(products, initialDraft)
-  );
-  const [selectedSolidIds, setSelectedSolidIds] = useState<string[]>(
-    getDefaultSelectedSolidIds(products, initialDraft)
-  );
-  const [persistedRide, setPersistedRide] = useState<
-    RideCharacteristics | undefined
-  >(initialDraft?.ride);
-
-  const [rideFormInitialSnapshot, setRideFormInitialSnapshot] = useState<
-    Partial<RideFormSnapshot> | undefined
-  >(initialDraft?.ride ? getRideFormSnapshotFromRide(initialDraft.ride) : undefined);
-  const [rideFormInstanceKey, setRideFormInstanceKey] = useState(0);
-
   const previousDraftSignatureRef = useRef<string | null>(null);
-  const planStepRef = useRef<HTMLDivElement | null>(null);
-  const [draftSavedFlash, setDraftSavedFlash] = useState(false);
-
-  const markPlanStale = useCallback(() => {
-    setPlanIsStale((current) => (prescription ? true : current));
-  }, [prescription]);
-
-  const handleRideSnapshotChange = useCallback(
-    (snapshot: RideFormSnapshot) => {
-      setRideFormSnapshot(snapshot);
-      if (
-        persistedRide &&
-        !isRideSnapshotEquivalentToRide(snapshot, persistedRide)
-      ) {
-        setPlanIsStale(true);
-      }
-    },
-    [persistedRide]
-  );
-
-  useEffect(() => {
-    const nextDraft = {
-      ride: persistedRide,
-      selectedBottleCounts: bottlePool,
-      selectedDrinkMixId,
-      selectedSolidIds,
-      title: planTitle || undefined,
-    };
-    const nextSignature = JSON.stringify(nextDraft);
-
-    setPlannerDraft(nextDraft);
-    if (previousDraftSignatureRef.current === null) {
-      previousDraftSignatureRef.current = nextSignature;
-      return;
-    }
-    if (previousDraftSignatureRef.current === nextSignature) return;
-
-    previousDraftSignatureRef.current = nextSignature;
-    const showTimer = setTimeout(() => setDraftSavedFlash(true), 0);
-    const hideTimer = setTimeout(() => setDraftSavedFlash(false), 1600);
-    return () => {
-      clearTimeout(showTimer);
-      clearTimeout(hideTimer);
-    };
-  }, [
-    persistedRide,
-    bottlePool,
-    selectedDrinkMixId,
-    selectedSolidIds,
-    planTitle,
-    setPlannerDraft,
-  ]);
-
-  const scrollPlanIntoView = useCallback(() => {
-    window.requestAnimationFrame(() => {
-      const prefersReducedMotion =
-        typeof window.matchMedia === 'function' &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      planStepRef.current?.scrollIntoView({
-        block: 'start',
-        behavior: prefersReducedMotion ? 'auto' : 'smooth',
-      });
-    });
-  }, []);
-
-  const handleBottleCountChange = (size: BottleSize, count: number) => {
-    markPlanStale();
-    setBottlePool((prev) => ({ ...prev, [size]: Math.max(0, count) }));
-  };
-
-  const handleDrinkMixChange = (id: string | null) => {
-    markPlanStale();
-    setSelectedDrinkMixId(id);
-  };
-
-  const handleSolidSelectionChange = (ids: string[]) => {
-    markPlanStale();
-    setSelectedSolidIds(ids);
-  };
 
   const drinkMixOptions = useMemo(
     () =>
@@ -357,7 +283,6 @@ export function PlannerPage() {
     [products]
   );
 
-  // Expand bottle pool into a flat BottleSlot[] for the engine
   const selectedBottleSlots = useMemo(
     () =>
       BOTTLE_SIZES.flatMap((size) =>
@@ -391,115 +316,227 @@ export function PlannerPage() {
 
   const selectedDrinkMix =
     drinkMixOptions.find((mix) => mix.id === effectiveSelectedDrinkMixId) ?? null;
-  const canCalculate =
-    totalBottleCount(bottlePool) > 0 &&
-    Boolean(selectedDrinkMix) &&
-    fuelEngine.weightReady;
 
-  const handleCalculate = (ride: RideCharacteristics) => {
-    if (!canCalculate || !selectedDrinkMix) return;
+  const intensityFactor = parseNumber(intensityFactorInput);
+  const parsedCarbTarget = parseNumber(carbTargetInput);
+  const customCarbTargetIsValid =
+    !carbTargetIsCustom ||
+    (Number.isFinite(parsedCarbTarget) &&
+      parsedCarbTarget >= 0 &&
+      parsedCarbTarget <= 120);
+  const carbTargetError = customCarbTargetIsValid
+    ? undefined
+    : 'Enter carbs/hour from 0 to 120.';
 
-    const availableSolids = solidOptions.filter((product) =>
-      effectiveSelectedSolidIds.includes(product.id)
-    );
+  const recommendationInput = useMemo(
+    () => ({
+      durationMinutes,
+      intensityFactor,
+      heatFactor,
+      ftpWatts: athleteProfile.ftpWatts,
+      heavySweater: athleteProfile.heavySweater,
+      gutTrainingTargetGph: athleteProfile.gutTrainingTargetGph,
+      refuelStops,
+    }),
+    [
+      athleteProfile.ftpWatts,
+      athleteProfile.gutTrainingTargetGph,
+      athleteProfile.heavySweater,
+      durationMinutes,
+      heatFactor,
+      intensityFactor,
+      refuelStops,
+    ]
+  );
 
-    const next = fuelEngine.build({
-      ride,
+  const recommendedRide = useMemo(() => {
+    try {
+      return buildOneSheetRide(recommendationInput);
+    } catch {
+      return null;
+    }
+  }, [recommendationInput]);
+
+  const recommendedCarbTarget =
+    recommendedRide?.autoMetrics?.autoCarbTargetGramsPerHour ??
+    recommendedRide?.carbTargetGramsPerHour;
+
+  const effectiveRide = useMemo(() => {
+    if (carbTargetIsCustom && !customCarbTargetIsValid) return null;
+    try {
+      return buildOneSheetRide({
+        ...recommendationInput,
+        carbTargetOverrideGramsPerHour: carbTargetIsCustom
+          ? parsedCarbTarget
+          : undefined,
+      });
+    } catch {
+      return null;
+    }
+  }, [
+    carbTargetIsCustom,
+    customCarbTargetIsValid,
+    parsedCarbTarget,
+    recommendationInput,
+  ]);
+
+  const missingRequirements = useMemo(() => {
+    const missing = getMissingPlanRequirements({
+      weightReady: fuelEngine.weightReady,
+      durationMinutes,
+      intensityFactor,
+      bottleCount: totalBottleCount(bottlePool),
+      hasDrinkMix: Boolean(selectedDrinkMix),
+    });
+    if (carbTargetError) missing.push(carbTargetError);
+    return missing;
+  }, [
+    bottlePool,
+    carbTargetError,
+    durationMinutes,
+    fuelEngine.weightReady,
+    intensityFactor,
+    selectedDrinkMix,
+  ]);
+
+  const prescription = useMemo(() => {
+    if (missingRequirements.length > 0 || !effectiveRide || !selectedDrinkMix) {
+      return null;
+    }
+
+    return fuelEngine.build({
+      ride: effectiveRide,
       bottles: selectedBottleSlots,
       drinkMix: selectedDrinkMix,
-      solids: availableSolids,
+      solids: selectedSolidProducts,
+      solidOverrides,
     });
+  }, [
+    effectiveRide,
+    fuelEngine,
+    missingRequirements.length,
+    selectedBottleSlots,
+    selectedDrinkMix,
+    selectedSolidProducts,
+    solidOverrides,
+  ]);
 
-    if (!next) return;
+  useEffect(() => {
+    const nextDraft: PlannerDraft = {
+      ride: effectiveRide ?? recommendedRide ?? undefined,
+      selectedBottleCounts: bottlePool,
+      selectedDrinkMixId: effectiveSelectedDrinkMixId,
+      selectedSolidIds: effectiveSelectedSolidIds,
+      solidOverrides,
+      title: planTitle || undefined,
+    };
+    const nextSignature = JSON.stringify(nextDraft);
 
-    const suggestedTitle = getPlanTitleSuggestion(ride);
+    setPlannerDraft(nextDraft);
+    if (previousDraftSignatureRef.current === null) {
+      previousDraftSignatureRef.current = nextSignature;
+      return;
+    }
+    if (previousDraftSignatureRef.current === nextSignature) return;
 
-    setPrescription(next);
-    setPersistedRide(ride);
-    setPlanTitle((current) => {
-      if (!current.trim()) return suggestedTitle;
-      if (isGeneratedPlanTitle(current, ride)) return suggestedTitle;
-      if (persistedRide && isGeneratedPlanTitle(current, persistedRide)) {
-        return suggestedTitle;
-      }
-      return current;
+    previousDraftSignatureRef.current = nextSignature;
+    const showTimer = setTimeout(() => setDraftSavedFlash(true), 0);
+    const hideTimer = setTimeout(() => setDraftSavedFlash(false), 1600);
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [
+    bottlePool,
+    effectiveRide,
+    effectiveSelectedDrinkMixId,
+    effectiveSelectedSolidIds,
+    planTitle,
+    recommendedRide,
+    setPlannerDraft,
+    solidOverrides,
+  ]);
+
+  const heatOptions = Object.entries(HEAT_LABELS[temperatureUnit]).map(
+    ([value, label]) => ({ value, label })
+  );
+
+  const handleBottleCountChange = (size: BottleSize, count: number) => {
+    setBottlePool((prev) => ({ ...prev, [size]: Math.max(0, count) }));
+  };
+
+  const handleSolidSelectionChange = (ids: string[]) => {
+    setSelectedSolidIds(ids);
+    setSolidOverrides((current) => {
+      if (!current) return undefined;
+      const allowed = new Set(ids);
+      const next = Object.fromEntries(
+        Object.entries(current).filter(([productId]) => allowed.has(productId))
+      );
+      return Object.keys(next).length > 0 ? next : undefined;
     });
-    setPlanIsStale(false);
-    setActiveStep(3);
-    setResultTab('pack');
-    setToastMessage(null);
-    scrollPlanIntoView();
   };
 
   const handleSolidQuantityChange = (productId: string, quantity: number) => {
-    if (!prescription || !persistedRide || !selectedDrinkMix) return;
-
-    const overridesByProductId = new Map<string, number>();
-    prescription.packList?.solids.forEach((solid) => {
-      overridesByProductId.set(solid.productId, solid.quantity);
-    });
-    overridesByProductId.set(productId, quantity);
-    const solidOverrides = Object.fromEntries(overridesByProductId);
-
-    const availableSolids = solidOptions.filter((product) =>
-      effectiveSelectedSolidIds.includes(product.id)
-    );
-
-    const rebuilt = fuelEngine.build({
-      ride: persistedRide,
-      bottles: selectedBottleSlots,
-      drinkMix: selectedDrinkMix,
-      solids: availableSolids,
-      solidOverrides,
-    });
-
-    if (rebuilt) setPrescription(rebuilt);
+    setSolidOverrides((current) => ({
+      ...(current ?? {}),
+      [productId]: quantity,
+    }));
   };
 
   const handleSavePlan = () => {
-    if (!prescription || !persistedRide) return;
+    if (!prescription || !effectiveRide) return;
 
     saveFuelPlan({
       title: planTitle.trim() || undefined,
-      ride: persistedRide,
+      ride: effectiveRide,
       bottlePool,
       selectedDrinkMixId: effectiveSelectedDrinkMixId,
       selectedSolidIds: effectiveSelectedSolidIds,
+      solidOverrides,
       prescription,
     });
     setToastMessage('Plan saved to history.');
   };
 
   const handleResetPlan = () => {
-    setPrescription(null);
+    setDurationMinutes(DEFAULT_DURATION_MINUTES);
+    setIntensityFactorInput(String(DEFAULT_INTENSITY_FACTOR));
+    setHeatFactor(DEFAULT_HEAT_FACTOR);
+    setCarbTargetIsCustom(false);
+    setRefuelStops(0);
+    setBottlePool({ 550: 0, 750: 0, 950: 0 });
+    setSelectedDrinkMixId(getDefaultSelectedDrinkMixId(products, null));
+    setSelectedSolidIds(getDefaultSelectedSolidIds(products, null));
+    setSolidOverrides(undefined);
     setPlanTitle('');
-    setResultTab('pack');
-    setPlanIsStale(false);
-    setActiveStep(1);
-    setRideFormInitialSnapshot(rideFormSnapshot);
-    setRideFormInstanceKey((current) => current + 1);
   };
 
   const handleReuseSavedPlan = (savedPlan: FuelPlan) => {
     const draft = buildPlannerDraftFromSavedPlan(savedPlan, products);
+    const ride = draft.ride;
     setPlannerDraft(draft);
     setBottlePool(initBottlePool(draft));
     setSelectedDrinkMixId(draft.selectedDrinkMixId ?? null);
     setSelectedSolidIds(draft.selectedSolidIds ?? []);
-    setPersistedRide(draft.ride);
-    setRideFormInitialSnapshot(
-      draft.ride ? getRideFormSnapshotFromRide(draft.ride) : undefined
-    );
-    setRideFormInstanceKey((current) => current + 1);
-    setPrescription(savedPlan.prescription);
-    setPlanIsStale(false);
+    setSolidOverrides(normalizeSolidOverrides(draft.solidOverrides));
     setPlanTitle(draft.title ?? '');
-    setResultTab('pack');
-    setActiveStep(2);
-    setToastMessage('Saved plan loaded. Review ride data, then rebuild.');
+    if (ride) {
+      setDurationMinutes(ride.durationMinutes);
+      setIntensityFactorInput(
+        String(
+          ride.autoMetrics?.userProvidedIntensityFactor ??
+            ride.autoMetrics?.intensityFactor ??
+            DEFAULT_INTENSITY_FACTOR
+        )
+      );
+      setHeatFactor(ride.heatFactor);
+      setCarbTargetInput(String(ride.carbTargetGramsPerHour));
+      setCarbTargetIsCustom(Boolean(ride.autoMetrics?.carbOverrideApplied));
+      setRefuelStops(ride.refuelStops ?? 0);
+    }
+    setToastMessage('Saved plan loaded.');
   };
-
-  const dismissToast = useCallback(() => setToastMessage(null), []);
 
   const handleQuickWeightUnitChange = (unit: AnthropometricsUnit) => {
     setQuickWeightInput((current) =>
@@ -522,55 +559,39 @@ export function PlannerPage() {
       weightKg,
     });
     setQuickWeightError(undefined);
-    setToastMessage('Weight saved. Build your ride plan.');
+    setToastMessage('Weight saved. Plan updated.');
   };
 
-  const canOpenStep = (targetStep: PlannerStep) => {
-    if (targetStep === 1) return true;
-    if (targetStep === 2) return canCalculate;
-    if (targetStep === 3) {
-      return Boolean(prescription) || (canCalculate && rideFormCanCalculate);
-    }
-    return false;
-  };
-
-  const handleStepSelect = (targetStep: PlannerStep) => {
-    if (!canOpenStep(targetStep)) return;
-    setActiveStep((current) => (current === targetStep ? current : targetStep));
-  };
-
-  const handleBuildPlanRequest = () => {
-    if (canCalculate && rideFormCanCalculate) {
-      setActiveStep(3);
-      setRideFormSubmitTrigger((current) => current + 1);
-    }
-  };
-
-  const setupSummary = formatSetupSummary({
-    selectedBottleCounts: bottlePool,
-    selectedDrinkMix,
-    selectedSolidIds: effectiveSelectedSolidIds,
-  });
-  const rideSummary = formatRideSummary(persistedRide);
-  const setupComplete = canCalculate;
-  const rideComplete = Boolean(persistedRide) && rideFormCanCalculate;
-  const canOpenPlan = canOpenStep(3);
+  const dismissToast = useCallback(() => setToastMessage(null), []);
   const showDebugCopy =
     import.meta.env.DEV && searchParams.get('debug') === '1';
+  const bottleCount = totalBottleCount(bottlePool);
+  const carbTargetDisplayValue =
+    carbTargetIsCustom || recommendedCarbTarget === undefined
+      ? carbTargetInput
+      : String(recommendedCarbTarget);
+  const rideSummary = [
+    `${durationMinutes} min`,
+    Number.isFinite(intensityFactor) ? `${intensityFactor.toFixed(2)} IF` : 'IF',
+    recommendedCarbTarget !== undefined
+      ? `${carbTargetDisplayValue} g/h`
+      : 'target',
+  ].join(' · ');
+  const carrySummary = [
+    bottleCount === 1 ? '1 bottle' : `${bottleCount} bottles`,
+    selectedDrinkMix?.name ?? 'No mix',
+    `${effectiveSelectedSolidIds.length} solids`,
+  ].join(' · ');
 
   return (
     <>
       <div className="page-shell space-y-5 md:space-y-6">
         <PageIntro
           title="Fuel plan"
-          description={
-            <>
-              Choose bottles and fuel, then enter ride data.
-            </>
-          }
+          description="Enter duration and projected IF. The plan updates as you adjust."
           meta={
             <div aria-live="polite" className="text-xs text-ink-500">
-              {activeStep !== 3 && draftSavedFlash && (
+              {draftSavedFlash && (
                 <span className="inline-flex items-center gap-1 transition-opacity duration-300">
                   <svg
                     viewBox="0 0 16 16"
@@ -595,74 +616,156 @@ export function PlannerPage() {
 
         <NutritionWorkspaceLayout
           main={
-            !fuelEngine.weightReady ? (
-              <Card className="overflow-hidden">
-                <CardContent className="space-y-4 py-6 md:py-8">
-                  <div className="space-y-2">
-                    <h2 className="text-lg font-semibold text-ink-900">
-                      Set your weight to plan
-                    </h2>
-                    <p className="max-w-prose text-sm leading-6 text-ink-600">
-                      One number sizes carbs, fluid, and sodium. Save it here,
-                      then keep building the ride plan.
-                    </p>
-                  </div>
-                  <form
-                    aria-label="Set rider weight"
-                    className="space-y-4"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      handleQuickWeightSubmit();
-                    }}
-                  >
-                    <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem] sm:items-end">
-                      <Input
-                        id="planner-quick-weight"
-                        label={`Weight, ${quickWeightUnit === 'imperial' ? 'lb' : 'kg'}`}
-                        type="number"
-                        min="1"
-                        inputMode="decimal"
-                        value={quickWeightInput}
-                        onChange={(event) => {
-                          setQuickWeightInput(event.target.value);
-                          setQuickWeightError(undefined);
+            <div className="overflow-hidden rounded-2xl border border-[color:var(--border-soft)] bg-white shadow-[var(--shadow-soft)]">
+              {!fuelEngine.weightReady ? (
+                <PlannerSection title="Weight">
+                  <Card className="overflow-hidden shadow-none">
+                    <CardContent className="space-y-4 py-5 md:py-6">
+                      <div className="space-y-2">
+                        <h2 className="text-lg font-semibold text-ink-900">
+                          Set your weight to plan
+                        </h2>
+                        <p className="max-w-prose text-sm leading-6 text-ink-600">
+                          One number sizes carbs, fluid, and sodium.
+                        </p>
+                      </div>
+                      <form
+                        aria-label="Set rider weight"
+                        className="space-y-4"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          handleQuickWeightSubmit();
                         }}
-                        placeholder={quickWeightUnit === 'imperial' ? '160' : '72'}
-                        error={quickWeightError}
-                      />
-                      <SegmentedControl
-                        label="Weight unit"
-                        options={[
-                          { value: 'metric', label: 'kg' },
-                          { value: 'imperial', label: 'lb' },
-                        ]}
-                        value={quickWeightUnit}
-                        onChange={handleQuickWeightUnitChange}
-                        className="w-full"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                      <Button type="submit">Use this weight</Button>
-                      <Link
-                        to="/account#athlete"
-                        className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:min-h-10"
                       >
-                        Edit full profile
-                      </Link>
+                        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem] sm:items-end">
+                          <Input
+                            id="planner-quick-weight"
+                            label={`Weight, ${quickWeightUnit === 'imperial' ? 'lb' : 'kg'}`}
+                            type="number"
+                            min="1"
+                            inputMode="decimal"
+                            value={quickWeightInput}
+                            onChange={(event) => {
+                              setQuickWeightInput(event.target.value);
+                              setQuickWeightError(undefined);
+                            }}
+                            placeholder={quickWeightUnit === 'imperial' ? '160' : '72'}
+                            error={quickWeightError}
+                          />
+                          <SegmentedControl
+                            label="Weight unit"
+                            options={[
+                              { value: 'metric', label: 'kg' },
+                              { value: 'imperial', label: 'lb' },
+                            ]}
+                            value={quickWeightUnit}
+                            onChange={handleQuickWeightUnitChange}
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <Button type="submit">Use this weight</Button>
+                          <Link
+                            to="/account#athlete"
+                            className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-ink-700 transition-colors hover:bg-shell-50 hover:text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-shell-100 md:min-h-10"
+                          >
+                            Edit full profile
+                          </Link>
+                        </div>
+                      </form>
+                    </CardContent>
+                  </Card>
+                </PlannerSection>
+              ) : null}
+
+              <PlannerSection title="Ride" summary={rideSummary}>
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <Input
+                    id="planner-duration"
+                    label="Duration, min"
+                    type="number"
+                    min={30}
+                    max={300}
+                    step={5}
+                    value={durationMinutes}
+                    onChange={(event) =>
+                      setDurationMinutes(Number(event.target.value))
+                    }
+                  />
+                  <Input
+                    id="planner-if"
+                    label="Projected IF"
+                    type="number"
+                    min={0.4}
+                    max={1.3}
+                    step={0.01}
+                    value={intensityFactorInput}
+                    onChange={(event) => setIntensityFactorInput(event.target.value)}
+                  />
+                  <Select
+                    label="Weather"
+                    value={heatFactor}
+                    onChange={(event) =>
+                      setHeatFactor(event.target.value as HeatFactor)
+                    }
+                    options={heatOptions}
+                  />
+                  <div className="space-y-2">
+                    <Input
+                      id="planner-carbs"
+                      label="Carbs/hour"
+                      type="number"
+                      min={0}
+                      max={120}
+                      step={5}
+                      value={carbTargetDisplayValue}
+                      onChange={(event) => {
+                        setCarbTargetIsCustom(true);
+                        setCarbTargetInput(event.target.value);
+                      }}
+                      error={carbTargetError}
+                    />
+                    <div className="flex min-h-5 items-center gap-2 text-xs text-ink-500">
+                      {carbTargetIsCustom ? (
+                        <>
+                          <span>Custom target</span>
+                          <button
+                            type="button"
+                            className="font-medium text-brand-700 underline-offset-2 hover:underline"
+                            onClick={() => {
+                              setCarbTargetIsCustom(false);
+                              if (recommendedCarbTarget !== undefined) {
+                                setCarbTargetInput(String(recommendedCarbTarget));
+                              }
+                            }}
+                          >
+                            Reset
+                          </button>
+                        </>
+                      ) : (
+                        <span>Suggested from ride and preference</span>
+                      )}
                     </div>
-                  </form>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-              <PlanningStepPanel
-                step={1}
-                title="Setup"
-                summary={setupSummary}
-                active={activeStep === 1}
-                complete={setupComplete}
-                onToggle={() => handleStepSelect(1)}
-              >
+                  </div>
+                </div>
+
+                {durationMinutes >= 120 ? (
+                  <div className="max-w-xs pt-1">
+                    <Select
+                      label="Refills"
+                      value={String(refuelStops)}
+                      onChange={(event) => setRefuelStops(Number(event.target.value))}
+                      options={[
+                        { value: '0', label: 'No refill' },
+                        { value: '1', label: '1 refill' },
+                        { value: '2', label: '2 refills' },
+                      ]}
+                    />
+                  </div>
+                ) : null}
+              </PlannerSection>
+
+              <PlannerSection title="Carry" summary={carrySummary}>
                 <SetupCard
                   variant="embedded"
                   selectedBottleCounts={bottlePool}
@@ -671,102 +774,16 @@ export function PlannerPage() {
                   selectedDrinkMixId={effectiveSelectedDrinkMixId}
                   selectedSolidIds={effectiveSelectedSolidIds}
                   onBottleCountChange={handleBottleCountChange}
-                  onDrinkMixChange={handleDrinkMixChange}
+                  onDrinkMixChange={setSelectedDrinkMixId}
                   onSolidChange={handleSolidSelectionChange}
                 />
-                {canCalculate ? (
-                  <div className="mt-4 flex justify-end">
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => handleStepSelect(2)}
-                    >
-                      Continue to ride data
-                    </Button>
-                  </div>
-                ) : null}
-              </PlanningStepPanel>
+              </PlannerSection>
 
-              <PlanningStepPanel
-                step={2}
-                title="Ride data"
-                summary={rideSummary}
-                active={activeStep === 2}
-                complete={rideComplete}
-                disabled={!canCalculate}
-                disabledReason="Select bottles and drink mix first."
-                keepMounted
-                onToggle={() => handleStepSelect(2)}
-              >
-                <section className="space-y-4 md:space-y-5">
-                  <RideForm
-                    key={rideFormInstanceKey}
-                    initialSnapshot={rideFormInitialSnapshot}
-                    onCalculate={handleCalculate}
-                    onSnapshotChange={handleRideSnapshotChange}
-                    onCanCalculateChange={setRideFormCanCalculate}
-                    showCalculateButton={false}
-                    submitTrigger={rideFormSubmitTrigger}
-                    disabled={!canCalculate}
-                  />
-                  {canCalculate && rideFormCanCalculate ? (
-                    <div className="flex justify-end">
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={handleBuildPlanRequest}
-                      >
-                        Build plan
-                      </Button>
-                    </div>
-                  ) : null}
-                </section>
-              </PlanningStepPanel>
-
-              <div ref={planStepRef} className="scroll-mt-20 md:scroll-mt-24">
-                <PlanningStepPanel
-                  step={3}
-                  title="Plan"
-                  summary={
-                    prescription
-                      ? planIsStale
-                        ? 'Review old result or rebuild'
-                        : 'Plan ready'
-                      : 'Build from ride data'
-                  }
-                  active={activeStep === 3}
-                  complete={Boolean(prescription) && !planIsStale}
-                  stale={planIsStale}
-                  disabled={!canOpenPlan}
-                  disabledReason="Enter valid ride data first."
-                  onToggle={() => handleStepSelect(3)}
-                >
-                {planIsStale ? (
-                  <Alert variant="warning" className="mb-4">
-                    This result uses previous inputs. Rebuild to use the current
-                    setup and ride data.
-                  </Alert>
-                ) : null}
-
+              <PlannerSection title="Plan">
                 {prescription ? (
-                  <div className="space-y-4">
-                    <Tabs
-                      value={resultTab}
-                      onChange={(value) => setResultTab(value as ResultTab)}
-                      className="rounded-full border border-[color:var(--border-soft)] bg-white p-1"
-                    >
-                      <TabList
-                        label="Fuel plan view"
-                        className="grid w-full grid-cols-3 gap-1.5 md:gap-2"
-                      >
-                        <Tab value="pack">Bring</Tab>
-                        <Tab value="guide">Ride cues</Tab>
-                        <Tab value="metrics">Targets</Tab>
-                      </TabList>
-                    </Tabs>
-
+                  <div className="space-y-5">
                     <FuelResultV3
-                      section={resultTab}
+                      section="all"
                       prescription={prescription}
                       products={products}
                       availableSolids={selectedSolidProducts}
@@ -786,18 +803,20 @@ export function PlannerPage() {
                         label="Plan name"
                         value={planTitle}
                         onChange={(event) => setPlanTitle(event.target.value)}
-                        placeholder="Optional"
+                        placeholder={
+                          effectiveRide
+                            ? getPlanTitleSuggestion(effectiveRide)
+                            : 'Optional'
+                        }
                       />
 
                       <div className="grid gap-2 sm:flex sm:flex-wrap">
                         <Button
                           type="button"
                           className="w-full sm:w-auto"
-                          onClick={
-                            planIsStale ? handleBuildPlanRequest : handleSavePlan
-                          }
+                          onClick={handleSavePlan}
                         >
-                          {planIsStale ? 'Rebuild plan' : 'Save plan'}
+                          Save plan
                         </Button>
                         <Button
                           type="button"
@@ -821,26 +840,16 @@ export function PlannerPage() {
                     )}
                   </div>
                 ) : (
-                  <Card>
-                    <CardContent className="space-y-3 py-8 text-center">
-                      <p className="text-ink-600">
-                        Build a plan from the current ride data.
-                      </p>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={handleBuildPlanRequest}
-                        disabled={!canCalculate || !rideFormCanCalculate}
-                      >
-                        Build plan
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  <Alert variant="info" title="Plan needs a few inputs">
+                    <ul className="list-disc space-y-1 pl-5">
+                      {missingRequirements.map((requirement) => (
+                        <li key={requirement}>{requirement}</li>
+                      ))}
+                    </ul>
+                  </Alert>
                 )}
-                </PlanningStepPanel>
-              </div>
-            </>
-            )
+              </PlannerSection>
+            </div>
           }
           rail={
             <NutritionRail>
@@ -849,7 +858,6 @@ export function PlannerPage() {
                 products={products}
                 defaultOpen={!prescription}
                 onToggleProductAvailability={(productId, isAvailable) => {
-                  markPlanStale();
                   updateProduct(productId, { isAvailable });
                 }}
               />

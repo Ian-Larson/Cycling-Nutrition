@@ -1,6 +1,12 @@
 import { useState } from 'react';
-import { Alert, SpecRow, Stepper } from '@/components/ui';
-import { formatTime } from '@/lib/format/time';
+import {
+  Alert,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  SpecRow,
+  Stepper,
+} from '@/components/ui';
 import {
   formatCarbsGrams,
   formatCarbsPerHour,
@@ -9,10 +15,10 @@ import {
   formatMgPerL,
   formatSodiumPerHour,
 } from '@/lib/fueling/format';
+import { formatEveryThirtyMinutesCue } from '@/lib/planner/one-sheet';
 import type { Product } from '@/types';
 import type {
   FuelingPrescription,
-  TimelineItem,
   Warning,
   WarningSeverity,
 } from '@/lib/fueling/types';
@@ -326,12 +332,6 @@ function BringList({
       : '0 solids',
     formatCarbsPerHour(prescription.during.carbsGPerHour),
   ].join(' · ');
-  const firstDuringCue = prescription.timeline?.find(
-    (item) => item.phase === 'during'
-  );
-  const firstCueLabel = firstDuringCue
-    ? `${formatTime(firstDuringCue.offsetMinutesFromStart)} · ${firstDuringCue.action}`
-    : null;
 
   if (!hasBottles && !hasSolids && shortfall <= 0) return null;
 
@@ -345,11 +345,6 @@ function BringList({
           <p className="mt-1 text-sm leading-5 text-ink-700 tabular-nums">
             {prepSummary}
           </p>
-          {firstCueLabel ? (
-            <p className="mt-2 text-sm leading-6 text-brand-900">
-              First cue: {firstCueLabel}
-            </p>
-          ) : null}
         </div>
         <CopyPlanButton prescription={prescription} products={products} />
       </div>
@@ -553,44 +548,54 @@ function RideNumbers({ prescription }: { prescription: FuelingPrescription }) {
   );
 }
 
-function RideCueList({ items }: { items: TimelineItem[] | undefined }) {
-  const rideItems = items?.filter((item) => item.phase === 'during') ?? [];
-  if (rideItems.length === 0) return null;
-
+function ThirtyMinuteCue({ prescription }: { prescription: FuelingPrescription }) {
   return (
-    <section aria-labelledby="ride-cues-title" className="space-y-3">
-      <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--border-soft)] pb-3">
-        <h3 id="ride-cues-title" className="section-title">
-          Ride cues
-        </h3>
-        <p className="text-xs leading-5 text-ink-500">
-          {rideItems.length} {rideItems.length === 1 ? 'cue' : 'cues'}
+    <section
+      aria-labelledby="thirty-minute-cue-title"
+      className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-brand-900"
+    >
+      <p
+        id="thirty-minute-cue-title"
+        className="section-kicker text-[0.68rem] text-brand-700"
+      >
+        On the bike
+      </p>
+      <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <p className="font-sans text-lg font-semibold leading-tight tabular-nums">
+          {formatEveryThirtyMinutesCue(prescription.during.carbsGPerHour)}
+        </p>
+        <p className="text-sm leading-5 text-brand-800">
+          Keep it steady; adjust by feel.
         </p>
       </div>
-      <ol className="divide-y divide-[color:var(--border-soft)] border-y border-[color:var(--border-soft)]">
-        {rideItems.map((item, i) => {
-          const offset = item.offsetMinutesFromStart;
-          const label =
-            offset < 0 ? `T-${formatTime(Math.abs(offset))}` : formatTime(offset);
-          return (
-            <li
-              key={`${item.offsetMinutesFromStart}-${i}`}
-              className="flex items-start gap-3 py-2.5"
-            >
-              <span className="shrink-0 rounded-md border border-brand-200 bg-brand-100 px-2 py-1 font-sans text-xs font-semibold tabular-nums text-brand-800">
-                {label}
-              </span>
-              <p className="min-w-0 flex-1 text-sm leading-6 text-ink-900">
-                {item.action}
-              </p>
-              <p className="shrink-0 text-right text-xs font-semibold leading-6 tabular-nums text-ink-600">
-                {item.cumulativeCarbs} g
-              </p>
-            </li>
-          );
-        })}
-      </ol>
     </section>
+  );
+}
+
+function PlanDetails({
+  prescription,
+  displayedWarnings,
+}: {
+  prescription: FuelingPrescription;
+  displayedWarnings: Warning[];
+}) {
+  return (
+    <Collapsible>
+      <div className="rounded-xl border border-[color:var(--border-soft)] bg-white">
+        <CollapsibleTrigger className="px-4 py-3 md:px-4 md:py-3">
+          <span className="min-w-0">
+            <span className="section-title block text-base">Details</span>
+            <span className="mt-0.5 block text-sm leading-5 text-ink-600">
+              Targets, sodium, mix strength, and warnings
+            </span>
+          </span>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-5 border-t border-[color:var(--border-soft)] px-4 py-4">
+          <RideNumbers prescription={prescription} />
+          <WarningsList warnings={displayedWarnings} />
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
   );
 }
 
@@ -601,7 +606,6 @@ export function FuelResultV3({
   onSolidQuantityChange,
   section = 'all',
 }: FuelResultV3Props) {
-  const showMetrics = section === 'all' || section === 'metrics';
   const showPack = section === 'all' || section === 'pack';
   const showGuide = section === 'all' || section === 'guide';
   const displayedWarnings = getDisplayedWarnings(prescription.warnings);
@@ -616,9 +620,15 @@ export function FuelResultV3({
           onSolidQuantityChange={onSolidQuantityChange}
         />
       )}
-      {showGuide && <RideCueList items={prescription.timeline} />}
-      {showMetrics && <RideNumbers prescription={prescription} />}
-      {showMetrics && <WarningsList warnings={displayedWarnings} />}
+      {showGuide && <ThirtyMinuteCue prescription={prescription} />}
+      {section === 'all' && (
+        <PlanDetails
+          prescription={prescription}
+          displayedWarnings={displayedWarnings}
+        />
+      )}
+      {section === 'metrics' && <RideNumbers prescription={prescription} />}
+      {section === 'metrics' && <WarningsList warnings={displayedWarnings} />}
     </div>
   );
 }
