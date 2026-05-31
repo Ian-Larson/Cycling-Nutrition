@@ -1,11 +1,19 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
+  createCloudBackupStorageKey,
+  isQuotaExceededError,
+  LOCAL_RESTORE_BACKUP_KEEP_COUNT,
+  pruneCloudRestoreBackups,
+} from '@/lib/storage/local-storage';
+import {
   APP_STATE_SCHEMA_VERSION,
   parseSerializedAppState,
   serializeAppState,
   type SerializedAppState,
 } from './app-state';
 import type { AppDataSnapshot, AppState } from '@/store';
+
+export { createCloudBackupStorageKey } from '@/lib/storage/local-storage';
 
 export type CloudSyncStatus =
   | 'idle'
@@ -141,10 +149,6 @@ export async function initializeUserCloudState({
   };
 }
 
-export function createCloudBackupStorageKey(userId: string, now = new Date()): string {
-  return `cycling-nutrition-cloud-backup:${userId}:${now.toISOString()}`;
-}
-
 export function saveCloudRestoreBackup(
   userId: string,
   snapshot: SerializedAppState,
@@ -153,16 +157,35 @@ export function saveCloudRestoreBackup(
 ): void {
   if (!storage) return;
 
+  pruneCloudRestoreBackups(storage, {
+    userId,
+    keep: LOCAL_RESTORE_BACKUP_KEEP_COUNT - 1,
+  });
+
+  const key = createCloudBackupStorageKey(userId);
+  const value = JSON.stringify(snapshot);
+
   try {
-    storage.setItem(
-      createCloudBackupStorageKey(userId),
-      JSON.stringify(snapshot)
-    );
-  } catch {
-    // Backups are a safety net only. Sync should not fail if storage is full.
+    storage.setItem(key, value);
+  } catch (error) {
+    if (!isQuotaExceededError(error)) {
+      return;
+    }
+
+    pruneCloudRestoreBackups(storage, { userId, keep: 0 });
+
+    try {
+      storage.setItem(key, value);
+    } catch {
+      return;
+    }
+  } finally {
+    pruneCloudRestoreBackups(storage, {
+      userId,
+      keep: LOCAL_RESTORE_BACKUP_KEEP_COUNT,
+    });
   }
 }
-
 export function createDebouncedCloudWriter<T>({
   delayMs,
   write,

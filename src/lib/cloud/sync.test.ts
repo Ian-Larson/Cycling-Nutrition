@@ -7,11 +7,14 @@ import {
 } from '@/store';
 import { serializeAppState, type SerializedAppState } from './app-state';
 import {
+  createCloudBackupStorageKey,
   createDebouncedCloudWriter,
   initializeUserCloudState,
+  saveCloudRestoreBackup,
   type CloudStateRepository,
   type CloudUserStateRecord,
 } from './sync';
+import { listCloudBackupStorageKeys } from '@/lib/storage/local-storage';
 
 function makeAppData(productCount: number): AppDataSnapshot {
   return {
@@ -73,6 +76,34 @@ class FakeRepository implements CloudStateRepository {
   }
 }
 
+class MemoryStorage implements Storage {
+  private readonly entries = new Map<string, string>();
+
+  get length(): number {
+    return this.entries.size;
+  }
+
+  clear(): void {
+    this.entries.clear();
+  }
+
+  getItem(key: string): string | null {
+    return this.entries.get(key) ?? null;
+  }
+
+  key(index: number): string | null {
+    return Array.from(this.entries.keys())[index] ?? null;
+  }
+
+  removeItem(key: string): void {
+    this.entries.delete(key);
+  }
+
+  setItem(key: string, value: string): void {
+    this.entries.set(key, value);
+  }
+}
+
 describe('cloud sync initialization', () => {
   it('uploads local state when no cloud row exists', async () => {
     const repo = new FakeRepository();
@@ -117,6 +148,33 @@ describe('cloud sync initialization', () => {
     expect(replaceAppData).toHaveBeenCalledWith(cloudSnapshot.data);
     expect(saveBackup).toHaveBeenCalledTimes(1);
     expect(repo.upserts).toHaveLength(0);
+  });
+
+  it('bounds local restore backups when saving a cloud overwrite backup', () => {
+    const storage = new MemoryStorage();
+    const oldestBackup = createCloudBackupStorageKey(
+      'user-1',
+      new Date('2026-05-01T00:00:00.000Z')
+    );
+    const retainedBackups = [
+      createCloudBackupStorageKey('user-1', new Date('2026-05-02T00:00:00.000Z')),
+      createCloudBackupStorageKey('user-1', new Date('2026-05-03T00:00:00.000Z')),
+    ];
+    storage.setItem(oldestBackup, 'oldest');
+    for (const key of retainedBackups) {
+      storage.setItem(key, key);
+    }
+    storage.setItem('unrelated-key', 'keep');
+
+    saveCloudRestoreBackup(
+      'user-1',
+      serializeAppState(makeAppState(makeAppData(1))),
+      storage
+    );
+
+    expect(storage.getItem(oldestBackup)).toBeNull();
+    expect(storage.getItem('unrelated-key')).toBe('keep');
+    expect(listCloudBackupStorageKeys(storage, 'user-1')).toHaveLength(3);
   });
 });
 

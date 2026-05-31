@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { nanoid } from 'nanoid';
 import type {
@@ -39,6 +39,7 @@ import {
   normalizeGearServiceEvents,
 } from '@/lib/gear/normalizers';
 import { normalizeSolidOverrides } from '@/lib/planner/one-sheet';
+import { createQuotaResilientStorage } from '@/lib/storage/local-storage';
 
 export type TemperatureUnit = 'celsius' | 'fahrenheit';
 
@@ -112,6 +113,9 @@ export interface AppDataSnapshot {
   ftpHistory: FtpHistoryEntry[];
   weightHistory: WeightHistoryEntry[];
 }
+
+export type PersistedAppState = AppDataSnapshot &
+  Pick<AppState, '_initialized' | 'gearSectionsOpen'>;
 
 export interface AppReadiness {
   hasAvailableBottle: boolean;
@@ -598,6 +602,14 @@ export function getAppDataFromState(
     gearSelectedBikeId: state.gearSelectedBikeId,
     ftpHistory: state.ftpHistory,
     weightHistory: state.weightHistory,
+  };
+}
+
+export function getPersistedAppState(state: AppState): PersistedAppState {
+  return {
+    ...getAppDataFromState(state),
+    gearSectionsOpen: state.gearSectionsOpen,
+    _initialized: state._initialized,
   };
 }
 
@@ -1554,6 +1566,10 @@ export const useStore = create<AppState>()(
     })),
     {
       name: 'cycling-nutrition-storage',
+      storage: createJSONStorage(() =>
+        createQuotaResilientStorage(window.localStorage)
+      ),
+      partialize: getPersistedAppState,
       version: 2,
       migrate: (persistedState, version) => {
         if (!persistedState || typeof persistedState !== 'object') {
